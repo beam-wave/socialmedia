@@ -50,6 +50,32 @@ defmodule Socialmedia.Content do
     end)
   end
 
+  @doc """
+  The rest of a day's fixtures from the same agent run: each becomes its own
+  post, made for the same time, and only needs rendering.
+  """
+  def add_fixtures(%Post{} = first, datas, made_for, result) do
+    for data <- datas do
+      Repo.transact(fn ->
+        with {:ok, post} <-
+               Posts.create_post(%{
+                 channel_id: first.channel_id,
+                 schedule_id: first.schedule_id,
+                 post_type: "fixture",
+                 scheduled_at: made_for,
+                 admin_note: first.admin_note,
+                 status: "creating",
+                 data: data,
+                 sources: result[:sources] || [],
+                 agent_log: result[:notes]
+               }),
+             {:ok, _job} <- Produce.enqueue(post, render_only: true) do
+          {:ok, post}
+        end
+      end)
+    end
+  end
+
   @doc "Uploads a finished post (slides, then manifest) and marks it `uploaded`."
   def upload(%Post{} = post, %{data: data, caption: caption, slides: files} = result) do
     post = Repo.preload(post, [:channel, :parent])

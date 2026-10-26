@@ -3,6 +3,7 @@ defmodule Socialmedia.MatchesTest do
   use Oban.Testing, repo: Socialmedia.Repo
   import Socialmedia.Fixtures
   alias Socialmedia.{Content, Posts, Repo}
+  alias Socialmedia.Content.Matches
   alias Socialmedia.Posts.Post
   alias Socialmedia.Workers.Produce
 
@@ -144,6 +145,51 @@ defmodule Socialmedia.MatchesTest do
              Content.manifests() |> Enum.filter(&(&1["key"] == fx.content_key))
 
     assert at == iso(fx.scheduled_at)
+  end
+
+  test "one run's fixtures are split into a post per match, each with its own teams" do
+    data = %{
+      "theme" => "floodlight",
+      "teams" => %{"IND" => %{}, "AUS" => %{}, "MI" => %{}, "CSK" => %{}},
+      "posts" => [
+        %{"type" => "fixture", "team1" => "IND", "team2" => "AUS"},
+        %{"type" => "fixture", "team1" => "MI", "team2" => "CSK"}
+      ]
+    }
+
+    assert [a, b] = Matches.split_fixtures(data)
+
+    assert a["posts"] == [hd(data["posts"])] and
+             Map.keys(a["teams"]) |> Enum.sort() == ["AUS", "IND"]
+
+    assert Map.keys(b["teams"]) |> Enum.sort() == ["CSK", "MI"] and b["theme"] == "floodlight"
+    assert Matches.split_fixtures(a) == [a]
+  end
+
+  test "the other fixtures of the day become posts that only need rendering", %{ch: ch} do
+    first = make_fixture(ch, hours(30), fixture_data(hours(40)))
+    second = put_in(fixture_data(hours(44)), ["posts", Access.at(0), "team1"], "AUS")
+
+    [{:ok, extra}] =
+      Content.add_fixtures(first, [second], hours(30), %{sources: [%{"url" => "u"}], notes: "n"})
+
+    assert extra.status == "creating" and extra.post_type == "fixture"
+    assert extra.data == second and extra.sources == [%{"url" => "u"}]
+    refute extra.content_key == first.content_key
+    assert_enqueued(worker: Produce, args: %{post_id: extra.id, render_only: true})
+  end
+
+  test "a match-day prompt asks for every match that day", %{ch: ch} do
+    {:ok, fx} = Content.create(ch, %{post_type: "fixture", scheduled_at: hours(5)})
+
+    w =
+      Socialmedia.Content.Work.from_post(
+        Repo.preload(Posts.get_post!(fx.id), :parent),
+        "generate",
+        []
+      )
+
+    assert Socialmedia.Agent.build_prompt(w) =~ "Return every relevant match"
   end
 
   test "rejecting the fixture drops its result post", %{ch: ch} do

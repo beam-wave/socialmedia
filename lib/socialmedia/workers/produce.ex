@@ -2,7 +2,9 @@ defmodule Socialmedia.Workers.Produce do
   @moduledoc """
   Makes one post: runs the agent and the renderer (or only the renderer after
   the admin edited the slide data), then uploads it to S3 for a Pull.
-  One job per click; the `claude` queue runs them one at a time.
+  One job per click; the `claude` queue runs them one at a time. A fixture
+  run returns every match that day: the first fills this post, and each of
+  the others gets its own post and a render-only job.
   """
   use Oban.Worker,
     queue: :claude,
@@ -11,7 +13,7 @@ defmodule Socialmedia.Workers.Produce do
 
   require Logger
   alias Socialmedia.{Agent, Content, Posts, Repo}
-  alias Socialmedia.Content.{Renderer, Work}
+  alias Socialmedia.Content.{Matches, Renderer, Work}
 
   def enqueue(post, opts \\ []),
     do: %{post_id: post.id, render_only: opts[:render_only] || false} |> new() |> Oban.insert()
@@ -31,7 +33,9 @@ defmodule Socialmedia.Workers.Produce do
         try do
           case produce(work, out) do
             {:ok, result} ->
-              {:ok, _} = Content.upload(post, result)
+              {:ok, uploaded} = Content.upload(post, result)
+              # Added only after the first one is up, so a retry can't add them twice
+              Content.add_fixtures(uploaded, result[:more] || [], post.scheduled_at, result)
               :ok
 
             {:skip, notes, _retry_after} ->
@@ -60,10 +64,12 @@ defmodule Socialmedia.Workers.Produce do
 
   defp produce(%Work{kind: "generate"} = work, out) do
     with {:ok, gen} <- Agent.generate(work),
-         {:ok, rendered} <- Renderer.render(work.channel, gen.data, out) do
+         [data | more] <- split(work, gen.data),
+         {:ok, rendered} <- Renderer.render(work.channel, data, out) do
       {:ok,
        %{
-         data: gen.data,
+         data: data,
+         more: more,
          caption: rendered.caption,
          sources: gen.sources,
          notes: gen.notes,
@@ -77,4 +83,8 @@ defmodule Socialmedia.Workers.Produce do
       {:ok, %{data: data, caption: rendered.caption, slides: rendered.slides}}
     end
   end
+
+  # A fixture run can return all of the day's matches
+  defp split(%Work{post_type: "fixture"}, data), do: Matches.split_fixtures(data)
+  defp split(_work, data), do: [data]
 end

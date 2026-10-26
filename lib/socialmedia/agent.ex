@@ -73,6 +73,7 @@ defmodule Socialmedia.Agent do
     #{series_line(channel, local)}
     #{line("Slot instructions from the admin", work.extra_instructions)}
     #{line("Admin note for this post (highest priority)", work.admin_note)}
+    #{fixtures_line(work)}
     #{related(work)}
     #{facts(work)}
     Recent posts on this channel (newest first). Don't repeat their topic, quote, startup, movie, match or hook:
@@ -82,6 +83,12 @@ defmodule Socialmedia.Agent do
     """
     |> String.replace(~r/\n{3,}/, "\n\n")
   end
+
+  defp fixtures_line(%Work{post_type: "fixture"}),
+    do:
+      "Return every relevant match that starts on this day (up to 6, most relevant first), one item each in `posts`. Each becomes its own post."
+
+  defp fixtures_line(_), do: ""
 
   defp related(%Work{related: data}) when is_map(data) do
     "Linked fixture post (score these exact questions in `answers`):\n" <> Jason.encode!(data)

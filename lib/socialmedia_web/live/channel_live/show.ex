@@ -301,7 +301,7 @@ defmodule SocialmediaWeb.ChannelLive.Show do
           label="Note for the agent (optional)"
           placeholder={
             if @form[:post_type].value == "fixture",
-              do: "e.g. the India v Australia match",
+              do: "optional: name one match to make only that one",
               else: "e.g. warmer tone, a startup from Bengaluru"
           }
         />
@@ -314,7 +314,7 @@ defmodule SocialmediaWeb.ChannelLive.Show do
       <p class="text-xs muted mt-1">
         {if @form[:post_type].value == "fixture",
           do:
-            "Claude picks that day's match. Its result post is added once the fixture is made: enter the score there.",
+            "Claude finds every relevant match that day (up to 6). Each becomes its own fixture post with its own result post: enter the score there after the match.",
           else: "One click makes one post: Claude writes it, it's rendered, then uploaded to S3."} Pull it on the Content page and pick its time when you schedule it.
       </p>
     </section>

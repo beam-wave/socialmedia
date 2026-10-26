@@ -10,21 +10,22 @@ Every featured match gets two linked posts:
 1. **fixture** (before the match): match card, then a 3-question prediction quiz, then Comment & Follow. Fans comment their picks like `1A 2B 3C`.
 2. **result** (after the match): scorecard, then the **Prediction check** (the same 3 questions with the correct answer highlighted), then top performers, then Comment & Follow. The app builds this one itself from the admin's scores, timed from your `start_utc` + `match_type`.
 
-Output `post.teams` (code → {code, name, color}) for both teams, and `post.posts` with exactly one item.
+Output `post.teams` (code → {code, name, color}) for every team you use, and `post.posts` with **one fixture item per match**. The app turns each item into its own post (and its own result post later).
 
 ## fixture
 
-### Pick the match
-- The prompt gives the slot date and the timezone (IST).
-- Use WebSearch (ESPNcricinfo, Cricbuzz, ICC, BCCI) to find the most relevant match **starting on that date**. Pick the first that applies:
+### Pick the matches
+- The prompt gives the match day and the timezone (IST).
+- Use WebSearch (ESPNcricinfo, Cricbuzz, ICC, BCCI) to find **every relevant match starting on that date** in these tiers, and return them most relevant first, **up to 6**:
   1. **India**: men's or women's, any format
   2. **ICC events**: World Cups, Champions Trophy, WTC final, qualifiers
   3. **T20 leagues**: IPL, WPL, BBL, PSL, SA20, CPL, ILT20, MLC, BPL, LPL and other big ones
   4. **The Hundred**
   5. **T10 leagues**: Abu Dhabi T10 and others
   6. Other international matches
-  - Within the same tier, prefer the match with bigger stars or a bigger stake (knockout, final, title decider).
-- If the slot instructions name a match, use that one.
+  - Within the same tier, put the match with bigger stars or a bigger stake (knockout, final, title decider) first.
+  - Leave out domestic first-class and minor associate matches unless the day has nothing else.
+- If the admin's note or the slot instructions name a match, return only that one.
 - **If there's no relevant match that day,** set `skip: true` and say so in `notes`.
 
 ### Fields

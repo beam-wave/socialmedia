@@ -58,6 +58,20 @@ defmodule Socialmedia.Content.Matches do
     end
   end
 
+  @doc """
+  One data map per match. The agent returns all of a day's fixtures in one
+  run; each becomes its own post with only its two teams.
+  """
+  def split_fixtures(%{"posts" => [_, _ | _] = posts} = data) do
+    teams = data["teams"] || %{}
+
+    for p <- posts,
+        do:
+          %{data | "posts" => [p]} |> Map.put("teams", Map.take(teams, [p["team1"], p["team2"]]))
+  end
+
+  def split_fixtures(data), do: [data]
+
   def first_match(%{"posts" => [m | _]}), do: m
   def first_match(_), do: nil
 

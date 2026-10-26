@@ -28,7 +28,7 @@ Every step is a button, and every machine runs the same app with the same settin
 
 Each post has a `content_key` that is the same on every machine. Pulling on the machine that made the post, or pulling a version you regenerated, updates the same post. A post that's already scheduled or live is left alone.
 
-@mid.innings: pick the match day and Create; Claude finds that day's match and writes the fixture with its 3 predictions. Its result post is then added, timed from the match start. After the match, open it and enter both innings (batting team from a dropdown, runs, wickets, overs, best batter and bowler) and the player of the match with their performance. The app works out the winner, the margin and the prediction answers and renders it without Claude. Then Pull it like any other post. A fixture's time is moved to before the first ball if the match starts earlier.
+@mid.innings: pick the match day and Create; Claude finds every relevant match that day (up to 6) in one run, and each becomes its own fixture post with its 3 predictions; name a match in the note to make only that one. Each fixture's result post is then added, timed from its match start. After the match, open it and enter both innings (batting team from a dropdown, runs, wickets, overs, best batter and bowler) and the player of the match with their performance. The app works out the winner, the margin and the prediction answers and renders it without Claude. Then Pull it like any other post. A fixture's time is moved to before the first ball if the match starts earlier.
 
 Slots (Channel → Slots) give each post type its default time (the next matching day) and its agent instructions. Nothing is planned or written on its own.
 

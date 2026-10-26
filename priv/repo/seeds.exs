@@ -72,7 +72,7 @@ channels = [
         weekdays: Enum.to_list(1..7),
         time_of_day: ~T[12:00:00],
         extra_instructions:
-          "Pick by the skill's priority: India, ICC events, T20 leagues, The Hundred, T10 leagues. Skip if no match starts today."
+          "Every relevant match that day, by the skill's priority: India, ICC events, T20 leagues, The Hundred, T10 leagues. Skip if no match starts that day."
       }
       # Result posts aren't a slot: each fixture creates its own, timed from the match start
     ]
