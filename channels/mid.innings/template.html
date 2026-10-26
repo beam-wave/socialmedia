@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mid Innings Studio</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&family=Noto+Sans+Devanagari:wght@500;700&display=swap">
+<link rel="stylesheet" href="../_shared/studio.css">
+<style>
+/* Art: floodlit scoreboard. Teko for scores, Barlow for text, team badges in team colours (no logos). Themes: floodlight, navy, whites. */
+.art{--a-bg:radial-gradient(ellipse at 18% -8%,rgba(255,255,230,.28) 0,transparent 42%),radial-gradient(ellipse at 82% -8%,rgba(255,255,230,.22) 0,transparent 40%),linear-gradient(180deg,#0d3a2b 0%,#082319 100%);
+  --a-fg:#ffffff;--a-dim:rgba(255,255,255,.7);--a-hi:#d8ff3e;--a-ink:#0b1f12;--a-rule:rgba(255,255,255,.18);--a-card:rgba(255,255,255,.07);--a-glow:rgba(216,255,62,.06);
+  --a-display:"Barlow Condensed","Noto Sans Devanagari","Arial Narrow",sans-serif;--a-display-w:700;--a-body:"Barlow","Noto Sans Devanagari",system-ui,sans-serif;--a-score:"Teko","Barlow Condensed",sans-serif}
+.art.t-navy{--a-bg:radial-gradient(ellipse at 50% -10%,rgba(120,170,255,.25) 0,transparent 45%),linear-gradient(180deg,#0b1a3a 0%,#060d1f 100%);--a-hi:#ffc83d;--a-ink:#1a1200;--a-glow:rgba(255,200,61,.06)}
+.art.t-whites{--a-bg:linear-gradient(180deg,#f6f3ea 0%,#ebe5d6 100%);--a-fg:#14231b;--a-dim:rgba(20,35,27,.66);--a-hi:#b3122e;--a-ink:#ffffff;--a-rule:rgba(20,35,27,.16);--a-card:rgba(20,35,27,.05);--a-glow:rgba(179,18,46,.06)}
+.cta-q{text-transform:uppercase;line-height:1}
+.cta-btn{text-transform:uppercase;letter-spacing:.04em}
+.ck{padding:80px;display:flex;flex-direction:column;gap:30px}
+.ck.story{padding:200px 80px 190px}
+.k-top{display:flex;justify-content:space-between;align-items:center;flex:none;font-family:var(--a-display);font-size:30px;letter-spacing:.08em;text-transform:uppercase;color:var(--a-dim)}
+.k-top span:first-child{text-transform:none;letter-spacing:.02em}
+.k-tag{background:var(--a-hi);color:var(--a-ink);padding:8px 18px;border-radius:8px;font-weight:700;letter-spacing:.1em}
+.k-series{font-family:var(--a-display);font-weight:700;font-size:40px;letter-spacing:.04em;text-transform:uppercase;margin:0;flex:none}
+.k-series small{display:block;font-family:var(--a-body);font-weight:500;font-size:28px;letter-spacing:0;text-transform:none;color:var(--a-dim)}
+.vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;flex:none;margin:18px 0}
+.team{display:grid;justify-items:center;gap:14px;text-align:center}
+.badge{width:220px;height:220px;border-radius:50%;background:var(--c,#444);display:grid;place-items:center;font-family:var(--a-score);font-weight:700;font-size:110px;line-height:1;color:#fff;box-shadow:0 0 0 8px rgba(255,255,255,.12),0 0 0 16px var(--c,#444) inset;padding-top:14px;box-sizing:border-box}
+.team b{font-family:var(--a-display);font-size:40px;text-transform:uppercase;letter-spacing:.04em}
+.team .form{display:flex;gap:6px}
+.team .form i{font-style:normal;font-family:var(--a-display);font-weight:700;font-size:22px;width:38px;height:38px;border-radius:8px;display:grid;place-items:center;background:var(--a-card);border:2px solid var(--a-rule)}
+.team .form i.w{background:var(--a-hi);color:var(--a-ink);border-color:transparent}
+.vs-x{font-family:var(--a-score);font-size:120px;line-height:1;color:var(--a-hi)}
+.info{display:grid;grid-template-columns:repeat(3,1fr);border-top:2px solid var(--a-rule);border-bottom:2px solid var(--a-rule);flex:none}
+.info div{padding:22px 18px;display:grid;gap:4px}
+.info div + div{border-left:2px solid var(--a-rule)}
+.info b{font-family:var(--a-display);font-size:22px;letter-spacing:.12em;text-transform:uppercase;color:var(--a-dim)}
+.info span{font-size:32px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.watch{display:grid;gap:12px;flex:1;min-height:0;align-content:start}
+.watch h3,.perf h3{margin:0;font-family:var(--a-display);font-size:26px;letter-spacing:.12em;text-transform:uppercase;color:var(--a-hi)}
+.watch div{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;padding:16px 22px;background:var(--a-card);border-radius:16px}
+.dot{width:20px;height:20px;border-radius:50%;background:var(--c)}
+.watch span{font-size:34px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.watch em{font-style:normal;font-family:var(--a-display);font-size:28px;color:var(--a-dim);white-space:nowrap}
+.k-foot{display:flex;justify-content:space-between;font-size:26px;font-weight:600;color:var(--a-dim);flex:none}
+/* questions */
+.qs{display:grid;gap:22px;flex:1;min-height:0;align-content:center}
+.qq{display:grid;gap:14px;padding:26px 30px;border:2px solid var(--a-rule);border-radius:22px;background:var(--a-card)}
+.qq p{margin:0;font-size:40px;font-weight:700;line-height:1.15}
+.qq p b{font-family:var(--a-score);font-size:52px;color:var(--a-hi);margin-right:14px}
+.qq div{display:flex;flex-wrap:wrap;gap:12px}
+.qq span{font-size:28px;font-weight:600;padding:8px 20px 8px 8px;border-radius:999px;border:2px solid var(--a-rule);display:flex;gap:12px;align-items:center}
+.qq span i{font-style:normal;width:40px;height:40px;border-radius:50%;background:var(--a-hi);color:var(--a-ink);display:grid;place-items:center;font-weight:700;font-size:22px}
+.how{font-family:var(--a-display);font-size:34px;letter-spacing:.04em;text-transform:uppercase;background:var(--a-hi);color:var(--a-ink);padding:20px 28px;border-radius:16px;flex:none;text-align:center}
+/* result */
+.res-line{font-family:var(--a-display);font-weight:700;font-size:70px;line-height:1.02;text-transform:uppercase;margin:0;flex:none}
+.res-line em{font-style:normal;color:var(--a-hi)}
+.inn{display:grid;gap:16px;flex:none}
+.inn div{display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center;padding:20px 26px;border-radius:20px;background:var(--a-card);border:2px solid var(--a-rule)}
+.inn div.won{border-color:var(--a-hi)}
+.inn .mini{width:96px;height:96px;border-radius:50%;background:var(--c);display:grid;place-items:center;font-family:var(--a-score);font-size:50px;color:#fff;padding-top:6px;box-sizing:border-box}
+.inn b{font-family:var(--a-display);font-size:40px;text-transform:uppercase}
+.inn .sc{font-family:var(--a-score);font-size:110px;line-height:.9;text-align:right}
+.inn .sc small{display:block;font-family:var(--a-body);font-size:26px;color:var(--a-dim);line-height:1.2}
+.pom{display:grid;grid-template-columns:auto 1fr;gap:6px 26px;align-items:center;padding:24px 28px;border-radius:20px;background:var(--a-hi);color:var(--a-ink);flex:none}
+.pom b{grid-row:span 2;font-family:var(--a-score);font-size:64px;line-height:.9}
+.pom span{font-size:38px;font-weight:700}
+.pom em{font-style:normal;font-size:28px;font-weight:600}
+.perf{display:grid;gap:12px;flex:1;min-height:0;align-content:start}
+.perf .row{display:grid;grid-template-columns:20px 1fr auto;gap:18px;align-items:center;padding:16px 22px;border-bottom:2px solid var(--a-rule)}
+.perf .row span{font-size:36px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.perf .row strong{font-family:var(--a-score);font-size:60px;line-height:.9;font-weight:600}
+.perf .row strong small{font-family:var(--a-body);font-size:24px;color:var(--a-dim);margin-left:6px}
+</style></head>
+<body><div id="app"></div>
+<script src="../_shared/studio.js"></script>
+<script>
+const {esc,hl,clean,pad,ctaSlide,hookOf,captionHook}=Studio;
+const HOOKS=[
+  {q:"Who wins *tonight*?",options:"teams"},
+  {q:"Comment *your score prediction*. Closest guess gets pinned.",q_hi:"अपना *स्कोर प्रेडिक्शन* लिखो, सबसे सही वाला पिन होगा।"},
+  {q:"Who's your *player of the match* pick?",q_hi:"आपका *प्लेयर ऑफ़ द मैच* कौन?"},
+  {q:"Toss winner should *bat or bowl*?",options:["Bat first","Bowl first"]},
+  {q:"Predict the *first-innings total*.",options:["Under 160","160–180","180–200","200+"]},
+  {q:"Turning point of the match? *Comment the over.*",q_hi:"मैच कहाँ पलटा? *ओवर बताओ।*"},
+  {q:"Rate the captaincy today *out of 10*.",q_hi:"आज की कप्तानी को *10 में से* नंबर दो।"},
+  {q:"One change to the XI *for the next game*?",q_hi:"अगले मैच के लिए *एक बदलाव*?"},
+  {q:"Was this the *match of the season*?",options:["Yes","Not even close"]},
+  {q:"Answer all 3. *Full marks gets a shoutout* in our next story.",q_hi:"तीनों जवाब दो, *सही वालों को स्टोरी में शाउटआउट*।"},
+  {q:"Which team are you *backing this season*?",q_hi:"इस सीज़न आप *किस टीम* के साथ हो?"},
+  {q:"Tag the friend you *always argue cricket with*.",q_hi:"उस दोस्त को टैग करो जिससे *क्रिकेट पर बहस* होती है।"}
+];
+const T=(d,c)=>(d.teams||{})[c]||{code:c,name:c,color:"#555"};
+function resolve(h,p,d){if(h.options==="teams")return {...h,options:[T(d,p.team1).name,T(d,p.team2).name]};return h;}
+function head(d,p,tag,t){return `<div class="k-top"><span>${esc(d.handle)}</span><span class="k-tag">${esc(tag)}</span></div>
+  <h2 class="k-series">${esc(p.series)} · ${esc(p.match)}<small>${esc(p.format||"")}</small></h2>`;}
+function fixture(d,p,t,size){
+  const a=T(d,p.team1),b=T(d,p.team2);
+  const form=f=>(f||"").split("").map(x=>`<i class="${x==="W"?"w":""}">${esc(x)}</i>`).join("");
+  return `<section class="art ck ${t}${size==="story"?" story":""}">${head(d,p,"Match day",t)}
+    <div class="vs"><div class="team"><div class="badge" style="--c:${esc(a.color)}">${esc(a.code)}</div><b>${esc(a.name)}</b><div class="form">${form(p.form1)}</div></div>
+      <div class="vs-x">VS</div>
+      <div class="team"><div class="badge" style="--c:${esc(b.color)}">${esc(b.code)}</div><b>${esc(b.name)}</b><div class="form">${form(p.form2)}</div></div></div>
+    <div class="info"><div><b>Date</b><span>${esc(p.date)}</span></div><div><b>Start</b><span>${esc(p.time)}</span></div><div><b>Venue</b><span>${esc(p.venue)}</span></div></div>
+    <div class="watch"><h3>Players to watch</h3>${(p.watch||[]).slice(0,3).map(w=>`<div><i class="dot" style="--c:${esc(T(d,w.team).color)}"></i><span>${esc(w.name)}</span><em>${esc(w.stat)}</em></div>`).join("")}</div>
+    <div class="k-foot"><span>Last 5: W = win</span><span>Predict on the next slide →</span></div></section>`;
+}
+function questions(d,p,t,size){
+  return `<section class="art ck ${t}${size==="story"?" story":""}">${head(d,p,"Pre-match quiz",t)}
+    <div class="qs">${(p.questions||[]).slice(0,3).map((q,i)=>`<div class="qq"><p><b>Q${i+1}</b>${esc(q.q)}</p><div>${(q.options||[]).map((o,j)=>`<span><i>${String.fromCharCode(65+j)}</i>${esc(o)}</span>`).join("")}</div></div>`).join("")}</div>
+    <div class="how">Comment like this: 1A · 2B · 3A</div></section>`;
+}
+function result(d,p,t,size){
+  const inn=(p.innings||[]).map(x=>{const tm=T(d,x.team);return `<div class="${x.team===p.winner?"won":""}"><i class="mini" style="--c:${esc(tm.color)}">${esc(tm.code)}</i><b>${esc(tm.name)}</b><span class="sc">${esc(x.runs)}/${esc(x.wkts)}<small>${esc(x.overs)} ov</small></span></div>`;}).join("");
+  return `<section class="art ck ${t}${size==="story"?" story":""}">${head(d,p,"Result",t)}
+    <h3 class="res-line fit" data-max="76" data-min="48"><span>${hl(p.result)}</span></h3>
+    <div class="inn">${inn}</div>
+    ${p.pom?`<div class="pom"><b>POTM</b><span>${esc(p.pom.name)}</span><em>${esc(p.pom.figures)}</em></div>`:""}
+    <div class="k-foot"><span>${esc(p.venue||"")}</span><span>Top performers →</span></div></section>`;
+}
+function performers(d,p,t,size){
+  const row=(x,v,u)=>`<div class="row"><i class="dot" style="--c:${esc(T(d,x.team).color)}"></i><span>${esc(x.name)}</span><strong>${esc(v)}<small>${esc(u)}</small></strong></div>`;
+  return `<section class="art ck ${t}${size==="story"?" story":""}">${head(d,p,"Top performers",t)}
+    <div class="perf"><h3>Batting</h3>${(p.bat||[]).slice(0,3).map(x=>row(x,x.runs,`(${x.balls})`)).join("")}</div>
+    <div class="perf"><h3>Bowling</h3>${(p.bowl||[]).slice(0,3).map(x=>row(x,`${x.w}/${x.r}`,`(${x.ov} ov)`)).join("")}</div>
+    <div class="k-foot"><span>${esc(p.series)} · ${esc(p.match)}</span><span>Your take on the next slide →</span></div></section>`;
+}
+function posts(d){
+  return (d.posts||[]).map((p,i)=>{
+    const t="t-"+(p.theme||d.theme||"floodlight"), size=d.format==="story"?"story":"post";
+    const a=T(d,p.team1).name,b=T(d,p.team2).name;
+    const isFix=p.type!=="result";
+    const h=resolve(hookOf(d,p,isFix?HOOKS[0]:HOOKS[5]),p,d);
+    const cta=ctaSlide(d,{cls:t,size,question:h.q,question_hi:h.q_hi,options:h.options,chip:isFix?"Predict":"Your take",
+      placeholder:isFix?"My prediction is…":"The turning point was…",followLine:d.follow_line||"Fixtures before, scores after, every match. Follow and turn on notifications for match days."});
+    const slides=isFix?[{name:"fixture",html:fixture(d,p,t,size),size},...(p.questions&&p.questions.length?[{name:"quiz",html:questions(d,p,t,size),size}]:[]),{name:"comment-follow",html:cta,size}]
+      :[{name:"result",html:result(d,p,t,size),size},{name:"performers",html:performers(d,p,t,size),size},{name:"comment-follow",html:cta,size}];
+    const tagSeries="#"+String(p.series||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+    const caption=isFix?`🏏 MATCH DAY: ${a} vs ${b}
+${p.series} · ${p.match}
+📅 ${p.date} · ⏰ ${p.time}
+📍 ${p.venue}
+
+${(p.questions||[]).map((q,j)=>`Q${j+1}. ${q.q} ${(q.options||[]).map((o,k)=>`${String.fromCharCode(65+k)}) ${o}`).join(" ")}`).join("\n")}
+${p.questions&&p.questions.length?"\nAnswer like 1A 2B 3A 👇\n":""}
+${captionHook(h)}
+
+Follow ${d.handle} for the score summary right after the match 🔔
+
+#cricket ${tagSeries} #${String(p.team1).toLowerCase()}vs${String(p.team2).toLowerCase()} #cricketlovers #midinnings`
+:`🏏 RESULT: ${clean(p.result)}
+
+${(p.innings||[]).map(x=>`${T(d,x.team).name}: ${x.runs}/${x.wkts} (${x.overs} ov)`).join("\n")}
+${p.pom?`\n⭐ Player of the match: ${p.pom.name} (${p.pom.figures})\n`:""}
+${captionHook(h)}
+
+Follow ${d.handle} for fixtures, predictions and scores every match day 🔔
+
+#cricket ${tagSeries} #${String(p.team1).toLowerCase()}vs${String(p.team2).toLowerCase()} #cricketlovers #midinnings`;
+    return {id:(isFix?"fixture-":"result-")+pad(i+1),label:`${isFix?"Pre-match":"Post-match"} · ${a} vs ${b}`,slides,caption};
+  });
+}
+Studio.mount({
+  channel:"@mid.innings", title:"Cricket Match Studio", accent:"#2f8f5b", itemsKey:"posts",
+  sub:"Pre-match posts are a fixture card, a 3-question quiz and a Comment & Follow slide. Post-match posts are a scorecard, top performers and a Comment & Follow slide.",
+  note:"The sample scores are made up. Use official scorecards. Team badges are colour circles with short codes, so no team logos are needed.",
+  controls:[{key:"theme",label:"Theme",perItem:true,options:[["floodlight","Floodlight"],["navy","Navy"],["whites","Test whites"]]},{key:"format",label:"Size",options:[["post","Feed post 4:5"],["story","Story / Reel 9:16"]]}],
+  hooks:HOOKS, posts,
+  guide:[["teams","Code, name and colour for each team.","Badges are drawn from this, so no logos are needed."],["type","\"fixture\" or \"result\".","Fixtures get a quiz slide; results get a performers slide."],["questions","Up to 3 pre-match questions","with options. Fans answer like 1A 2B 3A."],["form1 / form2","Last 5 results, such as \"WWLWW\".","Wins are highlighted."],["result","One line.","Wrap the winner in *stars* to highlight it."],["hook",'Use "options":"teams"',"to offer the two teams as answers."]],
+  sample:{theme:"floodlight",format:"post",handle:"@mid.innings",
+    teams:{IND:{code:"IND",name:"India",color:"#1f5fd1"},AUS:{code:"AUS",name:"Australia",color:"#d9a400"}},
+    posts:[
+      {type:"fixture",series:"Sample T20I Series 2026",match:"2nd T20I",format:"T20 · Day/Night",team1:"IND",team2:"AUS",form1:"WWLWW",form2:"WLWLW",date:"Wed, 28 Oct",time:"7:00 PM IST",venue:"Sample Stadium, Mumbai",
+        watch:[{name:"Batter One",team:"IND",stat:"212 runs · SR 168"},{name:"Bowler Two",team:"AUS",stat:"9 wkts · Econ 6.8"},{name:"All-rounder Three",team:"IND",stat:"6 wkts · 140 runs"}],
+        questions:[{q:"Who wins the toss?",options:["India","Australia"]},{q:"First-innings total?",options:["Under 170","170–190","190+"]},{q:"Most sixes in the match?",options:["Under 10","10–15","16+"]}],
+        hook:{q:"Who wins *tonight*?",options:"teams"}},
+      {type:"result",series:"Sample T20I Series 2026",match:"2nd T20I",team1:"IND",team2:"AUS",winner:"IND",venue:"Sample Stadium, Mumbai",
+        result:"*India* beat Australia by 6 wickets",
+        innings:[{team:"AUS",runs:184,wkts:7,overs:"20.0"},{team:"IND",runs:188,wkts:4,overs:"18.3"}],
+        pom:{name:"Batter One",figures:"78* (44)"},
+        bat:[{name:"Batter One",team:"IND",runs:"78*",balls:44},{name:"Opener Four",team:"AUS",runs:61,balls:39},{name:"Finisher Five",team:"IND",runs:42,balls:21}],
+        bowl:[{name:"Bowler Two",team:"AUS",w:3,r:29,ov:4},{name:"Spinner Six",team:"IND",w:2,r:24,ov:4},{name:"Pacer Seven",team:"IND",w:2,r:33,ov:4}],
+        hook:{q:"Turning point of the match? *Comment the over.*",q_hi:"मैच कहाँ पलटा? *ओवर बताओ।*"}}]}
+});
+</script></body></html>

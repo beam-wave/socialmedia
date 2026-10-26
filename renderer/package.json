@@ -1,0 +1,8 @@
+{
+  "name": "socialmedia-renderer",
+  "private": true,
+  "description": "Renders channel templates to JPEG slides and captions",
+  "dependencies": {
+    "playwright": "^1.48.0"
+  }
+}

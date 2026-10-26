@@ -1,0 +1,153 @@
+{
+  "theme": "floodlight",
+  "format": "post",
+  "handle": "@mid.innings",
+  "teams": {
+    "IND": {
+      "code": "IND",
+      "name": "India",
+      "color": "#1f5fd1"
+    },
+    "AUS": {
+      "code": "AUS",
+      "name": "Australia",
+      "color": "#d9a400"
+    }
+  },
+  "posts": [
+    {
+      "type": "fixture",
+      "series": "Sample T20I Series 2026",
+      "match": "2nd T20I",
+      "format": "T20 · Day/Night",
+      "team1": "IND",
+      "team2": "AUS",
+      "form1": "WWLWW",
+      "form2": "WLWLW",
+      "date": "Wed, 28 Oct",
+      "time": "7:00 PM IST",
+      "venue": "Sample Stadium, Mumbai",
+      "watch": [
+        {
+          "name": "Batter One",
+          "team": "IND",
+          "stat": "212 runs · SR 168"
+        },
+        {
+          "name": "Bowler Two",
+          "team": "AUS",
+          "stat": "9 wkts · Econ 6.8"
+        },
+        {
+          "name": "All-rounder Three",
+          "team": "IND",
+          "stat": "6 wkts · 140 runs"
+        }
+      ],
+      "questions": [
+        {
+          "q": "Who wins the toss?",
+          "options": [
+            "India",
+            "Australia"
+          ]
+        },
+        {
+          "q": "First-innings total?",
+          "options": [
+            "Under 170",
+            "170–190",
+            "190+"
+          ]
+        },
+        {
+          "q": "Most sixes in the match?",
+          "options": [
+            "Under 10",
+            "10–15",
+            "16+"
+          ]
+        }
+      ],
+      "hook": {
+        "q": "Who wins *tonight*?",
+        "options": "teams"
+      }
+    },
+    {
+      "type": "result",
+      "series": "Sample T20I Series 2026",
+      "match": "2nd T20I",
+      "team1": "IND",
+      "team2": "AUS",
+      "winner": "IND",
+      "venue": "Sample Stadium, Mumbai",
+      "result": "*India* beat Australia by 6 wickets",
+      "innings": [
+        {
+          "team": "AUS",
+          "runs": 184,
+          "wkts": 7,
+          "overs": "20.0"
+        },
+        {
+          "team": "IND",
+          "runs": 188,
+          "wkts": 4,
+          "overs": "18.3"
+        }
+      ],
+      "pom": {
+        "name": "Batter One",
+        "figures": "78* (44)"
+      },
+      "bat": [
+        {
+          "name": "Batter One",
+          "team": "IND",
+          "runs": "78*",
+          "balls": 44
+        },
+        {
+          "name": "Opener Four",
+          "team": "AUS",
+          "runs": 61,
+          "balls": 39
+        },
+        {
+          "name": "Finisher Five",
+          "team": "IND",
+          "runs": 42,
+          "balls": 21
+        }
+      ],
+      "bowl": [
+        {
+          "name": "Bowler Two",
+          "team": "AUS",
+          "w": 3,
+          "r": 29,
+          "ov": 4
+        },
+        {
+          "name": "Spinner Six",
+          "team": "IND",
+          "w": 2,
+          "r": 24,
+          "ov": 4
+        },
+        {
+          "name": "Pacer Seven",
+          "team": "IND",
+          "w": 2,
+          "r": 33,
+          "ov": 4
+        }
+      ],
+      "hook": {
+        "q": "Turning point of the match? *Comment the over.*",
+        "q_hi": "मैच कहाँ पलटा? *ओवर बताओ।*"
+      }
+    }
+  ]
+}

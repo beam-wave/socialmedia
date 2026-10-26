@@ -1,0 +1,169 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "skip",
+    "notes",
+    "sources",
+    "post"
+  ],
+  "properties": {
+    "skip": {
+      "type": "boolean",
+      "description": "true when the post can't be made; explain in notes"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Short note for the admin reviewer: what you chose and why, anything to double-check"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "url"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "post": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "edition": {
+              "type": "string",
+              "description": "e.g. 'Vol. 13 · Nov 2026'"
+            },
+            "domain": {
+              "type": "string"
+            },
+            "next_domain": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string",
+              "maxLength": 70,
+              "description": "Cover headline 6-10 words, one *highlight*"
+            },
+            "hook": {
+              "type": "object",
+              "properties": {
+                "q": {
+                  "type": "string",
+                  "maxLength": 90
+                },
+                "q_hi": {
+                  "type": "string",
+                  "maxLength": 90
+                },
+                "options": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "minItems": 2,
+                      "maxItems": 5
+                    },
+                    {
+                      "type": "string",
+                      "enum": [
+                        "names",
+                        "teams"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "q"
+              ],
+              "additionalProperties": false
+            },
+            "startups": {
+              "type": "array",
+              "minItems": 5,
+              "maxItems": 5,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "tagline": {
+                    "type": "string",
+                    "maxLength": 70
+                  },
+                  "founded": {
+                    "type": "string"
+                  },
+                  "hq": {
+                    "type": "string"
+                  },
+                  "stage": {
+                    "type": "string"
+                  },
+                  "raised": {
+                    "type": "string"
+                  },
+                  "metric": {
+                    "type": "string"
+                  },
+                  "metric_label": {
+                    "type": "string"
+                  },
+                  "why": {
+                    "type": "string",
+                    "maxLength": 180
+                  },
+                  "investors": {
+                    "type": "string"
+                  },
+                  "logo": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "tagline",
+                  "founded",
+                  "hq",
+                  "stage",
+                  "raised",
+                  "metric",
+                  "metric_label",
+                  "why",
+                  "investors"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "edition",
+            "domain",
+            "next_domain",
+            "title",
+            "hook",
+            "startups"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

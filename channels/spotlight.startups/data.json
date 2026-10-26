@@ -1,0 +1,74 @@
+{
+  "theme": "cobalt",
+  "handle": "@spotlight.startups",
+  "edition": "Vol. 12 · Oct 2026",
+  "domain": "Climate Tech",
+  "next_domain": "AI Agents",
+  "title": "5 startups quietly rebuilding the *power grid*",
+  "hook": {
+    "q": "Which one would you *back with ₹10 lakh*?",
+    "options": "names"
+  },
+  "startups": [
+    {
+      "name": "Voltaic Loop",
+      "tagline": "Iron-air batteries that store wind power for 100 hours",
+      "founded": "2022",
+      "hq": "Pune",
+      "stage": "Series A",
+      "raised": "$24M",
+      "metric": "1.8 GWh",
+      "metric_label": "storage in pilot pipeline",
+      "why": "Lithium can't cover multi-day storage. Cheap iron chemistry could make renewables firm power.",
+      "investors": "Sample Capital, Northgate"
+    },
+    {
+      "name": "GridSense",
+      "tagline": "AI that spots transformer failures weeks early",
+      "founded": "2021",
+      "hq": "Austin",
+      "stage": "Series B",
+      "raised": "$61M",
+      "metric": "40+",
+      "metric_label": "utilities using it",
+      "why": "Ageing grid hardware is the bottleneck for EV and data-centre load growth.",
+      "investors": "Fieldstone, Arcwell"
+    },
+    {
+      "name": "Heliobond",
+      "tagline": "Perovskite coatings that add 20% output to old panels",
+      "founded": "2023",
+      "hq": "Delft",
+      "stage": "Seed",
+      "raised": "$9M",
+      "metric": "+20%",
+      "metric_label": "efficiency in lab tests",
+      "why": "Retrofitting the panels already installed is faster than building new solar farms.",
+      "investors": "Lumen Ventures"
+    },
+    {
+      "name": "Kilnless",
+      "tagline": "Electric heat batteries for factories",
+      "founded": "2022",
+      "hq": "Oakland",
+      "stage": "Series A",
+      "raised": "$32M",
+      "metric": "1,200°C",
+      "metric_label": "delivered heat",
+      "why": "Industrial heat is about a fifth of global emissions, and almost none of it is electrified yet.",
+      "investors": "Bluecrest, Ore Fund"
+    },
+    {
+      "name": "Meterly",
+      "tagline": "Peer-to-peer rooftop solar trading for housing societies",
+      "founded": "2024",
+      "hq": "Bengaluru",
+      "stage": "Pre-seed",
+      "raised": "$1.5M",
+      "metric": "3,400",
+      "metric_label": "homes onboarded",
+      "why": "It turns rooftop solar into income, which is what gets apartment complexes to install it.",
+      "investors": "Angel syndicate"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "theme": "concrete",
+  "format": "post",
+  "lang": "both",
+  "handle": "@_motivation2live__",
+  "total_days": 365,
+  "tags": "#motivation #discipline #dailymotivation #hindimotivation #success #mindset #motivation2live",
+  "quotes": [
+    {
+      "day": 42,
+      "date": "Mon · 26 Oct",
+      "quote": "Discipline is choosing *what you want most* over what you want now.",
+      "quote_hi": "अनुशासन मतलब *जो सबसे ज़्यादा चाहिए* उसे अभी की चाहत से ऊपर रखना।",
+      "action": "Put your phone in another room for the first hour of your day.",
+      "action_hi": "दिन का पहला घंटा फ़ोन दूसरे कमरे में रखो।",
+      "hook": {
+        "q": "Type *I'M IN* if you're showing up today.",
+        "q_hi": "आज मेहनत करोगे तो लिखो *मैं तैयार हूँ*।"
+      }
+    },
+    {
+      "day": 43,
+      "date": "Tue · 27 Oct",
+      "theme": "night",
+      "quote": "Nobody is coming to save you. *Start anyway.*",
+      "quote_hi": "कोई बचाने नहीं आएगा। *फिर भी शुरू करो।*",
+      "action": "Do the task you've been postponing for 25 minutes. Just 25.",
+      "action_hi": "जो काम टाल रहे हो, उसे सिर्फ़ 25 मिनट दो।",
+      "hook": {
+        "q": "Day 1 or *one day*? Choose.",
+        "q_hi": "आज से या *किसी दिन*? चुनो।",
+        "options": [
+          "Day 1",
+          "One day"
+        ]
+      }
+    },
+    {
+      "day": 44,
+      "date": "Wed · 28 Oct",
+      "theme": "fire",
+      "quote": "Small steps every day beat *big plans someday*.",
+      "quote_hi": "रोज़ के छोटे कदम, *किसी दिन के बड़े प्लान* से बेहतर हैं।",
+      "action": "Write tomorrow's top 3 tasks before you sleep tonight.",
+      "action_hi": "सोने से पहले कल के 3 सबसे ज़रूरी काम लिख लो।",
+      "hook": {
+        "q": "What time did you *wake up today*?",
+        "q_hi": "आज *कितने बजे* उठे?",
+        "options": [
+          "Before 6",
+          "6–8 AM",
+          "After 8"
+        ]
+      }
+    }
+  ]
+}

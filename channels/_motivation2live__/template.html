@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Motivation2Live Studio</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Hind:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&family=Noto+Sans+Devanagari:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="../_shared/studio.css">
+<style>
+/* Art: poster-style motivation. Condensed caps (Anton), marker-highlight phrase, a Day N / 365 streak bar. Themes: concrete, night, steel, fire. */
+.art{--a-bg:#e8e5de;--a-fg:#141414;--a-dim:rgba(20,20,20,.64);--a-hi:#ff4b1f;--a-ink:#ffffff;--a-rule:rgba(20,20,20,.18);--a-card:rgba(20,20,20,.05);--a-glow:rgba(255,75,31,.12);
+  --a-display:"Anton","Noto Sans Devanagari",Impact,"Arial Narrow",sans-serif;--a-display-w:400;--a-body:"Hind","Instrument Sans","Noto Sans Devanagari",system-ui,sans-serif}
+.art.t-night{--a-bg:#0e1a2b;--a-fg:#ffffff;--a-dim:rgba(255,255,255,.7);--a-hi:#ffb703;--a-ink:#111111;--a-rule:rgba(255,255,255,.2);--a-card:rgba(255,255,255,.06);--a-glow:rgba(255,183,3,.12)}
+.art.t-steel{--a-bg:#2a2e35;--a-fg:#ffffff;--a-dim:rgba(255,255,255,.7);--a-hi:#4cc9f0;--a-ink:#0b1a24;--a-rule:rgba(255,255,255,.2);--a-card:rgba(255,255,255,.06);--a-glow:rgba(76,201,240,.12)}
+.art.t-fire{--a-bg:linear-gradient(160deg,#ff8a00 0%,#e52e71 100%);--a-fg:#ffffff;--a-dim:rgba(255,255,255,.82);--a-hi:#fff200;--a-ink:#3a0010;--a-rule:rgba(255,255,255,.3);--a-card:rgba(255,255,255,.12);--a-glow:rgba(255,255,255,.12)}
+.cta-q{text-transform:uppercase;letter-spacing:.005em;line-height:1.02}
+.cta-q em{background:var(--a-hi);color:var(--a-ink);padding:0 .12em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.cta-q small{text-transform:none}
+.cta-btn{font-family:var(--a-display);font-weight:400;letter-spacing:.04em;text-transform:uppercase;font-size:38px}
+.m{padding:84px 88px 80px;display:flex;flex-direction:column;gap:30px}
+.m.story{padding:200px 88px 190px}
+.m-top{display:flex;justify-content:space-between;align-items:center;flex:none}
+.m-day{font-family:var(--a-display);font-size:44px;letter-spacing:.04em}
+.m-day b{font-weight:400;color:var(--a-hi)}
+.m-handle{font-size:28px;font-weight:600;color:var(--a-dim)}
+.m-bar{height:12px;border-radius:6px;background:var(--a-rule);overflow:hidden;flex:none;margin-top:-10px}
+.m-bar i{display:block;height:100%;background:var(--a-hi)}
+.m-text{font-family:var(--a-display);text-transform:uppercase;line-height:1.02;letter-spacing:.005em;margin:0;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center}
+.m-text em{font-style:normal;background:var(--a-hi);color:var(--a-ink);padding:0 .12em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.m[lang=hi] .m-text{text-transform:none;font-weight:800;line-height:1.3}
+.m-alt{font-family:var(--a-body);font-weight:600;font-size:44px;line-height:1.4;margin:0;color:var(--a-fg);flex:none;max-height:190px;overflow:hidden}
+.m-alt em{font-style:normal;color:var(--a-hi)}
+.art.t-concrete .m-alt em{color:var(--a-hi)}
+.m-by{font-size:32px;font-weight:600;color:var(--a-dim);letter-spacing:.06em;text-transform:uppercase;flex:none}
+.m-act{display:grid;grid-template-columns:auto 1fr;gap:6px 24px;align-items:center;border:3px solid var(--a-fg);border-radius:20px;padding:24px 28px;flex:none}
+.m-act b{grid-row:span 2;font-family:var(--a-display);font-weight:400;font-size:30px;letter-spacing:.06em;text-transform:uppercase;background:var(--a-fg);color:var(--a-bg);padding:14px 18px;border-radius:12px;line-height:1.1;text-align:center}
+.art.t-fire .m-act b{color:#e5534b}
+.m-act p{margin:0;font-size:32px;line-height:1.3;font-weight:600}
+.m-act p + p{font-size:28px;font-weight:500;color:var(--a-dim)}
+.m-foot{display:flex;justify-content:space-between;font-size:26px;font-weight:600;color:var(--a-dim);flex:none;letter-spacing:.04em}
+</style></head>
+<body><div id="app"></div>
+<script src="../_shared/studio.js"></script>
+<script>
+const {esc,hl,clean,pad,ctaSlide,hookOf,captionHook}=Studio;
+const HOOKS=[
+  {q:"Type *I'M IN* if you're showing up today.",q_hi:"आज मेहनत करोगे तो लिखो *मैं तैयार हूँ*।"},
+  {q:"Type *DAY 1* and start the 30-day streak with us.",q_hi:"लिखो *DAY 1* और हमारे साथ 30 दिन की शुरुआत करो।"},
+  {q:"What's *one goal* you're chasing this year?",q_hi:"इस साल का *एक लक्ष्य* बताओ।"},
+  {q:"What time did you *wake up today*?",q_hi:"आज *कितने बजे* उठे?",options:["Before 6","6–8 AM","After 8"]},
+  {q:"Day 1 or *one day*? Choose.",q_hi:"आज से या *किसी दिन*? चुनो।",options:["Day 1","One day"]},
+  {q:"Rate your discipline this week *out of 10*.",q_hi:"इस हफ़्ते का अनुशासन *10 में से* कितना?"},
+  {q:"Comment *the one habit* that changed your life.",q_hi:"वो *एक आदत* बताओ जिसने ज़िंदगी बदल दी।"},
+  {q:"What's stopping you *right now*? Be honest.",q_hi:"अभी तुम्हें *क्या रोक रहा है*? सच बताओ।"},
+  {q:"Gym, books or *business*: what's your focus?",q_hi:"जिम, किताबें या *बिज़नेस*: फ़ोकस क्या है?",options:["Gym","Books","Business","All three"]},
+  {q:"Write your goal below. *We'll check on you in 30 days.*",q_hi:"अपना लक्ष्य लिखो। *30 दिन बाद हम पूछेंगे।*"},
+  {q:"Tag a friend who *needs this push today*.",q_hi:"उस दोस्त को टैग करो जिसे *आज ये चाहिए*।"},
+  {q:"Did you finish *yesterday's action*?",q_hi:"कल का *एक्शन* पूरा किया?",options:["Done","Doing it today"]}
+];
+function posts(d){
+  return (d.quotes||[]).map((q,i)=>{
+    const story=d.format==="story", size=story?"story":"post", lang=q.lang||d.lang||"both", theme="t-"+(q.theme||d.theme||"concrete");
+    const hiMain=lang==="hi"||(!q.quote&&q.quote_hi);
+    const main=hiMain?(q.quote_hi||q.quote):q.quote, alt=(lang==="both"&&!hiMain&&q.quote_hi)?q.quote_hi:"";
+    const day=+q.day||i+1, of=+d.total_days||365, pct=Math.max(1,Math.min(100,day/of*100));
+    const act=lang==="hi"?(q.action_hi||q.action):q.action, act2=lang==="both"?q.action_hi:"";
+    const h=hookOf(d,q,HOOKS[0]);
+    const card=`<section class="art m ${theme}${story?" story":""}" lang="${hiMain?"hi":"en"}">
+      <div class="m-top"><span class="m-day">Day <b>${pad(day,3)}</b> / ${of}</span><span class="m-handle">${esc(d.handle)}</span></div>
+      <div class="m-bar"><i style="width:${pct.toFixed(1)}%"></i></div>
+      <p class="m-text fit" data-max="${story?150:(alt?118:136)}" data-min="56"><span>${hl(main)}</span></p>
+      ${alt?`<p class="m-alt" lang="hi">${hl(alt)}</p>`:""}
+      ${q.author?`<div class="m-by">— ${esc(q.author)}</div>`:""}
+      ${act?`<div class="m-act"><b>Today's<br>action</b><p>${esc(act)}</p>${act2?`<p lang="hi">${esc(act2)}</p>`:""}</div>`:""}
+      <div class="m-foot"><span>${lang==="hi"?"सेव करो · कल सुबह फिर पढ़ो":"Save it · Read it again at 6 AM"}</span><span>Swipe →</span></div></section>`;
+    const cta=ctaSlide(d,{cls:theme,size,question:h.q,question_hi:lang==="en"?"":h.q_hi,options:h.options,chip:lang==="hi"?"आपकी बारी":"Your move",
+      placeholder:lang==="hi"?"यहाँ लिखो, ख़ुद से वादा करो…":"Write it down. Make it real…",followLine:d.follow_line||`A new push every morning, Day ${day+1} drops tomorrow. Follow so you don't break the streak.`});
+    const hh=lang==="en"?{...h,q_hi:""}:lang==="hi"?{...h,q:h.q_hi||h.q,q_hi:""}:h;
+    const body=lang==="en"?clean(q.quote):lang==="hi"?clean(q.quote_hi||q.quote):`${clean(q.quote)}\n${clean(q.quote_hi)}`;
+    const caption=`DAY ${pad(day,3)} / ${of} 🔥
+
+${body}${q.author?"\n— "+q.author:""}
+
+✅ Today's action: ${q.action||""}${q.action_hi&&lang!=="en"?"\n✅ आज का एक्शन: "+q.action_hi:""}
+
+${captionHook(hh)}
+
+Follow ${d.handle} and don't break the streak. Day ${day+1} drops tomorrow at 6 AM ⏰
+
+${d.tags||""}`;
+    return {id:"day"+pad(day,3),label:`Day ${day} · ${q.date||""}`,slides:[{name:"card",html:card,size},{name:"comment-follow",html:cta,size}],caption};
+  });
+}
+Studio.mount({
+  channel:"@_motivation2live__", title:"Daily Motivation Studio", accent:"#e8461c", itemsKey:"quotes",
+  sub:"Each day is a 2-slide post: a quote card with a Day N / 365 streak and today's action, then a Comment & Follow slide.",
+  note:"The samples are original lines. Credit real authors, and check that the quote is actually theirs. Many famous quotes are misattributed.",
+  controls:[{key:"theme",label:"Theme",perItem:true,options:[["concrete","Concrete"],["night","Night"],["steel","Steel"],["fire","Fire"]]},{key:"lang",label:"Language",perItem:true,options:[["both","English + Hindi"],["en","English"],["hi","Hindi"]]},{key:"format",label:"Size",options:[["post","Feed post 4:5"],["story","Story / Reel 9:16"]]}],
+  hooks:HOOKS, posts,
+  guide:[["day / total_days","The streak counter.","A streak gives people a reason to come back tomorrow."],["quote / quote_hi","Under 18 words works best.","Wrap the punch phrase in *stars* to highlight it."],["action / action_hi","One small task for today.","This is what turns a quote into a habit."],["author","Optional.","Leave empty for the channel's own lines."],["hook","The comment question.","Set it for the batch or per day."]],
+  sample:{theme:"concrete",format:"post",lang:"both",handle:"@_motivation2live__",total_days:365,
+    tags:"#motivation #discipline #dailymotivation #hindimotivation #success #mindset #motivation2live",
+    quotes:[
+      {day:42,date:"Mon · 26 Oct",quote:"Discipline is choosing *what you want most* over what you want now.",quote_hi:"अनुशासन मतलब *जो सबसे ज़्यादा चाहिए* उसे अभी की चाहत से ऊपर रखना।",action:"Put your phone in another room for the first hour of your day.",action_hi:"दिन का पहला घंटा फ़ोन दूसरे कमरे में रखो।",hook:{q:"Type *I'M IN* if you're showing up today.",q_hi:"आज मेहनत करोगे तो लिखो *मैं तैयार हूँ*।"}},
+      {day:43,date:"Tue · 27 Oct",theme:"night",quote:"Nobody is coming to save you. *Start anyway.*",quote_hi:"कोई बचाने नहीं आएगा। *फिर भी शुरू करो।*",action:"Do the task you've been postponing for 25 minutes. Just 25.",action_hi:"जो काम टाल रहे हो, उसे सिर्फ़ 25 मिनट दो।",hook:{q:"Day 1 or *one day*? Choose.",q_hi:"आज से या *किसी दिन*? चुनो।",options:["Day 1","One day"]}},
+      {day:44,date:"Wed · 28 Oct",theme:"fire",quote:"Small steps every day beat *big plans someday*.",quote_hi:"रोज़ के छोटे कदम, *किसी दिन के बड़े प्लान* से बेहतर हैं।",action:"Write tomorrow's top 3 tasks before you sleep tonight.",action_hi:"सोने से पहले कल के 3 सबसे ज़रूरी काम लिख लो।",hook:{q:"What time did you *wake up today*?",q_hi:"आज *कितने बजे* उठे?",options:["Before 6","6–8 AM","After 8"]}}]}
+});
+</script></body></html>

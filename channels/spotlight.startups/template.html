@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spotlight Startups Studio</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+Devanagari:wght@400;600&display=swap">
+<link rel="stylesheet" href="../_shared/studio.css">
+<style>
+/* Art: cobalt / forest / clay / ink. Display = Bricolage, data = JetBrains Mono. */
+.art{--a-bg:#1d3bcf;--a-deep:#132a9c;--a-hi:#ffd84a;--a-ink:#0c1440;--a-fg:#fff;--a-dim:rgba(255,255,255,.72);--a-card:rgba(255,255,255,.08);--a-rule:rgba(255,255,255,.2);--a-glow:#132a9c;
+  --a-display:"Bricolage Grotesque","Noto Sans Devanagari","Arial Black",sans-serif;--a-body:"Instrument Sans","Noto Sans Devanagari",system-ui,sans-serif;--a-mono:"JetBrains Mono",ui-monospace,monospace}
+.art.t-forest{--a-bg:#0f5a45;--a-deep:#0a4334;--a-glow:#0a4334;--a-hi:#f6c453;--a-ink:#082a20}
+.art.t-clay{--a-bg:#a8432b;--a-deep:#84321f;--a-glow:#84321f;--a-hi:#ffe3a1;--a-ink:#3b130a}
+.art.t-ink{--a-bg:#17182b;--a-deep:#0e0f1e;--a-glow:#23244a;--a-hi:#9fe0ff;--a-ink:#0b1a24}
+.sp{padding:80px;display:flex;flex-direction:column;gap:28px}
+.sp::after{content:"";position:absolute;inset:auto -120px -260px auto;width:720px;height:720px;border-radius:50%;background:var(--a-deep);z-index:0}
+.sp>*{position:relative;z-index:1}
+.s-top,.s-foot{display:flex;justify-content:space-between;align-items:center;font-family:var(--a-mono);font-size:26px;font-weight:500;color:var(--a-dim);flex:none}
+.chip{background:var(--a-hi);color:var(--a-ink);font-family:var(--a-mono);font-weight:700;font-size:24px;letter-spacing:.06em;text-transform:uppercase;padding:10px 18px;border-radius:999px}
+.cta-top{font-family:var(--a-mono)} .cta-chip{font-family:var(--a-mono)}
+.c-kicker{display:flex;gap:16px;align-items:center;margin-top:40px;flex:none}
+.c-hook{font-family:var(--a-display);font-weight:800;line-height:.98;letter-spacing:-.02em;height:640px;margin:0;text-wrap:balance}
+.c-hook em{font-style:normal;color:var(--a-hi)}
+.c-five{position:absolute;right:40px;bottom:120px;font-family:var(--a-display);font-weight:800;font-size:560px;line-height:.8;color:transparent;-webkit-text-stroke:4px var(--a-hi);z-index:1}
+.c-dots{display:flex;gap:14px;margin-top:auto;flex:none}
+.c-dots i{font-style:normal;font-family:var(--a-mono);font-size:26px;font-weight:700;width:72px;height:72px;border-radius:50%;border:3px solid var(--a-rule);display:grid;place-items:center}
+.c-swipe{font-family:var(--a-display);font-weight:700;font-size:40px;flex:none}
+.st-id{display:flex;gap:32px;align-items:center;flex:none;height:150px}
+.logo{width:150px;height:150px;flex:none;border-radius:28px;background:var(--a-hi);color:var(--a-ink);display:grid;place-items:center;font-family:var(--a-display);font-weight:800;font-size:64px;overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:cover}
+.st-name{font-family:var(--a-display);font-weight:800;line-height:1.1;letter-spacing:-.02em;white-space:nowrap;height:140px;display:flex;align-items:center;flex:1;min-width:0}
+.st-tag{font-family:var(--a-display);font-weight:500;line-height:1.15;margin:0;height:130px;flex:none;text-wrap:balance}
+.stats{display:grid;grid-template-columns:1fr 1fr;border-top:2px solid var(--a-rule);border-bottom:2px solid var(--a-rule);flex:none}
+.stat{padding:20px 0;display:grid;gap:4px}
+.stat:nth-child(odd){padding-right:24px;border-right:2px solid var(--a-rule)}
+.stat:nth-child(even){padding-left:32px}
+.stat:nth-child(-n+2){border-bottom:2px solid var(--a-rule)}
+.stat b{font-family:var(--a-mono);font-size:20px;letter-spacing:.1em;text-transform:uppercase;color:var(--a-dim);font-weight:500}
+.stat span{font-size:36px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.metric{display:flex;align-items:baseline;gap:24px;flex:none;height:120px}
+.m-val{font-family:var(--a-mono);font-weight:700;color:var(--a-hi);white-space:nowrap;height:120px;display:flex;align-items:center;max-width:620px}
+.m-lab{font-size:30px;color:var(--a-dim);line-height:1.2;flex:1;min-width:0}
+.why{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;background:var(--a-card);border:2px solid var(--a-rule);border-radius:24px;padding:26px 30px}
+.why b{font-family:var(--a-mono);font-size:20px;letter-spacing:.1em;text-transform:uppercase;color:var(--a-hi);font-weight:700;flex:none}
+.why p{margin:0;line-height:1.35;flex:1;min-height:0}
+.r-title{font-family:var(--a-display);font-weight:800;font-size:96px;line-height:1;letter-spacing:-.02em;margin:24px 0 0;flex:none}
+.r-list{list-style:none;margin:0;padding:0;display:grid;flex:none}
+.r-list li{display:grid;grid-template-columns:90px minmax(0,1fr) auto;align-items:center;gap:20px;padding:22px 0;border-bottom:2px solid var(--a-rule)}
+.r-list .n{font-family:var(--a-mono);font-weight:700;font-size:30px;color:var(--a-hi)}
+.r-list .nm{font-family:var(--a-display);font-weight:700;font-size:48px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-list .rs{font-family:var(--a-mono);font-size:24px;color:var(--a-dim);white-space:nowrap}
+.r-cta{background:var(--a-hi);color:var(--a-ink);border-radius:28px;padding:34px 40px;margin-top:auto;display:grid;gap:8px;flex:none}
+.r-cta strong{font-family:var(--a-display);font-weight:800;font-size:52px;line-height:1.05}
+.r-cta strong em{font-style:normal;text-decoration:underline;text-decoration-thickness:5px;text-underline-offset:8px}
+.r-cta span{font-size:28px;font-weight:500}
+</style></head>
+<body><div id="app"></div>
+<script src="../_shared/studio.js"></script>
+<script>
+const {esc,hl,pad,initials,clean,ctaSlide,hookOf,captionHook}=Studio;
+const HOOKS=[
+  {q:"Which one would you *back with ₹10 lakh*?",options:"names"},
+  {q:"Which of these becomes a *unicorn first*?",options:"names"},
+  {q:"Which one would you *join as employee #10*?",options:"names"},
+  {q:"Which one would *you actually pay for*?",options:"names"},
+  {q:"Which one *won't survive 3 years*? Be honest.",options:"names"},
+  {q:"Rate this list out of 10. *Who did we miss?*"},
+  {q:"Which domain should we cover *next week*?",options:["Fintech","Health AI","Space Tech","D2C"]},
+  {q:"Overhyped or underrated? *Pick one and defend it.*"},
+  {q:"Tag a founder who's *building in this space*."},
+  {q:"Building something? *Comment your startup* and we may feature it."},
+  {q:"Comment *\"LIST\"* and we'll DM you all 5 links."},
+  {q:"Would you *quit your job* to build in this space?",options:["Yes, tomorrow","Maybe in 2 years","Never"]}
+];
+function resolve(h,list){const names=h.options==="names";return {...h,numbered:names,options:names?list.map(s=>s.name):h.options};}
+function posts(d){
+  const t="t-"+(d.theme||"cobalt"), list=(d.startups||[]).slice(0,5), total=pad(list.length);
+  const h=resolve(hookOf(d,null,HOOKS[0]),list);
+  const cover=`<section class="art sp ${t}"><div class="s-top"><span>${esc(d.handle)}</span><span>${esc(d.edition)}</span></div>
+    <div class="c-kicker"><span class="chip">Top ${list.length} · ${esc(d.domain)}</span></div>
+    <h2 class="c-hook fit" data-max="140" data-min="70"><span>${hl(d.title)}</span></h2>
+    <div class="c-five" aria-hidden="true">${list.length}</div>
+    <div class="c-dots">${list.map((_,i)=>`<i>${pad(i+1)}</i>`).join("")}</div><div class="c-swipe">Swipe →</div></section>`;
+  const each=list.map((s,i)=>({name:"startup-"+pad(i+1),html:`<section class="art sp ${t}">
+    <div class="s-top"><span>No. ${pad(i+1)} / ${total}</span><span class="chip">${esc(d.domain)}</span></div>
+    <div class="st-id"><div class="logo">${s.logo?`<img src="${esc(s.logo)}" alt="">`:esc(initials(s.name))}</div><div class="st-name fit" data-max="120" data-min="56" data-axis="w">${esc(s.name)}</div></div>
+    <p class="st-tag fit" data-max="54" data-min="34"><span>${esc(s.tagline)}</span></p>
+    <div class="stats"><div class="stat"><b>Founded</b><span>${esc(s.founded)}</span></div><div class="stat"><b>HQ</b><span>${esc(s.hq)}</span></div><div class="stat"><b>Stage</b><span>${esc(s.stage)}</span></div><div class="stat"><b>Raised</b><span>${esc(s.raised)}</span></div></div>
+    <div class="metric"><div class="m-val fit" data-max="104" data-min="56" data-axis="w">${esc(s.metric)}</div><div class="m-lab">${esc(s.metric_label)}</div></div>
+    <div class="why"><b>Why it matters</b><p class="fit" data-max="50" data-min="26"><span>${esc(s.why)}</span></p></div>
+    <div class="s-foot"><span>Backed by ${esc(s.investors||"—")}</span><span>${esc(d.handle)}</span></div></section>`}));
+  const recap=`<section class="art sp ${t}"><div class="s-top"><span>${esc(d.handle)}</span><span class="chip">${esc(d.domain)}</span></div>
+    <h2 class="r-title">The ${list.length}, at a glance</h2>
+    <ul class="r-list">${list.map((s,i)=>`<li><span class="n">${pad(i+1)}</span><span class="nm">${esc(s.name)}</span><span class="rs">${esc(s.stage)} · ${esc(s.raised)}</span></li>`).join("")}</ul>
+    <div class="r-cta"><strong>${hl(h.q)}</strong><span>${h.numbered?`Comment the number 01–${total}`:"Answer in the comments"}</span></div></section>`;
+  const cta=ctaSlide(d,{cls:t,question:h.q,options:h.options,numbered:h.numbered,chip:"Your pick",placeholder:"My pick is 0…",followLine:d.follow_line||`New domain every week. Follow ${d.handle} so next week's 5 land in your feed.`});
+  const caption=`${clean(d.title)} 👇
+
+${list.map((s,i)=>`${i+1}. ${s.name}: ${s.tagline} (${s.stage}, ${s.raised})`).join("\n")}
+
+${captionHook(h)}
+
+Follow ${d.handle} for 5 new startups every week. Next week: ${d.next_domain||"(next domain)"} 🔔
+
+Figures are from public sources as of ${d.edition}. This isn't investment advice.
+
+#startups #${String(d.domain||"").toLowerCase().replace(/[^a-z0-9]/g,"")} #founders #venturecapital #startupindia #spotlightstartups`;
+  return [{id:"top5",label:`Top 5 · ${d.domain}`,slides:[{name:"cover",html:cover},...each,{name:"recap",html:recap},{name:"comment-follow",html:cta}],caption}];
+}
+Studio.mount({
+  channel:"@spotlight.startups", title:"Top 5 Startups Studio", accent:"#1d3bcf", itemsKey:"startups",
+  sub:"Each post is an 8-slide carousel: cover, five startups, a recap, and a Comment & Follow slide.",
+  note:"The sample startups are made up. Check every figure against a primary source before posting.",
+  controls:[{key:"theme",label:"Colour",options:[["cobalt","Cobalt"],["forest","Forest"],["clay","Clay"],["ink","Ink"]]}],
+  hooks:HOOKS, posts,
+  guide:[["title","Cover headline, 6–10 words.","Wrap a phrase in *stars* to highlight it."],["hook","The comment question.",'Use "options":"names" to list the startups as answers.'],["next_domain","Next week's domain.","Teasing it in the caption gives people a reason to follow."],["tagline","Under 70 characters.","Use plain words, not their pitch."],["metric / metric_label","One traction number","with its source date."],["why","1–2 sentences.","Your take is what earns saves."],["logo","Optional image URL.","Without one, the slide shows initials."]],
+  sample:{theme:"cobalt",handle:"@spotlight.startups",edition:"Vol. 12 · Oct 2026",domain:"Climate Tech",next_domain:"AI Agents",
+    title:"5 startups quietly rebuilding the *power grid*",
+    hook:{q:"Which one would you *back with ₹10 lakh*?",options:"names"},
+    startups:[
+      {name:"Voltaic Loop",tagline:"Iron-air batteries that store wind power for 100 hours",founded:"2022",hq:"Pune",stage:"Series A",raised:"$24M",metric:"1.8 GWh",metric_label:"storage in pilot pipeline",why:"Lithium can't cover multi-day storage. Cheap iron chemistry could make renewables firm power.",investors:"Sample Capital, Northgate"},
+      {name:"GridSense",tagline:"AI that spots transformer failures weeks early",founded:"2021",hq:"Austin",stage:"Series B",raised:"$61M",metric:"40+",metric_label:"utilities using it",why:"Ageing grid hardware is the bottleneck for EV and data-centre load growth.",investors:"Fieldstone, Arcwell"},
+      {name:"Heliobond",tagline:"Perovskite coatings that add 20% output to old panels",founded:"2023",hq:"Delft",stage:"Seed",raised:"$9M",metric:"+20%",metric_label:"efficiency in lab tests",why:"Retrofitting the panels already installed is faster than building new solar farms.",investors:"Lumen Ventures"},
+      {name:"Kilnless",tagline:"Electric heat batteries for factories",founded:"2022",hq:"Oakland",stage:"Series A",raised:"$32M",metric:"1,200°C",metric_label:"delivered heat",why:"Industrial heat is about a fifth of global emissions, and almost none of it is electrified yet.",investors:"Bluecrest, Ore Fund"},
+      {name:"Meterly",tagline:"Peer-to-peer rooftop solar trading for housing societies",founded:"2024",hq:"Bengaluru",stage:"Pre-seed",raised:"$1.5M",metric:"3,400",metric_label:"homes onboarded",why:"It turns rooftop solar into income, which is what gets apartment complexes to install it.",investors:"Angel syndicate"}]}
+});
+</script></body></html>

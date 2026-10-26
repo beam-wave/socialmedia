@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Puree Heartz Quote Studio</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Tiro+Devanagari+Hindi:ital@0;1&family=Caveat:wght@600;700&family=Instrument+Sans:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../_shared/studio.css">
+<style>
+/* Art: soft romantic cards. Serif quote, handwritten signature, Hindi in Tiro Devanagari. Moods: blush, midnight, petal, dusk. */
+.art{--a-bg:linear-gradient(172deg,#ffe9ee 0%,#f9cdd8 55%,#eeaabd 100%);--a-fg:#4a1e2c;--a-dim:rgba(74,30,44,.68);--a-hi:#b8325a;--a-ink:#fff;--a-rule:rgba(74,30,44,.22);--a-card:rgba(255,255,255,.4);--a-glow:rgba(255,255,255,.45);--a-glow2:rgba(184,50,90,.16);
+  --a-display:"Cormorant Garamond","Tiro Devanagari Hindi",Georgia,serif;--a-display-w:600;--a-body:"Instrument Sans","Noto Sans Devanagari",system-ui,sans-serif;--a-script:"Caveat","Tiro Devanagari Hindi",cursive}
+.art.t-midnight{--a-bg:linear-gradient(172deg,#1c1030 0%,#3a1a45 60%,#5e2448 100%);--a-fg:#fbeef2;--a-dim:rgba(251,238,242,.72);--a-hi:#ff9fb8;--a-ink:#2a0f1e;--a-rule:rgba(251,238,242,.24);--a-card:rgba(255,255,255,.07);--a-glow:rgba(255,159,184,.2);--a-glow2:rgba(160,110,255,.22)}
+.art.t-petal{--a-bg:#fbf3ee;--a-fg:#3b2a26;--a-dim:rgba(59,42,38,.66);--a-hi:#c24d6b;--a-ink:#fff;--a-rule:rgba(59,42,38,.18);--a-card:rgba(255,255,255,.7);--a-glow:rgba(244,190,200,.5);--a-glow2:rgba(255,214,170,.45)}
+.art.t-dusk{--a-bg:linear-gradient(172deg,#2b2d5a 0%,#7a4a8a 55%,#e79aa5 100%);--a-fg:#fff;--a-dim:rgba(255,255,255,.8);--a-hi:#ffd6e0;--a-ink:#3a1f45;--a-rule:rgba(255,255,255,.3);--a-card:rgba(255,255,255,.1);--a-glow:rgba(255,214,224,.3);--a-glow2:rgba(255,190,150,.3)}
+.art::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(circle at 12% 18%,var(--a-glow) 0,transparent 22%),radial-gradient(circle at 88% 30%,var(--a-glow2) 0,transparent 26%),radial-gradient(circle at 78% 88%,var(--a-glow) 0,transparent 20%),radial-gradient(circle at 20% 82%,var(--a-glow2) 0,transparent 18%)}
+.cta-slide::before{display:none}
+.q{padding:96px 100px 84px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:30px}
+.q.story{padding:220px 100px 200px}
+.art>*{position:relative;z-index:1}
+.q-top{align-self:stretch;display:flex;justify-content:space-between;align-items:center;font-size:26px;letter-spacing:.14em;text-transform:uppercase;color:var(--a-dim);flex:none}
+.q-top [lang=hi]{letter-spacing:0}
+.q-top .h,.cta-top span:first-child{font-family:var(--a-script);text-transform:none;letter-spacing:0;font-size:44px;color:var(--a-hi)}
+.q-heart{width:84px;height:84px;flex:none;margin-top:40px;color:var(--a-hi)}
+.q-heart svg{width:100%;height:100%}
+.q-text{font-family:var(--a-display);font-weight:600;line-height:1.12;margin:0;flex:1;min-height:0;width:100%;display:flex;flex-direction:column;justify-content:center;text-wrap:balance}
+.q[lang=hi] .q-text{line-height:1.5;font-weight:400}
+.q-text em{font-style:italic;color:var(--a-hi)}
+.q[lang=hi] .q-text em{font-style:normal}
+.q-rule{width:120px;height:2px;background:var(--a-hi);opacity:.7;flex:none}
+.q-alt{font-family:var(--a-display);font-size:46px;line-height:1.5;color:var(--a-dim);margin:0;flex:none;max-height:210px;overflow:hidden;text-wrap:balance}
+.q-alt em{font-style:normal;color:var(--a-hi)}
+.q-by{font-family:var(--a-script);font-size:56px;line-height:1;color:var(--a-hi);flex:none}
+.q-note{font-size:30px;line-height:1.35;color:var(--a-dim);margin:0;max-width:820px;flex:none;max-height:84px;overflow:hidden}
+.q-foot{align-self:stretch;display:flex;justify-content:space-between;font-size:24px;letter-spacing:.06em;color:var(--a-dim);flex:none;border-top:2px solid var(--a-rule);padding-top:26px}
+.q-tease{font-family:var(--a-script);font-size:40px;color:var(--a-hi);flex:none}
+</style></head>
+<body><div id="app"></div>
+<script src="../_shared/studio.js"></script>
+<script>
+const {esc,hl,clean,ctaSlide,hookOf,captionHook,ICON}=Studio;
+const HOOKS=[
+  {q:"Tag the one who *understands your silence*.",q_hi:"उसे टैग करो जो *तुम्हारी ख़ामोशी* समझता है।"},
+  {q:"Send this to them *without saying a word*.",q_hi:"बिना कुछ कहे *उन्हें भेज दो*।"},
+  {q:"Describe your person in *one word*.",q_hi:"अपने ख़ास इंसान को *एक शब्द* में बताओ।"},
+  {q:"Who said *I love you* first?",q_hi:"पहले *आई लव यू* किसने कहा?",options:["Me","Them","Still waiting"]},
+  {q:"Texts first or *waits for their text*?",q_hi:"पहले मैसेज करते हो या *इंतज़ार*?",options:["I text first","I wait"]},
+  {q:"Long distance or *same city*?",q_hi:"लॉन्ग डिस्टेंस या *एक ही शहर*?",options:["Long distance","Same city","Single"]},
+  {q:"Complete the line: *Love is…*",q_hi:"लाइन पूरी करो: *प्यार है…*"},
+  {q:"Has someone ever *made you feel this*?",q_hi:"क्या किसी ने तुम्हें *ऐसा महसूस* कराया है?",options:["Yes","Not yet","Right now"]},
+  {q:"Rate this feeling *out of 10*.",q_hi:"इस एहसास को *10 में से* नंबर दो।"},
+  {q:"Comment *your initials + theirs*.",q_hi:"अपने और उनके *नाम का पहला अक्षर* लिखो।"},
+  {q:"Should we post *Part 2* of this tomorrow?",q_hi:"कल इसका *पार्ट 2* चाहिए?",options:["Yes please","Make it sadder"]},
+  {q:"How long have you been *together*?",q_hi:"कितने समय से *साथ* हो?",options:["< 1 year","1–5 years","5+ years","Waiting for them"]}
+];
+const L={en:{top:"Quote of the day",foot:"Save · Send to someone special"},hi:{top:"आज का विचार",foot:"सेव करें · किसी ख़ास को भेजें"}};
+function posts(d){
+  return (d.quotes||[]).map((q,i)=>{
+    const story=d.format==="story", lang=q.lang||d.lang||"both", theme="t-"+(q.theme||d.theme||"blush"), size=story?"story":"post";
+    const hiMain=lang==="hi"||(!q.quote&&q.quote_hi);
+    const main=hiMain?(q.quote_hi||q.quote):q.quote, alt=(lang==="both"&&!hiMain&&q.quote_hi)?q.quote_hi:"";
+    const note=lang==="en"?q.note:(q.note_hi||q.note);
+    const by=q.author?`— ${esc(q.author)}`:`— ${esc(d.signature||d.handle)}`;
+    const h=hookOf(d,q,HOOKS[0]);
+    const card=`<section class="art q ${theme}${story?" story":""}" lang="${hiMain?"hi":"en"}">
+      <div class="q-top"><span lang="${lang==="hi"?"hi":"en"}">${lang==="hi"?L.hi.top:L.en.top}${q.number?" · "+esc(q.number):""}</span><span class="h">${esc(d.handle)}</span></div>
+      <div class="q-heart">${ICON.heart}</div>
+      <p class="q-text fit" data-max="${story?120:(alt?92:108)}" data-min="44"><span>${hl(main)}</span></p>
+      ${alt?`<div class="q-rule"></div><p class="q-alt" lang="hi">${hl(alt)}</p>`:""}
+      <div class="q-by">${by}</div>
+      ${note?`<p class="q-note">${esc(note)}</p>`:""}
+      <div class="q-tease">swipe & tell us →</div>
+      <div class="q-foot"><span>${esc(q.date)}</span><span>${lang==="en"?L.en.foot:L.hi.foot}</span></div></section>`;
+    const cta=ctaSlide(d,{cls:theme,size,question:h.q,question_hi:lang==="en"?"":h.q_hi,options:h.options,chip:lang==="hi"?"आपकी बारी":"Your turn",
+      placeholder:lang==="hi"?"दिल की बात यहाँ लिखो…":"Say it in the comments…",followLine:d.follow_line||"A little love in your feed every day. Turn on notifications so you never miss one."});
+    const body=lang==="en"?clean(q.quote):lang==="hi"?clean(q.quote_hi||q.quote):`${clean(q.quote)}\n\n${clean(q.quote_hi)}`;
+    const hh=lang==="en"?{...h,q_hi:""}:lang==="hi"?{...h,q:h.q_hi||h.q,q_hi:""}:h;
+    const caption=`${body}${q.author?"\n— "+q.author:""}
+
+${captionHook(hh)}
+
+Follow ${d.handle} for a little love every day 🤍
+Turn on 🔔 so tomorrow's quote finds you first.
+
+${d.tags||""}`;
+    return {id:"q"+(q.number||String(i+1).padStart(2,"0")),label:`Quote ${q.number||i+1} · ${q.date||""}`,slides:[{name:"card",html:card,size},{name:"comment-follow",html:cta,size}],caption};
+  });
+}
+Studio.mount({
+  channel:"@puree_heartz", title:"Heartly Quote Studio", accent:"#b8325a", itemsKey:"quotes",
+  sub:"Each quote is a 2-slide post: the quote card and a Comment & Follow slide. Write a week at a time.",
+  note:"The samples are original lines. If you quote someone else, credit them in author. Don't post song lyrics or film dialogue.",
+  controls:[{key:"theme",label:"Mood",perItem:true,options:[["blush","Blush"],["midnight","Midnight"],["petal","Petal"],["dusk","Dusk"]]},{key:"lang",label:"Language",perItem:true,options:[["both","English + Hindi"],["en","English"],["hi","Hindi"]]},{key:"format",label:"Size",options:[["post","Feed post 4:5"],["story","Story / Reel 9:16"]]}],
+  hooks:HOOKS, posts,
+  guide:[["quote / quote_hi","The English and Hindi lines, under 25 words each.","Wrap a phrase in *stars* to highlight it."],["hook","The comment question.","Set it for the batch, or inside a quote to override it."],["author","Leave empty for your own lines.","The card then signs off as the channel."],["note / note_hi","Optional short line","under the signature."],["theme / lang","Per quote or for the batch.","Rotating moods keeps the grid varied."]],
+  sample:{theme:"blush",format:"post",lang:"both",handle:"@puree_heartz",signature:"puree_heartz",
+    tags:"#puree_heartz #couplequotes #lovequotes #heartquotes #hindiquotes #shayari #dilsedil #relationshipgoals",
+    quotes:[
+      {number:"01",date:"Mon · 26 Oct",quote:"Some hearts don't need words. They just *understand*.",quote_hi:"कुछ दिलों को लफ़्ज़ों की ज़रूरत नहीं होती, वो बस *समझ जाते हैं*।",note:"for the ones who get you",note_hi:"उनके लिए जो बिना कहे समझते हैं",hook:{q:"Tag the one who *understands your silence*.",q_hi:"उसे टैग करो जो *तुम्हारी ख़ामोशी* समझता है।"}},
+      {number:"02",date:"Tue · 27 Oct",theme:"midnight",quote:"Stay with the one who makes *your silence* feel safe.",quote_hi:"उसके साथ रहो जिसके साथ *तुम्हारी ख़ामोशी* भी सुकून दे।",hook:{q:"Texts first or *waits for their text*?",q_hi:"पहले मैसेज करते हो या *इंतज़ार*?",options:["I text first","I wait"]}},
+      {number:"03",date:"Wed · 28 Oct",theme:"dusk",quote:"Home isn't a place. It's *the person you run to*.",quote_hi:"घर कोई जगह नहीं, *वो इंसान है* जिसके पास तुम भागकर जाते हो।",note:"send this to your home",note_hi:"इसे अपने घर को भेजो",hook:{q:"Describe your person in *one word*.",q_hi:"अपने ख़ास इंसान को *एक शब्द* में बताओ।"}}]}
+});
+</script></body></html>

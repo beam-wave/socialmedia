@@ -1,0 +1,50 @@
+{
+  "theme": "blush",
+  "format": "post",
+  "lang": "both",
+  "handle": "@puree_heartz",
+  "signature": "puree_heartz",
+  "tags": "#puree_heartz #couplequotes #lovequotes #heartquotes #hindiquotes #shayari #dilsedil #relationshipgoals",
+  "quotes": [
+    {
+      "number": "01",
+      "date": "Mon · 26 Oct",
+      "quote": "Some hearts don't need words. They just *understand*.",
+      "quote_hi": "कुछ दिलों को लफ़्ज़ों की ज़रूरत नहीं होती, वो बस *समझ जाते हैं*।",
+      "note": "for the ones who get you",
+      "note_hi": "उनके लिए जो बिना कहे समझते हैं",
+      "hook": {
+        "q": "Tag the one who *understands your silence*.",
+        "q_hi": "उसे टैग करो जो *तुम्हारी ख़ामोशी* समझता है।"
+      }
+    },
+    {
+      "number": "02",
+      "date": "Tue · 27 Oct",
+      "theme": "midnight",
+      "quote": "Stay with the one who makes *your silence* feel safe.",
+      "quote_hi": "उसके साथ रहो जिसके साथ *तुम्हारी ख़ामोशी* भी सुकून दे।",
+      "hook": {
+        "q": "Texts first or *waits for their text*?",
+        "q_hi": "पहले मैसेज करते हो या *इंतज़ार*?",
+        "options": [
+          "I text first",
+          "I wait"
+        ]
+      }
+    },
+    {
+      "number": "03",
+      "date": "Wed · 28 Oct",
+      "theme": "dusk",
+      "quote": "Home isn't a place. It's *the person you run to*.",
+      "quote_hi": "घर कोई जगह नहीं, *वो इंसान है* जिसके पास तुम भागकर जाते हो।",
+      "note": "send this to your home",
+      "note_hi": "इसे अपने घर को भेजो",
+      "hook": {
+        "q": "Describe your person in *one word*.",
+        "q_hi": "अपने ख़ास इंसान को *एक शब्द* में बताओ।"
+      }
+    }
+  ]
+}

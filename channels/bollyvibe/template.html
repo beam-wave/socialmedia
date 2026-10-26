@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bollyvibe Studio</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Mukta:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../_shared/studio.css">
+<style>
+/* Art: cinema marquee. Rozha One for titles (Latin + Devanagari), Mukta for text. The official poster fills slide 1. Themes: marquee, neon, saffron. */
+.art{--a-bg:radial-gradient(ellipse at 50% -10%,rgba(245,197,66,.22) 0,transparent 50%),linear-gradient(180deg,#2a0a17 0%,#14040b 100%);--a-fg:#fff8ec;--a-dim:rgba(255,248,236,.72);--a-hi:#f5c542;--a-ink:#2a0a17;--a-rule:rgba(245,197,66,.3);--a-card:rgba(255,255,255,.06);--a-glow:rgba(245,197,66,.08);
+  --a-display:"Rozha One","Noto Serif Devanagari",Georgia,serif;--a-display-w:400;--a-body:"Mukta","Noto Sans Devanagari",system-ui,sans-serif}
+.art.t-neon{--a-bg:radial-gradient(ellipse at 80% 0%,rgba(255,61,127,.3) 0,transparent 45%),radial-gradient(ellipse at 0% 100%,rgba(61,140,255,.25) 0,transparent 45%),#0b0b1f;--a-hi:#ff3d7f;--a-ink:#fff;--a-rule:rgba(255,61,127,.35);--a-glow:rgba(255,61,127,.1)}
+.art.t-saffron{--a-bg:linear-gradient(170deg,#ff9933 0%,#d9480f 100%);--a-fg:#fffaf0;--a-dim:rgba(255,250,240,.85);--a-hi:#fff3b0;--a-ink:#5a1a00;--a-rule:rgba(255,250,240,.35);--a-card:rgba(255,255,255,.12)}
+.cta-q{line-height:1.12}
+.cta-top span:first-child{font-weight:700;letter-spacing:.02em}
+/* poster slide */
+.pst{display:flex;flex-direction:column;justify-content:flex-end;padding:80px;gap:22px}
+.pst.story{padding:200px 80px 190px}
+.pst .img{position:absolute;inset:0;z-index:0}
+.pst .img img{width:100%;height:100%;object-fit:cover}
+.pst .img.ph{background:repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 2px,transparent 2px 22px),radial-gradient(ellipse at 50% 30%,rgba(245,197,66,.35) 0,transparent 60%),linear-gradient(180deg,#3a0f22,#14040b);display:grid;place-items:center}
+.pst .img.ph span{font-size:28px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:-380px}
+.pst::after{content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,transparent 22%,transparent 45%,rgba(10,2,6,.92) 82%)}
+.pst>*:not(.img){position:relative;z-index:1}
+.p-top{position:absolute !important;top:80px;left:80px;right:80px;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:28px;color:#fff}
+.pst.story .p-top{top:200px}
+.p-chip{background:var(--a-hi);color:var(--a-ink);padding:10px 20px;border-radius:999px;font-size:24px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.p-title{font-family:var(--a-display);font-weight:400;line-height:1;margin:0;color:#fff;height:250px;display:flex;flex-direction:column;justify-content:flex-end;text-shadow:0 4px 30px rgba(0,0,0,.5)}
+.p-hi{font-family:var(--a-display);font-size:56px;color:var(--a-hi);margin:-6px 0 0;line-height:1.3}
+.p-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.p-row span{font-size:30px;font-weight:700;color:#fff;padding:10px 22px;border:2px solid rgba(255,255,255,.4);border-radius:999px}
+.p-row span.hot{background:var(--a-hi);color:var(--a-ink);border-color:transparent}
+.p-credit{font-size:22px;color:rgba(255,255,255,.6)}
+/* details slide */
+.dt{padding:80px;display:flex;flex-direction:column;gap:30px}
+.dt.story{padding:200px 80px 190px}
+.d-top{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:28px;color:var(--a-dim);flex:none}
+.d-title{font-family:var(--a-display);font-size:84px;line-height:1.02;margin:0;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d-count{display:grid;grid-template-columns:auto 1fr;gap:4px 34px;align-items:center;padding:30px 34px;border:3px solid var(--a-hi);border-radius:28px;flex:none}
+.d-count b{grid-row:span 2;font-family:var(--a-display);font-size:170px;line-height:.85;color:var(--a-hi);font-weight:400}
+.d-count span{font-size:40px;font-weight:800;line-height:1.1}
+.d-count em{font-style:normal;font-size:30px;color:var(--a-dim)}
+.d-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:2px solid var(--a-rule);flex:none}
+.d-grid div{padding:20px 0;border-bottom:2px solid var(--a-rule);display:grid;gap:2px;min-width:0}
+.d-grid div:nth-child(odd){padding-right:22px;border-right:2px solid var(--a-rule)}
+.d-grid div:nth-child(even){padding-left:28px}
+.d-grid div.wide{grid-column:1/-1;border-right:0;padding-right:0}
+.d-grid b{font-size:22px;letter-spacing:.14em;text-transform:uppercase;color:var(--a-hi);font-weight:700}
+.d-grid span{font-size:34px;font-weight:600;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.d-teaser{margin-top:auto;display:flex;gap:26px;align-items:center;background:var(--a-card);border:2px solid var(--a-rule);border-radius:24px;padding:24px 28px;flex:none}
+.d-teaser svg{width:110px;height:110px;color:var(--a-hi);flex:none}
+.d-teaser div{display:grid;gap:2px;min-width:0}
+.d-teaser strong{font-size:38px;font-weight:800}
+.d-teaser span{font-size:28px;color:var(--a-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style></head>
+<body><div id="app"></div>
+<script src="../_shared/studio.js"></script>
+<script>
+const {esc,hl,clean,pad,ctaSlide,hookOf,captionHook,ICON}=Studio;
+const HOOKS=[
+  {q:"Will you watch it *first day, first show*?",q_hi:"*फ़र्स्ट डे फ़र्स्ट शो* देखोगे?",options:["FDFS","This weekend","Waiting for OTT"]},
+  {q:"Hit or flop? *Predict now*, we'll check on Monday.",q_hi:"हिट या फ़्लॉप? *अभी बताओ*, सोमवार को देखेंगे।",options:["Blockbuster","Hit","Average","Flop"]},
+  {q:"Rate this teaser *out of 10*.",q_hi:"इस टीज़र को *10 में से* कितने नंबर?"},
+  {q:"Theatre or *OTT* for this one?",q_hi:"थिएटर या *OTT*?",options:["Theatre","OTT"]},
+  {q:"Opening-day collection? *Comment in crores.*",q_hi:"पहले दिन की कमाई? *करोड़ में बताओ।*"},
+  {q:"Who's the *real star* of this teaser?",q_hi:"इस टीज़र का *असली स्टार* कौन?"},
+  {q:"Tag the friend you're *watching this with*.",q_hi:"उस दोस्त को टैग करो जिसके साथ *ये देखोगे*।"},
+  {q:"Poster: *fire or meh*?",q_hi:"पोस्टर: *ज़बरदस्त या ठीक-ठाक*?",options:["Fire","Meh"]},
+  {q:"Which release are you *most excited for* this month?",q_hi:"इस महीने *किस फ़िल्म* का सबसे ज़्यादा इंतज़ार है?"},
+  {q:"Better than the *last part*?",q_hi:"*पिछले पार्ट* से बेहतर?",options:["Yes","No","Too early to say"]},
+  {q:"Comment *TEASER* and we'll DM you the link.",q_hi:"*TEASER* लिखो, लिंक DM में भेजेंगे।"},
+  {q:"Which song from the album are you *waiting for*?",q_hi:"किस *गाने* का इंतज़ार है?"}
+];
+function daysTo(iso,today){const a=new Date((today||new Date().toISOString().slice(0,10))+"T00:00:00"),b=new Date(iso+"T00:00:00");return Math.round((b-a)/864e5);}
+function fmtDate(iso){try{return new Date(iso+"T00:00:00").toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});}catch(e){return iso;}}
+function shortUrl(u){return String(u||"").replace(/^https?:\/\/(www\.)?/,"").slice(0,42);}
+function posts(d){
+  return (d.movies||[]).map((m,i)=>{
+    const t="t-"+(m.theme||d.theme||"marquee"), story=d.format==="story", size=story?"story":"post", s=story?" story":"";
+    const n=daysTo(m.release_date,d.today);
+    const when=n>1?`In cinemas in ${n} days`:n===1?"In cinemas tomorrow":n===0?"In cinemas today":"Now in cinemas";
+    const h=hookOf(d,m,HOOKS[0]);
+    const poster=`<section class="art pst ${t}${s}">
+      <div class="img${m.poster?"":" ph"}">${m.poster?`<img src="${esc(m.poster)}" alt="">`:`<span>Official poster goes here</span>`}</div>
+      <div class="p-top"><span>${esc(d.handle)}</span><span class="p-chip">${esc(m.badge||"Upcoming")}</span></div>
+      <h2 class="p-title fit" data-max="150" data-min="72"><span>${esc(m.title)}</span></h2>
+      ${m.title_hi?`<p class="p-hi" lang="hi">${esc(m.title_hi)}</p>`:""}
+      <div class="p-row"><span class="hot">${esc(fmtDate(m.release_date))}</span>${m.teaser_url?`<span>Teaser out now</span>`:""}<span>${esc(when)}</span></div>
+      ${m.credit?`<div class="p-credit">Poster: ${esc(m.credit)}</div>`:""}</section>`;
+    const det=`<section class="art dt ${t}${s}">
+      <div class="d-top"><span>${esc(d.handle)}</span><span class="cta-chip">All the details</span></div>
+      <h2 class="d-title">${esc(m.title)}</h2>
+      <div class="d-count"><b>${n>0?n:"✓"}</b><span>${n>0?"days to go":esc(when)}</span><em>Release: ${esc(fmtDate(m.release_date))}</em></div>
+      <div class="d-grid"><div class="wide"><b>Starring</b><span>${esc((m.cast||[]).join(", "))}</span></div>
+        <div><b>Director</b><span>${esc(m.director)}</span></div><div><b>Genre</b><span>${esc(m.genre)}</span></div>
+        <div><b>Language</b><span>${esc(m.language)}</span></div><div><b>Studio</b><span>${esc(m.studio)}</span></div></div>
+      ${m.teaser_url?`<div class="d-teaser">${ICON.play}<div><strong>Watch the official teaser</strong><span>Link in bio · ${esc(shortUrl(m.teaser_url))}</span></div></div>`:""}</section>`;
+    const cta=ctaSlide(d,{cls:t,size,question:h.q,question_hi:h.q_hi,options:h.options,chip:"Your verdict",placeholder:"My verdict is…",
+      followLine:d.follow_line||"Every new poster and teaser, the day it drops. Follow and turn on notifications."});
+    const caption=`🎬 ${m.title}${m.title_hi?" | "+m.title_hi:""}
+📅 Release: ${fmtDate(m.release_date)} (${when.toLowerCase()})
+⭐ Starring: ${(m.cast||[]).join(", ")}
+🎥 Director: ${m.director}
+${m.teaser_url?`\n▶️ Official teaser: ${m.teaser_url}\n(Link also in bio and today's story)\n`:""}
+${captionHook(h)}
+
+Follow ${d.handle} for every new poster and teaser the day it drops 🔔
+${m.credit?`\nPoster and teaser: ${m.credit}. Shared for promotional purposes.`:""}
+
+#bollywood #upcomingmovies #${String(m.title||"").toLowerCase().replace(/[^a-z0-9]/g,"")} #teaser #newmovie #bollyvibe`;
+    return {id:"movie-"+pad(i+1),label:`${m.title} · ${fmtDate(m.release_date)}`,slides:[{name:"poster",html:poster,size},{name:"details",html:det,size},{name:"comment-follow",html:cta,size}],caption};
+  });
+}
+Studio.mount({
+  channel:"@bollyvibe", title:"Upcoming Movies Studio", accent:"#c2185b", itemsKey:"movies",
+  sub:"Each movie is a 3-slide post: the official poster, the details with a live countdown and teaser link, then a Comment & Follow slide.",
+  note:"Use only official posters and teasers from the studio's own channels, and credit the studio. The sample movie is made up.",
+  controls:[{key:"theme",label:"Theme",perItem:true,options:[["marquee","Marquee"],["neon","Neon"],["saffron","Saffron"]]},{key:"format",label:"Size",options:[["post","Feed post 4:5"],["story","Story / Reel 9:16"]]}],
+  hooks:HOOKS, posts,
+  guide:[["poster","Path or URL of the official poster.","For a local file, put it in this folder and write e.g. \"posters/movie.jpg\"."],["release_date","Date as YYYY-MM-DD.","The countdown is worked out from this."],["today","Optional, YYYY-MM-DD.","Sets the countdown date when you render posts ahead of time."],["teaser_url","Official YouTube link.","Instagram captions aren't clickable, so also add it to your bio or a story link sticker."],["credit","Studio or production house.","Always credit them."],["title_hi","Hindi title,","shown under the English one."]],
+  sample:{theme:"marquee",format:"post",handle:"@bollyvibe",today:"2026-10-26",
+    movies:[{title:"Monsoon Express",title_hi:"मानसून एक्सप्रेस",release_date:"2026-11-13",badge:"Teaser out",cast:["Lead Actor","Lead Actress","Supporting Actor"],director:"Sample Director",genre:"Romance · Drama",language:"Hindi",studio:"Sample Films",
+      teaser_url:"https://www.youtube.com/watch?v=XXXXXXXXXXX",credit:"Sample Films",hook:{q:"Will you watch it *first day, first show*?",q_hi:"*फ़र्स्ट डे फ़र्स्ट शो* देखोगे?",options:["FDFS","This weekend","Waiting for OTT"]}}]}
+});
+</script></body></html>

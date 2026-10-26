@@ -1,0 +1,34 @@
+{
+  "theme": "marquee",
+  "format": "post",
+  "handle": "@bollyvibe",
+  "today": "2026-10-26",
+  "movies": [
+    {
+      "title": "Monsoon Express",
+      "title_hi": "मानसून एक्सप्रेस",
+      "release_date": "2026-11-13",
+      "badge": "Teaser out",
+      "cast": [
+        "Lead Actor",
+        "Lead Actress",
+        "Supporting Actor"
+      ],
+      "director": "Sample Director",
+      "genre": "Romance · Drama",
+      "language": "Hindi",
+      "studio": "Sample Films",
+      "teaser_url": "https://www.youtube.com/watch?v=XXXXXXXXXXX",
+      "credit": "Sample Films",
+      "hook": {
+        "q": "Will you watch it *first day, first show*?",
+        "q_hi": "*फ़र्स्ट डे फ़र्स्ट शो* देखोगे?",
+        "options": [
+          "FDFS",
+          "This weekend",
+          "Waiting for OTT"
+        ]
+      }
+    }
+  ]
+}
