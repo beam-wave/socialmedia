@@ -1,12 +1,10 @@
 defmodule SocialmediaWeb.ChannelLive.Show do
   @moduledoc """
-  One channel: create a post, see its posts (Week), and edit its slots (Slots).
-  A slot gives a post type its default time and its agent instructions.
+  One channel: create a post and see its posts by day.
   """
   use SocialmediaWeb, :live_view
   import SocialmediaWeb.AdminComponents
   alias Socialmedia.{Channels, Content, Posts}
-  alias Socialmedia.Channels.Schedule
   alias SocialmediaWeb.PostText
 
   @impl true
@@ -15,8 +13,8 @@ defmodule SocialmediaWeb.ChannelLive.Show do
 
     {:ok,
      socket
-     |> assign(channel: channel, page_title: channel.handle, editing: nil)
-     |> load()
+     |> assign(channel: channel, page_title: channel.handle)
+     |> load_posts()
      |> assign_create(nil)}
   end
 
@@ -31,8 +29,6 @@ defmodule SocialmediaWeb.ChannelLive.Show do
       do: {:noreply, load_posts(socket)}
 
   def handle_info(_, socket), do: {:noreply, socket}
-
-  defp load(socket), do: socket |> load_posts() |> load_slots()
 
   defp load_posts(socket) do
     ch = socket.assigns.channel
@@ -50,22 +46,6 @@ defmodule SocialmediaWeb.ChannelLive.Show do
 
     assign(socket, days: days, today: DateTime.now!(ch.timezone) |> DateTime.to_date())
   end
-
-  defp load_slots(socket) do
-    slots = Channels.list_schedules(socket.assigns.channel)
-    assign(socket, slots: slots, form: slot_form(socket.assigns[:editing]))
-  end
-
-  defp slot_form(nil),
-    do:
-      to_form(
-        Channels.change_schedule(%Schedule{
-          weekdays: Enum.to_list(1..7),
-          time_of_day: ~T[09:00:00]
-        })
-      )
-
-  defp slot_form(%Schedule{} = s), do: to_form(Channels.change_schedule(s))
 
   ## Events: posts
 
@@ -103,63 +83,12 @@ defmodule SocialmediaWeb.ChannelLive.Show do
     end
   end
 
-  ## Events: slots
-
-  def handle_event("edit_slot", %{"id" => id}, socket) do
-    s = Channels.get_schedule!(id)
-    {:noreply, socket |> assign(editing: s, form: slot_form(s))}
-  end
-
-  def handle_event("cancel_edit", _, socket),
-    do: {:noreply, socket |> assign(editing: nil, form: slot_form(nil))}
-
-  def handle_event("validate_slot", %{"schedule" => params}, socket) do
-    base = socket.assigns.editing || %Schedule{}
-    cs = Channels.change_schedule(base, normalize(params, socket)) |> Map.put(:action, :validate)
-    {:noreply, assign(socket, form: to_form(cs))}
-  end
-
-  def handle_event("save_slot", %{"schedule" => params}, socket) do
-    params = normalize(params, socket)
-
-    result =
-      case socket.assigns.editing do
-        nil -> Channels.create_schedule(params)
-        s -> Channels.update_schedule(s, params)
-      end
-
-    case result do
-      {:ok, _s} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Slot saved.")
-         |> assign(editing: nil)
-         |> load()}
-
-      {:error, cs} ->
-        {:noreply, assign(socket, form: to_form(cs))}
-    end
-  end
-
-  def handle_event("toggle_slot", %{"id" => id}, socket) do
-    s = Channels.get_schedule!(id)
-    {:ok, _} = Channels.update_schedule(s, %{active: !s.active})
-    {:noreply, socket |> load() |> assign_create(nil)}
-  end
-
-  def handle_event("delete_slot", %{"id" => id}, socket) do
-    s = Channels.get_schedule!(id)
-    {:ok, _} = Channels.delete_schedule(s)
-    {:noreply, socket |> put_flash(:info, "Slot deleted") |> load() |> assign_create(nil)}
-  end
-
   defp explain(:bad_type), do: "Pick a post type."
   defp explain(:bad_date), do: "Pick a match day from today on."
   defp explain(other), do: inspect(other)
 
   # The time is picked when scheduling. A fixture is made for the match day
-  # chosen here; anything else for the slot's next time (the agent uses it for
-  # dates and streak numbers).
+  # chosen here, anything else for tomorrow (the agent uses it for dates).
   defp made_for(ch, %{"post_type" => "fixture"} = params) do
     today = DateTime.now!(ch.timezone) |> DateTime.to_date()
 
@@ -167,37 +96,23 @@ defmodule SocialmediaWeb.ChannelLive.Show do
       {:ok, date} ->
         if Date.compare(date, today) == :lt,
           do: {:error, :bad_date},
-          else: {:ok, Channels.slot_time_on(ch, "fixture", date)}
+          else: {:ok, Channels.made_for(ch, date)}
 
       _ ->
         {:error, :bad_date}
     end
   end
 
-  defp made_for(ch, %{"post_type" => type}), do: {:ok, Channels.next_slot_time(ch, type)}
+  defp made_for(ch, _params), do: {:ok, Channels.made_for(ch)}
 
-  # Post types this channel makes: its slots' types, or every type if it has none.
-  # Results aren't made here: each fixture creates its own.
   defp assign_create(socket, params) do
     ch = socket.assigns.channel
-
-    types =
-      case socket.assigns.slots |> Enum.map(& &1.post_type) |> Enum.uniq() do
-        [] -> Schedule.post_types()
-        slot_types -> slot_types
-      end
-      |> List.delete("result")
-
+    types = Channels.post_types(ch)
     params = params || %{}
     type = if params["post_type"] in types, do: params["post_type"], else: List.first(types)
 
     date =
-      params["date"] ||
-        ch
-        |> Channels.next_slot_time("fixture")
-        |> DateTime.shift_zone!(ch.timezone)
-        |> DateTime.to_date()
-        |> Date.to_iso8601()
+      params["date"] || ch.timezone |> DateTime.now!() |> DateTime.to_date() |> Date.to_iso8601()
 
     form =
       to_form(%{"post_type" => type, "date" => date, "note" => params["note"] || ""},
@@ -205,19 +120,6 @@ defmodule SocialmediaWeb.ChannelLive.Show do
       )
 
     assign(socket, post_types: types, create_form: form)
-  end
-
-  defp normalize(params, socket) do
-    days =
-      params
-      |> Map.get("weekdays", [])
-      |> List.wrap()
-      |> Enum.reject(&(&1 == ""))
-      |> Enum.map(&String.to_integer/1)
-
-    params
-    |> Map.put("weekdays", days)
-    |> Map.put("channel_id", socket.assigns.channel.id)
   end
 
   ## Render
@@ -241,10 +143,6 @@ defmodule SocialmediaWeb.ChannelLive.Show do
         </:actions>
       </.page_header>
 
-      <.tabs tabs={[
-        {"Week", ~p"/channels/#{@channel.id}", @live_action == :week},
-        {"Slots", ~p"/channels/#{@channel.id}/slots", @live_action == :slots}
-      ]} />
       <div class="-mt-3 text-right">
         <.link navigate={~p"/channels/#{@channel.id}/settings"} class="text-xs muted hover:underline">
           Channel settings →
@@ -252,13 +150,11 @@ defmodule SocialmediaWeb.ChannelLive.Show do
       </div>
 
       <.create_panel
-        :if={@live_action == :week}
         form={@create_form}
         post_types={@post_types}
         channel={@channel}
       />
-      <.week :if={@live_action == :week} days={@days} today={@today} channel={@channel} />
-      <.slots :if={@live_action == :slots} slots={@slots} form={@form} editing={@editing} />
+      <.week days={@days} today={@today} channel={@channel} />
     </Layouts.app>
     """
   end
@@ -379,110 +275,6 @@ defmodule SocialmediaWeb.ChannelLive.Show do
         </li>
       </ul>
     </section>
-    """
-  end
-
-  attr :slots, :list, required: true
-  attr :form, :any, required: true
-  attr :editing, :any, required: true
-
-  defp slots(assigns) do
-    ~H"""
-    <div class="grid xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
-      <section>
-        <.empty
-          :if={@slots == []}
-          text="No slots yet. A slot sets a post type's default time and agent instructions."
-        />
-        <ul :if={@slots != []} class="rounded-lg border hairline divide-y divide-base-300">
-          <li :for={s <- @slots} class={["px-3 py-3 flex items-center gap-4", !s.active && "faint"]}>
-            <div class="mono text-lg w-16">{Calendar.strftime(s.time_of_day, "%H:%M")}</div>
-            <div class="min-w-0 flex-1 space-y-1">
-              <div class="text-sm font-medium">{post_type_label(s.post_type)}</div>
-              <div class="flex gap-1">
-                <span
-                  :for={{name, i} <- Enum.with_index(weekday_names(), 1)}
-                  class={[
-                    "w-7 text-center rounded text-[10px] py-0.5",
-                    if(i in s.weekdays,
-                      do: "bg-base-content text-base-100",
-                      else: "border hairline faint"
-                    )
-                  ]}
-                >
-                  {String.slice(name, 0, 2)}
-                </span>
-              </div>
-              <div :if={s.extra_instructions not in [nil, ""]} class="text-xs muted">
-                {s.extra_instructions}
-              </div>
-            </div>
-            <button phx-click="toggle_slot" phx-value-id={s.id} class="btn btn-xs btn-ghost">
-              {if s.active, do: "Pause", else: "Resume"}
-            </button>
-            <button phx-click="edit_slot" phx-value-id={s.id} class="btn btn-xs btn-outline">
-              Edit
-            </button>
-            <button
-              phx-click="delete_slot"
-              phx-value-id={s.id}
-              data-confirm="Delete this slot?"
-              class="btn btn-xs btn-ghost"
-            >
-              <.icon name="hero-trash" class="size-3.5" />
-            </button>
-          </li>
-        </ul>
-      </section>
-
-      <section class="rounded-lg border hairline p-4">
-        <h2 class="text-sm font-semibold mb-3">{if @editing, do: "Edit slot", else: "New slot"}</h2>
-        <.form for={@form} phx-change="validate_slot" phx-submit="save_slot" class="space-y-1">
-          <.input
-            field={@form[:post_type]}
-            type="select"
-            label="Post type"
-            options={Enum.map(Schedule.post_types(), &{post_type_label(&1), &1})}
-          />
-          <.input field={@form[:time_of_day]} type="time" label="Time (channel timezone)" />
-          <fieldset class="fieldset mb-2">
-            <span class="label mb-1">Days</span>
-            <input type="hidden" name="schedule[weekdays][]" value="" />
-            <div class="flex gap-1">
-              <label
-                :for={{name, i} <- Enum.with_index(weekday_names(), 1)}
-                class="cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  name="schedule[weekdays][]"
-                  value={i}
-                  checked={i in (@form[:weekdays].value || [])}
-                  class="peer sr-only"
-                />
-                <span class="block w-9 text-center rounded border hairline text-xs py-1 peer-checked:bg-base-content peer-checked:text-base-100">
-                  {String.slice(name, 0, 2)}
-                </span>
-              </label>
-            </div>
-            <p :for={{msg, _} <- @form[:weekdays].errors} class="text-xs mt-1">{msg}</p>
-          </fieldset>
-          <.input
-            field={@form[:extra_instructions]}
-            type="textarea"
-            label="Instructions for the agent (optional)"
-            placeholder="e.g. Only India matches. Or: focus on Indian startups."
-          />
-          <.input field={@form[:active]} type="checkbox" label="Active" />
-          <div class="flex gap-2 pt-2">
-            <button class="btn btn-sm btn-primary" phx-disable-with="Saving…">Save slot</button>
-            <button :if={@editing} type="button" phx-click="cancel_edit" class="btn btn-sm btn-ghost">
-              Cancel
-            </button>
-          </div>
-        </.form>
-      </section>
-    </div>
     """
   end
 end

@@ -34,11 +34,9 @@ defmodule Socialmedia.ContentBusTest do
 
   test "each click creates one post and queues one Produce job" do
     ch = channel()
-    schedule(ch)
 
     assert {:ok, post} = Content.create(ch, %{post_type: "quote", scheduled_at: hours(5)})
     assert post.status == "creating" and post.content_key
-    assert post.schedule_id
     assert_enqueued(worker: Produce, args: %{post_id: post.id})
 
     {:ok, other} = Content.create(ch, %{post_type: "quote", scheduled_at: hours(29)})

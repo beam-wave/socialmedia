@@ -19,7 +19,6 @@ defmodule Socialmedia.Channels.Channel do
     # Channel-level template fields (theme, handle, tags...) merged under every post's data
     field :base_data, :map, default: %{}
 
-    has_many :schedules, Socialmedia.Channels.Schedule
     has_many :posts, Socialmedia.Posts.Post
 
     timestamps(type: :utc_datetime)

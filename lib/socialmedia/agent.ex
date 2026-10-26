@@ -71,7 +71,6 @@ defmodule Socialmedia.Agent do
     Goes live: #{Calendar.strftime(local, "%A %d %B %Y, %H:%M")} (#{channel.timezone})
     Today is: #{Date.utc_today() |> Date.to_iso8601()}
     #{series_line(channel, work)}
-    #{line("Slot instructions from the admin", work.extra_instructions)}
     #{line("Admin note for this post (highest priority)", work.admin_note)}
     #{fixtures_line(work)}
     #{related(work)}

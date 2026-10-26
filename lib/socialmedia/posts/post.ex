@@ -31,7 +31,6 @@ defmodule Socialmedia.Posts.Post do
     field :permalink, :string
 
     belongs_to :channel, Socialmedia.Channels.Channel
-    belongs_to :schedule, Socialmedia.Channels.Schedule
     # Result posts point at the fixture whose predictions they score
     belongs_to :parent, __MODULE__
     has_one :child, __MODULE__, foreign_key: :parent_id
@@ -45,7 +44,6 @@ defmodule Socialmedia.Posts.Post do
     post
     |> cast(attrs, [
       :channel_id,
-      :schedule_id,
       :scheduled_at,
       :post_type,
       :status,

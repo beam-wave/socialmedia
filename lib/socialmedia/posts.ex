@@ -28,11 +28,11 @@ defmodule Socialmedia.Posts do
 
   ## Queries
 
-  def get_post!(id), do: Post |> Repo.get!(id) |> Repo.preload([:channel, :schedule])
+  def get_post!(id), do: Post |> Repo.get!(id) |> Repo.preload(:channel)
 
-  def get_post(id), do: Post |> Repo.get(id) |> Repo.preload([:channel, :schedule])
+  def get_post(id), do: Post |> Repo.get(id) |> Repo.preload(:channel)
 
-  @doc "Posts for one channel between two UTC datetimes, ordered by slot."
+  @doc "Posts for one channel between two UTC datetimes, ordered by time."
   def list_posts(%Channel{id: channel_id}, %DateTime{} = from, %DateTime{} = to) do
     Repo.all(
       from p in Post,
@@ -257,7 +257,7 @@ defmodule Socialmedia.Posts do
     |> Enum.each(&reject(&1, "fixture_rejected"))
   end
 
-  @doc "Restore a rejected post whose slot is still ahead."
+  @doc "Restore a rejected post whose time is still ahead."
   def restore(%Post{status: "rejected"} = post) do
     if DateTime.compare(post.scheduled_at, DateTime.utc_now()) == :gt do
       cond do
@@ -313,7 +313,7 @@ defmodule Socialmedia.Posts do
     end
   end
 
-  @doc "Publish an approved post right away instead of waiting for its slot."
+  @doc "Publish an approved post right away instead of waiting for its time."
   def publish_now(%Post{status: "approved"} = post) do
     cancel_jobs(post, Workers.Publish)
     Workers.Publish.enqueue(post, now: true)

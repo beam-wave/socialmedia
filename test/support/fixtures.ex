@@ -22,20 +22,6 @@ defmodule Socialmedia.Fixtures do
     ch
   end
 
-  def schedule(channel, attrs \\ %{}) do
-    {:ok, s} =
-      %{
-        channel_id: channel.id,
-        post_type: "quote",
-        weekdays: Enum.to_list(1..7),
-        time_of_day: ~T[06:00:00]
-      }
-      |> Map.merge(attrs)
-      |> Channels.create_schedule()
-
-    s
-  end
-
   def insert_post(channel, attrs \\ %{}) do
     %Post{}
     |> Post.changeset(
@@ -52,6 +38,6 @@ defmodule Socialmedia.Fixtures do
       )
     )
     |> Repo.insert!()
-    |> Repo.preload([:channel, :schedule])
+    |> Repo.preload(:channel)
   end
 end

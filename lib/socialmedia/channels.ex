@@ -1,8 +1,8 @@
 defmodule Socialmedia.Channels do
-  @moduledoc "Channels and their posting slots."
+  @moduledoc "Channels and the post types they make."
   import Ecto.Query
   alias Socialmedia.Repo
-  alias Socialmedia.Channels.{Channel, Schedule}
+  alias Socialmedia.Channels.Channel
 
   def list_channels do
     Repo.all(from c in Channel, order_by: c.name)
@@ -22,60 +22,29 @@ defmodule Socialmedia.Channels do
 
   def update_channel(%Channel{} = c, attrs), do: c |> Channel.changeset(attrs) |> Repo.update()
 
-  def list_schedules(%Channel{id: id}) do
-    Repo.all(from s in Schedule, where: s.channel_id == ^id, order_by: [s.time_of_day, s.id])
-  end
+  # What each channel's skill writes. Result posts come from fixtures, not Create.
+  @post_types %{
+    "motivation2live" => ["quote"],
+    "puree-heartz" => ["quote"],
+    "spotlight-startups" => ["top5"],
+    "mid-innings" => ["fixture"],
+    "bollyvibe" => ["movie"]
+  }
 
-  @doc "The channel's active slot for a post type, if any."
-  def slot_for(%Channel{id: id}, post_type) do
-    Repo.one(
-      from s in Schedule,
-        where: s.channel_id == ^id and s.post_type == ^post_type and s.active,
-        order_by: [s.time_of_day, s.id],
-        limit: 1
-    )
-  end
+  @doc "Post types the Create form offers for a channel (all of them for an unknown skill)."
+  def post_types(%Channel{skill: skill}),
+    do: Map.get(@post_types, skill, ~w(quote top5 fixture movie))
 
   @doc """
-  Time a new post is made for (the admin picks the real time when scheduling):
-  the slot's next day and time after `now`, or tomorrow at noon when the type
-  has no slot. UTC.
+  Time a new post is made for, at noon on `date` (default tomorrow) in the
+  channel's timezone. The agent uses it for dates and the admin picks the real
+  time when scheduling. UTC.
   """
-  def next_slot_time(%Channel{timezone: tz} = channel, post_type, now \\ DateTime.utc_now()) do
-    today = now |> DateTime.shift_zone!(tz) |> DateTime.to_date()
+  def made_for(%Channel{timezone: tz}, date \\ nil) do
+    date = date || tz |> DateTime.now!() |> DateTime.to_date() |> Date.add(1)
 
-    candidates =
-      case slot_for(channel, post_type) do
-        %Schedule{weekdays: days, time_of_day: time} ->
-          for d <- 0..7,
-              date = Date.add(today, d),
-              Date.day_of_week(date) in days,
-              do: {date, time}
-
-        nil ->
-          [{Date.add(today, 1), ~T[12:00:00]}]
-      end
-
-    Enum.find_value(candidates, fn {date, time} ->
-      at = local_to_utc(date, time, tz)
-      if DateTime.compare(at, now) == :gt, do: at
-    end)
-  end
-
-  @doc "The slot's time (noon without a slot) on a given local date. UTC."
-  def slot_time_on(%Channel{timezone: tz} = channel, post_type, %Date{} = date) do
-    time =
-      case slot_for(channel, post_type) do
-        %Schedule{time_of_day: t} -> t
-        nil -> ~T[12:00:00]
-      end
-
-    local_to_utc(date, time, tz)
-  end
-
-  defp local_to_utc(date, time, tz) do
     local =
-      case DateTime.new(date, Time.truncate(time, :second), tz) do
+      case DateTime.new(date, ~T[12:00:00], tz) do
         {:ok, dt} -> dt
         {:ambiguous, first, _} -> first
         {:gap, _, after_gap} -> after_gap
@@ -83,16 +52,6 @@ defmodule Socialmedia.Channels do
 
     local |> DateTime.shift_zone!("Etc/UTC") |> DateTime.truncate(:second)
   end
-
-  def get_schedule!(id), do: Repo.get!(Schedule, id)
-
-  def change_schedule(%Schedule{} = s, attrs \\ %{}), do: Schedule.changeset(s, attrs)
-
-  def create_schedule(attrs), do: %Schedule{} |> Schedule.changeset(attrs) |> Repo.insert()
-
-  def update_schedule(%Schedule{} = s, attrs), do: s |> Schedule.changeset(attrs) |> Repo.update()
-
-  def delete_schedule(%Schedule{} = s), do: Repo.delete(s)
 
   @doc "Absolute path to the channel's template folder."
   def template_path(%Channel{template_dir: dir}),

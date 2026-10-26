@@ -30,7 +30,7 @@ Each post has a `content_key` that is the same on every machine. Pulling on the 
 
 @mid.innings: pick the match day and Create; Claude finds every relevant match that day (up to 6) in one run, and each becomes its own fixture post with its 3 predictions; name a match in the note to make only that one. Each fixture's result post is then added, timed from its match start. After the match, open it and enter both innings (batting team from a dropdown, runs, wickets, overs, best batter and bowler) and the player of the match with their performance. The app works out the winner, the margin and the prediction answers and renders it without Claude. Then Pull it like any other post. A fixture's time is moved to before the first ball if the match starts earlier.
 
-Slots (Channel → Slots) give each post type its default time (the next matching day) and its agent instructions. Nothing is planned or written on its own.
+There are no slots or schedules to set up: each channel's post type comes from its skill, a new post is made for tomorrow (or the chosen match day), and you set its real time when you schedule it. Nothing is planned or written on its own.
 
 The disk holds no images; only the DB and S3 do. Slides are JPEG at quality 100 (Instagram's API accepts only JPEG), about 500 KB each.
 
@@ -77,7 +77,7 @@ mix agent.try @bollyvibe movie --note "pick a November release"
   - failures, with Try again
   - what's being made on this machine
 - **This week:** a grid of every channel × 8 days.
-- **Channel → Week / Slots / Settings:** **Create** a post, the channel's posts by day, its slots, and its configuration. Each slot has a post type, days, time and agent instructions.
+- **Channel:** **Create** a post and see the channel's posts by day. **Settings** holds its configuration.
 - **Post:** slides, caption (2200-char counter), time, agent notes, sources to fact-check, regenerate with a note, edit the slide JSON (re-renders here), schedule / unschedule / reject / publish now.
 - **Jobs:** Oban Web at `/oban`.
 

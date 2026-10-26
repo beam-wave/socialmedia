@@ -1,4 +1,4 @@
-# Seeds the five channels and a starting set of slots (times in IST).
+# Seeds the five channels (timezone IST).
 # Safe to re-run: existing channels (by handle) are left alone.
 #
 #     mix run priv/repo/seeds.exs
@@ -11,10 +11,7 @@ channels = [
     handle: "@spotlight.startups",
     skill: "spotlight-startups",
     template_dir: "spotlight.startups",
-    base_data: %{"theme" => "cobalt"},
-    slots: [
-      %{post_type: "top5", weekdays: [1], time_of_day: ~T[11:00:00]}
-    ]
+    base_data: %{"theme" => "cobalt"}
   },
   %{
     name: "Puree Heartz",
@@ -29,14 +26,7 @@ channels = [
       "tags" =>
         "#puree_heartz #couplequotes #lovequotes #heartquotes #hindiquotes #shayari #dilsedil #relationshipgoals",
       "series_start" => %{"n" => 1}
-    },
-    slots: [
-      %{
-        post_type: "quote",
-        weekdays: Enum.to_list(1..7),
-        time_of_day: ~T[21:00:00]
-      }
-    ]
+    }
   },
   %{
     name: "Motivation 2 Live",
@@ -51,55 +41,33 @@ channels = [
       "tags" =>
         "#motivation #discipline #dailymotivation #hindimotivation #success #mindset #motivation2live",
       "series_start" => %{"n" => 1}
-    },
-    slots: [
-      %{
-        post_type: "quote",
-        weekdays: Enum.to_list(1..7),
-        time_of_day: ~T[06:00:00]
-      }
-    ]
+    }
   },
   %{
     name: "Mid Innings",
     handle: "@mid.innings",
     skill: "mid-innings",
     template_dir: "mid.innings",
-    base_data: %{"theme" => "floodlight", "format" => "post"},
-    slots: [
-      %{
-        post_type: "fixture",
-        weekdays: Enum.to_list(1..7),
-        time_of_day: ~T[12:00:00],
-        extra_instructions:
-          "Every relevant match that day, by the skill's priority: India, ICC events, T20 leagues, The Hundred, T10 leagues. Skip if no match starts that day."
-      }
-      # Result posts aren't a slot: each fixture creates its own, timed from the match start
-    ]
+    base_data: %{"theme" => "floodlight", "format" => "post"}
   },
   %{
     name: "Bollyvibe",
     handle: "@bollyvibe",
     skill: "bollyvibe",
     template_dir: "bollyvibe",
-    base_data: %{"theme" => "marquee", "format" => "post"},
-    slots: [
-      %{post_type: "movie", weekdays: [2, 5], time_of_day: ~T[18:00:00]}
-    ]
+    base_data: %{"theme" => "marquee", "format" => "post"}
   }
 ]
 
-for %{slots: slots} = attrs <- channels do
+for attrs <- channels do
   case Channels.get_channel_by_handle(attrs.handle) do
     nil ->
       {:ok, ch} =
         attrs
-        |> Map.delete(:slots)
         |> Map.put(:timezone, "Asia/Kolkata")
         |> Channels.create_channel()
 
-      for s <- slots, do: {:ok, _} = Channels.create_schedule(Map.put(s, :channel_id, ch.id))
-      IO.puts("created #{ch.handle} with #{length(slots)} slot(s)")
+      IO.puts("created #{ch.handle}")
 
     ch ->
       IO.puts("exists #{ch.handle}")

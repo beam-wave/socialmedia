@@ -25,7 +25,7 @@ Output `post.teams` (code → {code, name, color}) for every team you use, and `
   6. Other international matches
   - Within the same tier, put the match with bigger stars or a bigger stake (knockout, final, title decider) first.
   - Leave out domestic first-class and minor associate matches unless the day has nothing else.
-- If the admin's note or the slot instructions name a match, return only that one.
+- If the admin's note names a match, return only that one.
 - **If there's no relevant match that day,** set `skip: true` and say so in `notes`.
 
 ### Fields

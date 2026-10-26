@@ -12,7 +12,6 @@ defmodule Socialmedia.Content.Work do
     :post_type,
     :scheduled_at,
     :admin_note,
-    :extra_instructions,
     :data,
     :channel,
     # Data of the linked fixture post, for result posts
@@ -26,7 +25,7 @@ defmodule Socialmedia.Content.Work do
 
   @channel_fields ~w(handle skill template_dir timezone base_data)a
 
-  @doc "Builds work from a post preloaded with :channel and :schedule."
+  @doc "Builds work from a post preloaded with :channel (and :parent for results)."
   def from_post(%Post{} = post, kind, recent) when kind in ["generate", "render"] do
     %__MODULE__{
       kind: kind,
@@ -34,7 +33,6 @@ defmodule Socialmedia.Content.Work do
       post_type: post.post_type,
       scheduled_at: post.scheduled_at,
       admin_note: post.admin_note,
-      extra_instructions: post.schedule && post.schedule.extra_instructions,
       data: post.data,
       channel: Map.take(post.channel, @channel_fields),
       related: related_data(post),

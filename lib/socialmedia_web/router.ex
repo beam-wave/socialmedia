@@ -23,7 +23,6 @@ defmodule SocialmediaWeb.Router do
       live "/content", ContentLive, :index
       live "/channels/new", ChannelLive.Settings, :new
       live "/channels/:id", ChannelLive.Show, :week
-      live "/channels/:id/slots", ChannelLive.Show, :slots
       live "/channels/:id/settings", ChannelLive.Settings, :edit
       live "/posts/:id", PostLive.Show, :show
     end

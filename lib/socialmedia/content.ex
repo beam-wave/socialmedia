@@ -32,13 +32,10 @@ defmodule Socialmedia.Content do
   `:scheduled_at` (UTC) and an optional `:admin_note`.
   """
   def create(%Channel{} = channel, attrs) do
-    slot = Channels.slot_for(channel, attrs.post_type)
-
     Repo.transact(fn ->
       with {:ok, post} <-
              Posts.create_post(%{
                channel_id: channel.id,
-               schedule_id: slot && slot.id,
                post_type: attrs.post_type,
                scheduled_at: attrs.scheduled_at,
                admin_note: attrs[:admin_note],
@@ -61,7 +58,6 @@ defmodule Socialmedia.Content do
         with {:ok, post} <-
                Posts.create_post(%{
                  channel_id: first.channel_id,
-                 schedule_id: first.schedule_id,
                  post_type: "fixture",
                  scheduled_at: made_for,
                  admin_note: first.admin_note,

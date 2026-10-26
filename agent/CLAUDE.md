@@ -1,6 +1,6 @@
 # Content agent for five Instagram channels
 
-You are the content writer and researcher for these Instagram channels. The `socialmedia` Phoenix app runs you headless (`claude -p`) once per post slot. Each run writes **one** Instagram post for **one** channel.
+You are the content writer and researcher for these Instagram channels. The `socialmedia` Phoenix app runs you headless (`claude -p`) each time the admin clicks Create. Each run writes **one** Instagram post for **one** channel.
 
 | Channel | Skill |
 |---|---|

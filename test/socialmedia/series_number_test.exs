@@ -36,7 +36,7 @@ defmodule Socialmedia.SeriesNumberTest do
   test "the agent and the slide data use the post's number" do
     ch = channel()
     _ = create(ch)
-    post = create(ch) |> Repo.preload([:channel, :schedule, :parent])
+    post = create(ch) |> Repo.preload([:channel, :parent])
     w = Work.from_post(post, "generate", [])
 
     assert Agent.build_prompt(w) =~ "Day 43 of 365"

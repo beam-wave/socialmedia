@@ -5,14 +5,14 @@ defmodule Socialmedia.PostsTest do
   alias Socialmedia.Posts
   alias Socialmedia.Workers.{Publish, Expirer, Produce}
 
-  test "approve schedules a publish job at the slot" do
+  test "approve schedules a publish job at the post's time" do
     p = insert_post(channel())
     assert {:ok, approved} = Posts.approve(p)
     assert approved.status == "approved"
     assert_enqueued(worker: Publish, args: %{post_id: p.id}, scheduled_at: p.scheduled_at)
   end
 
-  test "approve is refused once the slot has passed" do
+  test "approve is refused once the time has passed" do
     p =
       insert_post(channel(), %{
         scheduled_at: DateTime.utc_now() |> DateTime.add(-60) |> DateTime.truncate(:second)
@@ -27,7 +27,7 @@ defmodule Socialmedia.PostsTest do
     refute_enqueued(worker: Publish, args: %{post_id: p.id})
   end
 
-  test "expirer rejects anything not approved by slot time and keeps approved posts" do
+  test "expirer rejects anything not approved by its time and keeps approved posts" do
     ch = channel()
     past = DateTime.utc_now() |> DateTime.add(-60) |> DateTime.truncate(:second)
     review = insert_post(ch, %{scheduled_at: past})
