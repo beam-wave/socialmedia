@@ -33,23 +33,11 @@ if config_env() != :test and File.exists?(env_file) do
   end
 end
 
-truthy? = fn name, default -> System.get_env(name, default) in ~w(true 1 yes) end
-
-# Node roles (see Socialmedia.Flags). Prod and the Mac only talk through S3.
-#   prod: PRIMARY=true  CONTENT=false PUBLISH=true  S3_PREFIX=prod
-#   Mac:  PRIMARY=false CONTENT=true  PUBLISH=false S3_PREFIX=prod  (makes content for prod)
-#   dev:  PRIMARY=true  CONTENT=true  PUBLISH=false S3_PREFIX=dev   (everything on one machine)
-primary? = truthy?.("PRIMARY", "true")
-content? = truthy?.("CONTENT", "false")
-publish? = truthy?.("PUBLISH", "false")
-
 if config_env() != :test do
+  # Every machine shares one S3 prefix: content is pushed and pulled with buttons
   config :socialmedia,
-    primary: primary?,
-    content: content?,
-    publish: publish?,
     storage: Socialmedia.Storage.S3,
-    storage_prefix: System.get_env("S3_PREFIX", to_string(config_env()))
+    storage_prefix: "prod"
 
   config :socialmedia, Socialmedia.Storage.S3,
     bucket: System.get_env("S3_BUCKET"),
@@ -58,26 +46,18 @@ if config_env() != :test do
     secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY"),
     endpoint: System.get_env("S3_ENDPOINT")
 
-  crontab =
-    if(primary?,
-      do: [
-        {"0 1 * * *", Socialmedia.Workers.Planner},
-        {"*/5 * * * *", Socialmedia.Workers.Expirer},
-        {"*/2 * * * *", Socialmedia.Workers.SyncBus}
-      ],
-      else: []
-    ) ++
-      if(primary? and publish?, do: [{"0 3 * * 1", Socialmedia.Workers.RefreshTokens}], else: []) ++
-      if(content?, do: [{"*/3 * * * *", Socialmedia.Workers.ContentPoller}], else: [])
-
   oban = Application.get_env(:socialmedia, Oban)
 
   config :socialmedia, Oban,
-    plugins: oban[:plugins] ++ [{Oban.Plugins.Cron, crontab: crontab}],
-    queues:
-      [planner: 1] ++
-        if(primary?, do: [publish: 3, maintenance: 1], else: []) ++
-        if(content?, do: [claude: 1], else: [])
+    plugins:
+      oban[:plugins] ++
+        [
+          {Oban.Plugins.Cron,
+           crontab: [
+             {"*/5 * * * *", Socialmedia.Workers.Expirer},
+             {"0 3 * * 1", Socialmedia.Workers.RefreshTokens}
+           ]}
+        ]
 end
 
 # Basic auth for the admin panel (/media stays public so Instagram can fetch slides).

@@ -13,11 +13,10 @@ defmodule SocialmediaWeb.Layouts do
 
   @doc """
   Admin shell: channel sidebar on the left, page content on the right.
-  Expects `nav_channels`, `roles` and `current_path` from `SocialmediaWeb.AdminHooks`.
+  Expects `nav_channels` and `current_path` from `SocialmediaWeb.AdminHooks`.
   """
   attr :flash, :map, required: true
   attr :nav_channels, :list, default: []
-  attr :roles, :map, default: %{}
   attr :current_path, :string, default: "/"
   slot :inner_block, required: true
 
@@ -85,14 +84,6 @@ defmodule SocialmediaWeb.Layouts do
         </nav>
 
         <div class="mt-auto px-5 py-4 border-t hairline text-xs space-y-2">
-          <div class="flex flex-wrap gap-1.5">
-            <.role on={@roles[:primary]} label="Primary" />
-            <.role on={@roles[:content]} label="Content" />
-            <.role on={@roles[:publish]} label="Publish" />
-            <span class="rounded px-1.5 py-0.5 text-[10px] border hairline muted" title="S3 prefix">
-              s3:{Application.get_env(:socialmedia, :storage_prefix)}
-            </span>
-          </div>
           <a href="/oban" class="muted hover:text-base-content inline-flex items-center gap-1">
             <.icon name="hero-queue-list" class="size-3.5" /> Jobs
           </a>
@@ -127,23 +118,6 @@ defmodule SocialmediaWeb.Layouts do
       <.icon name={@icon} class="size-4" />
       {render_slot(@inner_block)}
     </.link>
-    """
-  end
-
-  attr :on, :boolean, default: false
-  attr :label, :string, required: true
-
-  defp role(assigns) do
-    ~H"""
-    <span
-      title={"#{@label}: #{if @on, do: "on", else: "off"}"}
-      class={[
-        "rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide",
-        if(@on, do: "bg-base-content text-base-100", else: "border hairline faint line-through")
-      ]}
-    >
-      {@label}
-    </span>
     """
   end
 

@@ -8,10 +8,7 @@ defmodule Socialmedia.PublishTest do
   setup do
     Application.put_env(:socialmedia, :public_base_url, "https://social.test")
 
-    on_exit(fn ->
-      Application.put_env(:socialmedia, :publish, false)
-      Application.delete_env(:socialmedia, :public_base_url)
-    end)
+    on_exit(fn -> Application.delete_env(:socialmedia, :public_base_url) end)
 
     ch = channel()
 
@@ -23,8 +20,8 @@ defmodule Socialmedia.PublishTest do
     %{post: p}
   end
 
-  test "PUBLISH=false never calls Instagram and marks a dry run", %{post: p} do
-    Application.put_env(:socialmedia, :publish, false)
+  test "a dry-run channel never calls Instagram and marks a dry run", %{post: p} do
+    {:ok, _} = Channels.update_channel(p.channel, %{dry_run: true})
     Req.Test.stub(Socialmedia.Instagram.Graph, fn _ -> raise "must not call Instagram" end)
 
     assert :ok = perform_job(Publish, %{post_id: p.id})
@@ -34,7 +31,6 @@ defmodule Socialmedia.PublishTest do
   end
 
   test "publishes a carousel through the Graph API", %{post: p} do
-    Application.put_env(:socialmedia, :publish, true)
     test_pid = self()
 
     Req.Test.stub(Socialmedia.Instagram.Graph, fn conn ->
@@ -84,7 +80,6 @@ defmodule Socialmedia.PublishTest do
   end
 
   test "a rejected post is never published", %{post: p} do
-    Application.put_env(:socialmedia, :publish, true)
     {:ok, _} = Posts.reject(p)
     assert {:cancel, _} = perform_job(Publish, %{post_id: p.id})
   end

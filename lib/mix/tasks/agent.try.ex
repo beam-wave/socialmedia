@@ -36,7 +36,6 @@ defmodule Mix.Tasks.Agent.Try do
     work = %Work{
       kind: "generate",
       post_id: 0,
-      rev: 0,
       post_type: type,
       scheduled_at: at,
       admin_note: opts[:note],

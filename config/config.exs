@@ -25,16 +25,15 @@ config :socialmedia, SocialmediaWeb.Endpoint,
 config :socialmedia, Oban,
   engine: Oban.Engines.Basic,
   repo: Socialmedia.Repo,
-  queues: [planner: 1, claude: 1, publish: 3, maintenance: 1],
-  # Cron jobs depend on the node's role and are added in config/runtime.exs
+  queues: [claude: 1, publish: 3, maintenance: 1],
+  # Cron jobs are added in config/runtime.exs (not in tests)
   plugins: [
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 14},
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(30)}
   ]
 
-# How far ahead posts are planned and the CLI used for generation
+# The CLIs used to make content
 config :socialmedia,
-  plan_days: 7,
   claude_bin: "claude",
   claude_timeout_ms: :timer.minutes(12),
   node_bin: "node",

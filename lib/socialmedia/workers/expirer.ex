@@ -1,7 +1,9 @@
 defmodule Socialmedia.Workers.Expirer do
   @moduledoc """
   Only approved posts go live. Any post whose time has passed without approval
-  is rejected (`not_approved_in_time`).
+  is rejected (`not_approved_in_time`). Uploaded posts are left alone: they're
+  scheduled wherever they're pulled, and their data still tells the agent what
+  this channel has already posted.
   """
   use Oban.Worker, queue: :maintenance, max_attempts: 1
   import Ecto.Query
@@ -18,7 +20,7 @@ defmodule Socialmedia.Workers.Expirer do
     Repo.all(
       from p in Post,
         where: p.scheduled_at <= ^now,
-        where: p.status not in ["approved", "publishing", "published", "rejected"]
+        where: p.status not in ["uploaded", "approved", "publishing", "published", "rejected"]
     )
     |> Enum.map(&Posts.reject(&1, "not_approved_in_time"))
   end

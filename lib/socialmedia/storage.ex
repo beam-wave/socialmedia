@@ -1,14 +1,11 @@
 defmodule Socialmedia.Storage do
   @moduledoc """
-  Object storage for slides and the content-sync bus (S3 in dev and prod, a
-  local folder in tests). Keys are relative; every key is placed under
-  `S3_PREFIX` (e.g. "dev" or "prod") so environments never share objects.
+  Object storage for slides and their manifests (S3, or a local folder in
+  tests). Keys are relative; every key is placed under the `storage_prefix`
+  ("prod"), which every machine shares. See `Socialmedia.Content`.
 
-  Bus layout under the prefix:
-
-      plan.json                         prod → Mac: work that needs content
-      inbox/<post_id>-<rev>.json        Mac → prod: finished (or failed) work
-      content/<post_id>/<rev>/*.jpg     slides, uploaded untouched (JPEG q100)
+      inbox/<content_key>.json          a made post, waiting for a Pull
+      content/<content_key>/*.jpg       its slides, uploaded untouched (JPEG q100)
   """
 
   @callback put(key :: String.t(), body :: iodata, content_type :: String.t()) ::

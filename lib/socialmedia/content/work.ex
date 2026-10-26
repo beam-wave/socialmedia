@@ -1,16 +1,14 @@
 defmodule Socialmedia.Content.Work do
   @moduledoc """
-  A unit of content work handed to a content node: generate (agent + render) or
-  render only. Prod publishes pending work as JSON in `plan.json` on S3; the
-  content node (your Mac) reads it from there.
+  Everything the agent and the renderer need to make one post: generate (agent +
+  render) or render only (the admin edited the slide data).
   """
   alias Socialmedia.Posts.Post
 
-  @enforce_keys [:kind, :post_id, :rev, :post_type, :scheduled_at, :channel]
+  @enforce_keys [:kind, :post_id, :post_type, :scheduled_at, :channel]
   defstruct [
     :kind,
     :post_id,
-    :rev,
     :post_type,
     :scheduled_at,
     :admin_note,
@@ -31,7 +29,6 @@ defmodule Socialmedia.Content.Work do
     %__MODULE__{
       kind: kind,
       post_id: post.id,
-      rev: post.gen_rev,
       post_type: post.post_type,
       scheduled_at: post.scheduled_at,
       admin_note: post.admin_note,
@@ -46,30 +43,4 @@ defmodule Socialmedia.Content.Work do
 
   defp related_data(%Post{parent: %Post{data: data}}), do: data
   defp related_data(_), do: nil
-
-  def to_json_map(%__MODULE__{} = w) do
-    w
-    |> Map.from_struct()
-    |> Map.update!(:scheduled_at, &DateTime.to_iso8601/1)
-  end
-
-  def from_json_map(%{} = m) do
-    {:ok, at, _} = DateTime.from_iso8601(m["scheduled_at"])
-    ch = m["channel"]
-
-    %__MODULE__{
-      kind: m["kind"],
-      post_id: m["post_id"],
-      rev: m["rev"],
-      post_type: m["post_type"],
-      scheduled_at: at,
-      admin_note: m["admin_note"],
-      extra_instructions: m["extra_instructions"],
-      data: m["data"],
-      channel: Map.new(@channel_fields, &{&1, ch[Atom.to_string(&1)]}),
-      related: m["related"],
-      facts: m["facts"],
-      recent: m["recent"] || []
-    }
-  end
 end

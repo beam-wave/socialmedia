@@ -110,7 +110,6 @@ defmodule SocialmediaWeb.ChannelLive.Settings do
     <Layouts.app
       flash={@flash}
       nav_channels={@nav_channels}
-      roles={@roles}
       current_path={@current_path}
     >
       <div :if={@channel.id} class="text-xs muted">

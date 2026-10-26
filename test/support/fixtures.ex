@@ -28,8 +28,7 @@ defmodule Socialmedia.Fixtures do
         channel_id: channel.id,
         post_type: "quote",
         weekdays: Enum.to_list(1..7),
-        time_of_day: ~T[06:00:00],
-        lead_hours: 36
+        time_of_day: ~T[06:00:00]
       }
       |> Map.merge(attrs)
       |> Channels.create_schedule()

@@ -1,45 +1,60 @@
 defmodule Socialmedia.Workers.Produce do
   @moduledoc """
-  Content node job: run the agent (kind "generate") and/or the renderer, then
-  deliver slides + manifest to S3 for prod to import. Args are a `Work` map.
+  Makes one post: runs the agent and the renderer (or only the renderer after
+  the admin edited the slide data), then uploads it to S3 for a Pull.
+  One job per click; the `claude` queue runs them one at a time.
   """
   use Oban.Worker,
     queue: :claude,
     max_attempts: 2,
-    unique: [keys: [:post_id, :rev, :kind], period: :infinity, states: :all]
+    unique: [keys: [:post_id], period: :infinity, states: :incomplete]
 
   require Logger
-  alias Socialmedia.{Agent, Content}
+  alias Socialmedia.{Agent, Content, Posts, Repo}
   alias Socialmedia.Content.{Renderer, Work}
+
+  def enqueue(post, opts \\ []),
+    do: %{post_id: post.id, render_only: opts[:render_only] || false} |> new() |> Oban.insert()
 
   @impl Oban.Worker
   def timeout(_job), do: Application.get_env(:socialmedia, :claude_timeout_ms) + :timer.minutes(5)
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: args, attempt: attempt, max_attempts: max}) do
-    work = Work.from_json_map(args)
-    out = Path.join([System.tmp_dir!(), "socialmedia-render", "#{work.post_id}-#{work.rev}"])
+  def perform(%Oban.Job{args: %{"post_id" => id} = args, attempt: attempt, max_attempts: max}) do
+    case Posts.get_post(id) do
+      %{status: "creating"} = post ->
+        post = Repo.preload(post, :parent)
+        kind = if args["render_only"] && post.data, do: "render", else: "generate"
+        work = Work.from_post(post, kind, Posts.recent_data(post.channel, 20))
+        out = Path.join([System.tmp_dir!(), "socialmedia-render", post.content_key])
 
-    try do
-      case produce(work, out) do
-        {:ok, result} ->
-          Content.deliver(work, result)
+        try do
+          case produce(work, out) do
+            {:ok, result} ->
+              {:ok, _} = Content.upload(post, result)
+              :ok
 
-        {:skip, notes, retry_after} ->
-          Content.deliver_failure(work, notes, true, retry_after)
+            {:skip, notes, _retry_after} ->
+              Posts.fail(post, "Agent skipped: #{notes}")
+              :ok
 
-        {:error, reason} when attempt < max ->
-          Logger.warning(
-            "post #{work.post_id} rev #{work.rev} attempt #{attempt} failed: #{reason}"
-          )
+            {:error, reason} when attempt < max ->
+              Logger.warning("post #{post.id} attempt #{attempt} failed: #{reason}")
+              {:error, reason}
 
-          {:error, reason}
+            {:error, reason} ->
+              Posts.fail(post, reason)
+              {:cancel, reason}
+          end
+        after
+          File.rm_rf(out)
+        end
 
-        {:error, reason} ->
-          Content.deliver_failure(work, to_string(reason), false)
-      end
-    after
-      File.rm_rf(out)
+      nil ->
+        {:cancel, :post_deleted}
+
+      post ->
+        {:cancel, "post is #{post.status}, not creating"}
     end
   end
 
@@ -57,11 +72,9 @@ defmodule Socialmedia.Workers.Produce do
     end
   end
 
-  defp produce(%Work{kind: "render", data: data} = work, out) when is_map(data) do
+  defp produce(%Work{kind: "render", data: data} = work, out) do
     with {:ok, rendered} <- Renderer.render(work.channel, data, out) do
       {:ok, %{data: data, caption: rendered.caption, slides: rendered.slides}}
     end
   end
-
-  defp produce(%Work{}, _out), do: {:error, "nothing to render"}
 end

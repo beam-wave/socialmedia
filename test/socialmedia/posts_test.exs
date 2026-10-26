@@ -2,8 +2,8 @@ defmodule Socialmedia.PostsTest do
   use Socialmedia.DataCase, async: true
   use Oban.Testing, repo: Socialmedia.Repo
   import Socialmedia.Fixtures
-  alias Socialmedia.{Posts, Content}
-  alias Socialmedia.Workers.{Publish, Expirer}
+  alias Socialmedia.Posts
+  alias Socialmedia.Workers.{Publish, Expirer, Produce}
 
   test "approve schedules a publish job at the slot" do
     p = insert_post(channel())
@@ -33,6 +33,7 @@ defmodule Socialmedia.PostsTest do
     review = insert_post(ch, %{scheduled_at: past})
     planned = insert_post(ch, %{scheduled_at: past, status: "planned", data: nil})
     approved = insert_post(ch, %{scheduled_at: past, status: "approved"})
+    uploaded = insert_post(ch, %{scheduled_at: past, status: "uploaded"})
 
     Expirer.expire(DateTime.utc_now())
 
@@ -40,9 +41,11 @@ defmodule Socialmedia.PostsTest do
     assert Posts.get_post!(review.id).reject_reason == "not_approved_in_time"
     assert Posts.get_post!(planned.id).status == "rejected"
     assert Posts.get_post!(approved.id).status == "approved"
+    # made here and pulled elsewhere: kept, so the agent still sees it as history
+    assert Posts.get_post!(uploaded.id).status == "uploaded"
   end
 
-  test "editing data asks for a re-render, editing caption goes back to review" do
+  test "editing data re-renders here, editing caption goes back to review" do
     {:ok, p} = insert_post(channel()) |> Posts.approve()
 
     assert {:ok, %{status: "needs_review", caption: "new"}} =
@@ -50,19 +53,23 @@ defmodule Socialmedia.PostsTest do
 
     p = Posts.get_post!(p.id)
 
-    assert {:ok, %{status: "render_requested"}} =
+    assert {:ok, %{status: "creating"}} =
              Posts.update_content(p, %{data: %{"quotes" => [%{"quote" => "y"}]}})
+
+    assert_enqueued(worker: Produce, args: %{post_id: p.id, render_only: true})
   end
 
-  test "regenerate bumps the revision and puts the post back in the plan" do
-    p = insert_post(channel())
+  test "an uploaded post's caption is edited after the Pull" do
+    p = insert_post(channel(), %{status: "uploaded"})
+    assert {:error, :not_reviewable} = Posts.update_content(p, %{caption: "new"})
+  end
+
+  test "regenerate queues a new Produce job and drops the publish job" do
+    {:ok, p} = insert_post(channel()) |> Posts.approve()
     assert {:ok, p} = Posts.regenerate(p, "warmer")
-    assert p.status == "planned" and p.admin_note == "warmer" and p.gen_rev == 2
-
-    assert [%{post_id: id, kind: "generate", rev: 2, admin_note: "warmer"}] =
-             Content.pending_work()
-
-    assert id == p.id
+    assert p.status == "creating" and p.admin_note == "warmer" and is_nil(p.approved_at)
+    assert_enqueued(worker: Produce, args: %{post_id: p.id})
+    refute_enqueued(worker: Publish, args: %{post_id: p.id})
   end
 
   test "schedule saves caption and new time, then approves" do

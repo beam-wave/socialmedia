@@ -1,6 +1,6 @@
 # Content desk
 
-Phoenix LiveView app that plans, writes, renders, reviews and publishes posts for five Instagram channels:
+Phoenix LiveView app that writes, renders, reviews and publishes posts for five Instagram channels:
 @spotlight.startups, @puree_heartz, @_motivation2live__, @mid.innings and @bollyvibe.
 
 - **Writing** uses the local Claude Code CLI (`claude -p`) on your subscription, so no API key is needed. There is one agent with one skill per channel (`agent/.claude/skills/*`) and a JSON schema per channel (`agent/schemas/*`).
@@ -10,38 +10,33 @@ Phoenix LiveView app that plans, writes, renders, reviews and publishes posts fo
 
 ## How the pieces fit
 
-Prod and your Mac never connect to each other. Everything goes through the private S3 bucket **`socialmedia-dravya`** (ap-south-1), under a prefix per environment (`prod/`, `dev/`).
+Every step is a button, and every machine runs the same app with the same settings. Content moves between machines only through the private S3 bucket **`socialmedia-dravya`** (ap-south-1), under `prod/`.
 
 ```
-   PROD (PRIMARY=true PUBLISH=true)             S3 socialmedia-dravya/<prefix>/            MAC (PRIMARY=false CONTENT=true)
- ┌──────────────────────────────┐                                                       ┌──────────────────────────────┐
- │ Planner: 7 days of slots     │── every 2 min ──▶ plan.json ──── every 3 min ────────▶│ ContentPoller reads plan     │
- │ SyncBus: import + plan       │                                                       │ Produce: claude -p → data    │
- │ Content list: edit, schedule │◀── import ────── inbox/<id>-<rev>.json ◀── upload ────│          render.js → JPEG q100│
- │ Publish → Instagram API      │── presigned URL ▶ content/<id>/<rev>/*.jpg ◀──────────│                              │
- │ Expirer: drop unscheduled    │                                                       └──────────────────────────────┘
- └──────────────────────────────┘
+   ANY MACHINE WITH CLAUDE (your Mac)          S3 socialmedia-dravya/prod/            PROD (or the same Mac)
+ ┌───────────────────────────────────┐                                         ┌──────────────────────────────┐
+ │ Channel page → Create (one post)  │                                         │ Content → Pull / Delete      │
+ │ Oban Produce job:                 │── content/<key>/*.jpg ─────────────────▶│ post is Ready to schedule    │
+ │   claude -p → data                │── inbox/<key>.json (written last) ─────▶│ Schedule → Oban Publish job  │
+ │   render.js → JPEG q100           │                                         │   at that time → Instagram   │
+ └───────────────────────────────────┘                                         └──────────────────────────────┘
 ```
 
-1. **Prod** plans posts from the slots and writes `plan.json`: every post whose writing time has come, plus re-render requests. Each one carries its `gen_rev`.
-2. **The Mac** reads `plan.json` and runs Claude and the renderer for each item it hasn't delivered yet. It uploads the slides to `content/<post_id>/<rev>/` byte for byte, then writes `inbox/<post_id>-<rev>.json`. That manifest is written last, so it always points at complete uploads.
-3. **Prod** imports the inbox. The post becomes *Ready to schedule*, and the slides of the previous revision are deleted. A manifest for an old revision (because you regenerated in the meantime) is discarded.
-4. **The admin** opens **Content**, edits the caption and post time, and clicks **Schedule**. Publish runs at that time and hands Instagram 1-hour presigned S3 links. Anything not scheduled by its time is rejected automatically.
+1. **Create.** On a channel page, pick the post type and when it goes live (for @mid.innings, the match day), add an optional note, and click **Create**. Each click makes one post: an Oban `Produce` job runs Claude, then the renderer, uploads the slides to `content/<key>/`, and writes the manifest `inbox/<key>.json` last, so a manifest always points at complete uploads. The `claude` queue runs one job at a time. The post shows as *In S3*.
+2. **Pull.** On **Content**, the *In S3* list shows what's waiting. **Pull all** (or **Pull** on one) turns each manifest into a post that's *Ready to schedule* and removes the manifest. **Delete** removes a manifest and its slides without importing.
+3. **Schedule.** Edit the caption and time, then click **Schedule**. That queues an Oban `Publish` job for that time, which hands Instagram 1-hour presigned S3 links. Anything not scheduled by its time is rejected automatically.
 
-Prod's disk holds no images; only the DB and S3 do. Slides are JPEG at quality 100 (Instagram's API accepts only JPEG), about 500 KB each.
+Each post has a `content_key` that is the same on every machine. Pulling on the machine that made the post, or pulling a version you regenerated, updates the same post. A post that's already scheduled or live is left alone.
 
-### Role flags (`.env`, see `.env.example`)
+@mid.innings: once a fixture is made, its result post is added, timed from the match start. Enter the score on that post's page and Claude writes it, then Pull it like any other post. A fixture's time is moved to before the first ball if the match starts earlier.
 
-| Variable | Dev (one machine) | Mac → prod | Prod |
-|---|---|---|---|
-| `PRIMARY` (planner, sync import, admin, expirer) | `true` | `false` | `true` |
-| `CONTENT` (Claude + renderer) | `true` | `true` | `false` |
-| `PUBLISH` (post to Instagram) | `false` | `false` | `true` |
-| `S3_PREFIX` | `dev` | `prod` | `prod` |
+Slots (Channel → Slots) give each post type its default time (the next matching day) and its agent instructions. Nothing is planned or written on its own.
 
-With `PUBLISH=false`, scheduled posts are marked published as a dry run and nothing is sent. Each channel also has its own **Dry run** switch.
+The disk holds no images; only the DB and S3 do. Slides are JPEG at quality 100 (Instagram's API accepts only JPEG), about 500 KB each.
 
-S3 needs `S3_BUCKET`, `AWS_REGION`, `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` on both machines. The current keys belong to the `desirath-app` IAM user; a bucket policy gives it access to this bucket. A dedicated IAM user for this app would be cleaner.
+`.env` holds only the S3 settings (`S3_BUCKET`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`), plus the prod secrets on the server. The current keys belong to the `desirath-app` IAM user; a bucket policy gives it access to this bucket. A dedicated IAM user for this app would be cleaner.
+
+Each channel has a **Dry run** switch: a dry-run channel's scheduled posts are marked published and nothing is sent to Instagram.
 
 ## Local setup
 
@@ -49,7 +44,7 @@ S3 needs `S3_BUCKET`, `AWS_REGION`, `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_K
 docker compose up -d                      # Postgres 16 on :5432
 mix setup                                 # deps, DB, migrations, seeds, assets
 (cd renderer && npm install && npx playwright install chromium)
-cp .env.example .env                      # PRIMARY+CONTENT, PUBLISH=false, S3_PREFIX=dev, add AWS keys
+cp .env.example .env                      # add the AWS keys
 mix phx.server                            # http://localhost:4000
 ```
 
@@ -66,13 +61,14 @@ mix agent.try @bollyvibe movie --note "pick a November release"
 ## Admin panel
 
 - **Content** is the main working page. It shows:
+  - what's *In S3*, with **Pull all**, **Pull** and **Delete**
   - posts *Ready to schedule*, each with its slides, an editable caption, a date/time picker, and **Schedule** / Reject
   - *Scheduled* posts, which you can move or unschedule
   - failures, with Try again
-  - what's still waiting for the Mac
+  - what's being made on this machine
 - **This week:** a grid of every channel × 8 days.
-- **Channel → Week / Slots / Settings:** the channel's posts by day, its posting slots, and its configuration. Each slot has a post type, days, time, how many hours ahead it's written, and agent instructions.
-- **Post:** slides, caption (2200-char counter), time, agent notes, sources to fact-check, regenerate with a note, edit the slide JSON (the Mac re-renders), schedule / unschedule / reject / publish now.
+- **Channel → Week / Slots / Settings:** **Create** a post, the channel's posts by day, its slots, and its configuration. Each slot has a post type, days, time and agent instructions.
+- **Post:** slides, caption (2200-char counter), time, agent notes, sources to fact-check, regenerate with a note, edit the slide JSON (re-renders here), schedule / unschedule / reject / publish now.
 - **Jobs:** Oban Web at `/oban`.
 
 ## Instagram setup (once)
@@ -88,9 +84,8 @@ Instagram downloads each slide through a presigned S3 link, so neither machine n
 
 ## Deploying prod
 
-1. On the server: Erlang/Elixir, Postgres, and a reverse proxy with HTTPS for the admin panel (Caddy: `social.example.com { reverse_proxy localhost:4000 }`). Node, Chromium and Claude are **not** needed.
+1. On the server: Erlang/Elixir, Postgres, and a reverse proxy with HTTPS for the admin panel (Caddy: `social.example.com { reverse_proxy localhost:4000 }`). Node, Chromium and Claude are only needed if you also want to create posts there.
 2. Set env vars:
-   - `PRIMARY=true`, `CONTENT=false`, `PUBLISH=true`, `S3_PREFIX=prod`
    - the S3 vars
    - `ADMIN_USER`, `ADMIN_PASSWORD`
    - `CLOAK_KEY` (`openssl rand -base64 32`)
@@ -101,7 +96,7 @@ Instagram downloads each slide through a presigned S3 link, so neither machine n
    MIX_ENV=prod mix run priv/repo/seeds.exs
    PHX_SERVER=true MIX_ENV=prod mix phx.server   # or a release under systemd
    ```
-4. On the Mac, set `PRIMARY=false CONTENT=true PUBLISH=false S3_PREFIX=prod` and run `mix phx.server`. From then on the Mac only makes content; you review and schedule on prod.
+4. On the Mac, run `mix phx.server` with the same S3 vars and create posts there. Pull and schedule them on prod. Instagram tokens are set only on prod, which also refreshes them weekly.
 
 ## Tests
 
@@ -110,9 +105,8 @@ mix test
 ```
 
 The suite covers:
-- planning (timezones, idempotency, re-plan)
-- the S3 bus (plan → deliver → import, stale revisions, skips, re-render cleanup), using the folder storage adapter
+- create → upload → pull, pulling on another machine, stale and deleted manifests, regenerated slides, using the folder storage adapter
+- the @mid.innings fixture → result flow
 - schedule and reschedule, and the expirer
 - Claude CLI parsing and timeout, using a fake binary
-- Graph API publishing, using `Req.Test` stubs
-- the guarantee that `PUBLISH=false` never calls Instagram
+- Graph API publishing, using `Req.Test` stubs, and that a dry-run channel never calls Instagram

@@ -2,18 +2,13 @@ defmodule SocialmediaWeb.AdminHooks do
   @moduledoc "Sidebar data for every admin page, kept live via post updates."
   import Phoenix.Component
   import Phoenix.LiveView
-  alias Socialmedia.{Channels, Posts, Flags}
+  alias Socialmedia.{Channels, Posts}
 
   def on_mount(:default, _params, _session, socket) do
     if connected?(socket), do: Posts.subscribe()
 
     socket =
       socket
-      |> assign(:roles, %{
-        content: Flags.content?(),
-        publish: Flags.publish?(),
-        primary: Flags.primary?()
-      })
       |> assign(:current_path, "/")
       |> assign_nav()
       |> attach_hook(:nav_refresh, :handle_info, fn

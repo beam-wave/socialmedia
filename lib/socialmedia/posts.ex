@@ -2,10 +2,12 @@ defmodule Socialmedia.Posts do
   @moduledoc """
   Post lifecycle:
 
-      planned → generating → rendering → needs_review → approved → publishing → published
+      creating → uploaded → (Pull) needs_review → approved → publishing → published
 
-  `failed` and `rejected` are side exits. Only `approved` posts are ever published;
-  anything not approved by its slot time is rejected by `Socialmedia.Workers.Expirer`.
+  `creating` and `uploaded` live on the machine that made the post; a Pull
+  brings it in as `needs_review`. `failed` and `rejected` are side exits. Only
+  `approved` posts are ever published; anything not approved by its time is
+  rejected by `Socialmedia.Workers.Expirer`.
   """
   import Ecto.Query
   alias Socialmedia.Repo
@@ -71,67 +73,43 @@ defmodule Socialmedia.Posts do
     )
   end
 
-  ## Planning
+  ## Creating
 
-  @doc "Inserts a planned post for a slot unless one exists. Returns {:ok, post} or {:ok, :exists}."
-  def ensure_planned(attrs) do
-    %Post{}
-    |> Post.changeset(Map.merge(attrs, %{status: "planned", slot_at: attrs.scheduled_at}))
-    |> Repo.insert(on_conflict: :nothing, conflict_target: [:schedule_id, :slot_at])
-    |> case do
-      {:ok, %Post{id: nil}} -> {:ok, :exists}
-      {:ok, post} -> broadcast({:ok, post})
-      error -> error
-    end
+  @doc "Inserts a post (a new `content_key` is set unless given)."
+  def create_post(attrs) do
+    %Post{} |> Post.changeset(attrs) |> Repo.insert() |> broadcast()
   end
 
+  @doc "Inserts a result post linked to its fixture; it waits for the admin's facts."
+  def create_linked(attrs), do: create_post(attrs)
+
   @doc """
-  Admin typed the facts for a result post. Queues it for the agent right away
-  (as a new revision, so a version in flight is ignored).
+  Admin typed the facts for a result post. Claude writes it from them right away.
   """
   def enter_facts(%Post{} = post, facts) when is_map(facts) do
     if Post.final?(post) or post.status == "publishing" do
       {:error, :final}
     else
-      cancel_jobs(post, Workers.Publish)
-
-      post
-      |> mark("planned", %{
-        facts: facts,
-        generate_at: now(),
-        gen_rev: post.gen_rev + 1,
-        approved_at: nil,
-        error: nil
-      })
-      |> tap(fn _ -> request_sync() end)
+      remake(post, %{facts: facts})
     end
   end
 
-  @doc "Inserts a post that isn't from a slot (e.g. a result linked to its fixture)."
-  def create_linked(attrs) do
-    %Post{} |> Post.changeset(attrs) |> Repo.insert() |> broadcast()
-  end
+  # Back to `creating` and a new Produce job (any publish job is dropped)
+  defp remake(post, attrs, opts \\ []) do
+    cancel_jobs(post)
 
-  @doc """
-  The agent asked to try later (e.g. the match isn't over). Re-queues the post
-  as a new revision and keeps review time before it goes out.
-  """
-  def retry_later(%Post{} = post, minutes, note) do
-    generate_at = DateTime.utc_now() |> DateTime.add(minutes * 60) |> DateTime.truncate(:second)
-    earliest = DateTime.add(generate_at, 45 * 60)
-
-    scheduled_at =
-      if DateTime.compare(post.scheduled_at, earliest) == :lt,
-        do: earliest,
-        else: post.scheduled_at
-
-    mark(post, "planned", %{
-      generate_at: generate_at,
-      scheduled_at: scheduled_at,
-      gen_rev: post.gen_rev + 1,
-      retries: post.retries + 1,
-      error: note
-    })
+    Repo.transact(fn ->
+      with {:ok, post} <-
+             post
+             |> Post.changeset(
+               Map.merge(attrs, %{status: "creating", approved_at: nil, error: nil})
+             )
+             |> Repo.update(),
+           {:ok, _job} <- Workers.Produce.enqueue(post, opts) do
+        {:ok, post}
+      end
+    end)
+    |> broadcast()
   end
 
   ## Pipeline transitions (called by workers)
@@ -245,7 +223,7 @@ defmodule Socialmedia.Posts do
       from p in Post,
         where:
           p.parent_id == ^id and
-            p.status in ["planned", "render_requested", "needs_review", "failed"]
+            p.status in ["planned", "creating", "uploaded", "needs_review", "failed"]
     )
     |> Enum.each(&reject(&1, "fixture_rejected"))
   end
@@ -253,8 +231,16 @@ defmodule Socialmedia.Posts do
   @doc "Restore a rejected post whose slot is still ahead."
   def restore(%Post{status: "rejected"} = post) do
     if DateTime.compare(post.scheduled_at, DateTime.utc_now()) == :gt do
-      status = if post.slide_paths == [], do: "planned", else: "needs_review"
-      mark(post, status, %{reject_reason: nil})
+      cond do
+        post.slide_paths != [] ->
+          mark(post, "needs_review", %{reject_reason: nil})
+
+        post.post_type == "result" and is_nil(post.facts) ->
+          mark(post, "planned", %{reject_reason: nil})
+
+        true ->
+          remake(post, %{reject_reason: nil})
+      end
     else
       {:error, :slot_passed}
     end
@@ -262,51 +248,39 @@ defmodule Socialmedia.Posts do
 
   def restore(%Post{}), do: {:error, :not_rejected}
 
-  @doc "Ask the agent to write this post again (picked up by the next content poll)."
+  @doc "Ask the agent to write this post again, here and now (same content_key)."
   def regenerate(%Post{} = post, note \\ nil) do
-    if Post.reviewable?(post) and future?(post) do
-      cancel_jobs(post)
-
-      post
-      |> mark("planned", %{
-        admin_note: note,
-        error: nil,
-        approved_at: nil,
-        generate_at: now(),
-        gen_rev: post.gen_rev + 1
-      })
-      |> tap(fn _ -> request_sync() end)
-    else
-      {:error, :not_reviewable}
-    end
+    if Post.reviewable?(post) and future?(post),
+      do: remake(post, %{admin_note: note}),
+      else: {:error, :not_reviewable}
   end
 
   @doc """
-  Admin edits the template data and/or caption. A data change asks the content
-  node to re-render the slides (the renderer rewrites the caption from data, so
-  edit the caption after the re-render finishes).
+  Admin edits the template data or the caption. A data change re-renders the
+  slides here (the renderer rewrites the caption from data, so edit the
+  caption after the re-render finishes).
   """
   def update_content(%Post{} = post, attrs) do
-    if Post.reviewable?(post) and post.data do
-      cancel_jobs(post, Workers.Publish)
+    rerender? = Map.get(attrs, :data, post.data) != post.data
 
-      rerender? = Map.get(attrs, :data, post.data) != post.data
+    cond do
+      not Post.reviewable?(post) or is_nil(post.data) ->
+        {:error, :not_reviewable}
 
-      extra =
-        if rerender?,
-          do: %{status: "render_requested", gen_rev: post.gen_rev + 1},
-          else: %{status: "needs_review"}
+      rerender? ->
+        remake(post, %{data: attrs.data}, render_only: true)
 
-      result =
+      # Its manifest is already in S3; edit the caption after the Pull
+      post.status in ~w(creating uploaded) ->
+        {:error, :not_reviewable}
+
+      true ->
+        cancel_jobs(post, Workers.Publish)
+
         post
-        |> Post.changeset(attrs |> Map.merge(extra) |> Map.put(:approved_at, nil))
+        |> Post.changeset(Map.merge(attrs, %{status: "needs_review", approved_at: nil}))
         |> Repo.update()
         |> broadcast()
-
-      if rerender?, do: request_sync()
-      result
-    else
-      {:error, :not_reviewable}
     end
   end
 
@@ -319,9 +293,6 @@ defmodule Socialmedia.Posts do
   def publish_now(%Post{}), do: {:error, :not_approved}
 
   ## Helpers
-
-  # Publish plan.json soon instead of waiting for the next cron tick.
-  defp request_sync, do: Workers.SyncBus.enqueue()
 
   @doc "Cancels queued jobs for a post (all workers, or just one)."
   def cancel_jobs(%Post{id: id}, worker \\ nil) do

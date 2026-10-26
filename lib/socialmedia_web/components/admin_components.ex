@@ -4,9 +4,9 @@ defmodule SocialmediaWeb.AdminComponents do
   import SocialmediaWeb.CoreComponents, only: [icon: 1]
 
   @status %{
-    "planned" => {"Planned", "border border-dashed hairline faint", nil},
-    "render_requested" =>
-      {"Re-render queued", "border border-dashed hairline muted", "hero-arrow-path"},
+    "planned" => {"Needs result", "border border-dashed hairline muted", "hero-pencil-square"},
+    "creating" => {"Creating", "border border-dashed hairline muted", "hero-sparkles"},
+    "uploaded" => {"In S3", "border hairline muted", "hero-cloud-arrow-up"},
     "needs_review" =>
       {"Ready to schedule", "bg-base-content text-base-100 font-semibold", "hero-eye"},
     "approved" => {"Scheduled", "border border-base-content font-medium", "hero-check"},

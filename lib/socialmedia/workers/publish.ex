@@ -1,8 +1,7 @@
 defmodule Socialmedia.Workers.Publish do
   @moduledoc """
-  Posts an approved post to Instagram at its slot. Only the primary runs this.
-  With PUBLISH=false (dev) or a channel in dry-run mode, nothing is sent to
-  Instagram; the post is marked published with a dry-run note.
+  Posts an approved post to Instagram at its time. For a channel in dry-run
+  mode nothing is sent; the post is marked published with a dry-run note.
   """
   use Oban.Worker,
     queue: :publish,
@@ -10,7 +9,7 @@ defmodule Socialmedia.Workers.Publish do
     unique: [keys: [:post_id], period: :infinity, states: :incomplete]
 
   require Logger
-  alias Socialmedia.{Posts, Flags}
+  alias Socialmedia.Posts
   alias Socialmedia.Instagram.Publisher
 
   def enqueue(post, opts \\ []) do
@@ -34,7 +33,7 @@ defmodule Socialmedia.Workers.Publish do
   end
 
   defp do_publish(post, attempt, max) do
-    if Flags.publish?() and not post.channel.dry_run do
+    if not post.channel.dry_run do
       case Publisher.publish(post) do
         {:ok, %{ig_media_id: mid, permalink: link}} ->
           Posts.mark(post, "published", %{
@@ -55,14 +54,13 @@ defmodule Socialmedia.Workers.Publish do
           {:cancel, reason}
       end
     else
-      why = if Flags.publish?(), do: "channel dry-run", else: "PUBLISH=false on this node"
-      Logger.info("dry-run publish of post #{post.id} (#{why})")
+      Logger.info("dry-run publish of post #{post.id}")
 
       Posts.mark(post, "published", %{
         published_at: now(),
         error: nil,
         permalink: nil,
-        agent_log: append(post.agent_log, "Dry run: #{why}; nothing sent to Instagram.")
+        agent_log: append(post.agent_log, "Dry run: nothing sent to Instagram.")
       })
 
       :ok

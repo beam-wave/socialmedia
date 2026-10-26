@@ -26,13 +26,50 @@ defmodule Socialmedia.Channels do
     Repo.all(from s in Schedule, where: s.channel_id == ^id, order_by: [s.time_of_day, s.id])
   end
 
-  def list_active_schedules do
-    Repo.all(
+  @doc "The channel's active slot for a post type, if any."
+  def slot_for(%Channel{id: id}, post_type) do
+    Repo.one(
       from s in Schedule,
-        join: c in assoc(s, :channel),
-        where: s.active and c.active,
-        preload: [channel: c]
+        where: s.channel_id == ^id and s.post_type == ^post_type and s.active,
+        order_by: [s.time_of_day, s.id],
+        limit: 1
     )
+  end
+
+  @doc """
+  Default "goes live" time for a new post: the slot's next day and time after
+  `now`, or tomorrow at noon when the type has no slot. UTC.
+  """
+  def next_slot_time(%Channel{timezone: tz} = channel, post_type, now \\ DateTime.utc_now()) do
+    today = now |> DateTime.shift_zone!(tz) |> DateTime.to_date()
+
+    candidates =
+      case slot_for(channel, post_type) do
+        %Schedule{weekdays: days, time_of_day: time} ->
+          for d <- 0..7,
+              date = Date.add(today, d),
+              Date.day_of_week(date) in days,
+              do: {date, time}
+
+        nil ->
+          [{Date.add(today, 1), ~T[12:00:00]}]
+      end
+
+    Enum.find_value(candidates, fn {date, time} ->
+      at = local_to_utc(date, time, tz)
+      if DateTime.compare(at, now) == :gt, do: at
+    end)
+  end
+
+  defp local_to_utc(date, time, tz) do
+    local =
+      case DateTime.new(date, Time.truncate(time, :second), tz) do
+        {:ok, dt} -> dt
+        {:ambiguous, first, _} -> first
+        {:gap, _, after_gap} -> after_gap
+      end
+
+    local |> DateTime.shift_zone!("Etc/UTC") |> DateTime.truncate(:second)
   end
 
   def get_schedule!(id), do: Repo.get!(Schedule, id)

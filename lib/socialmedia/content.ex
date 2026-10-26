@@ -1,182 +1,190 @@
 defmodule Socialmedia.Content do
   @moduledoc """
-  Content sync over S3. Two machines, no direct connection:
+  Making content and moving it between machines through S3. Every step is a
+  button, on any machine:
 
-    * **Prod (primary)** publishes `plan.json`: every post waiting for content
-      (`planned` with `generate_at` reached, or `render_requested`), each
-      tagged with its `gen_rev`. It then imports finished work from `inbox/`.
-    * **Mac (content node)** reads `plan.json`, runs Claude + the renderer for
-      each item it hasn't done, uploads the slides to `content/<id>/<rev>/` and
-      drops a manifest in `inbox/<id>-<rev>.json` (written last, so a manifest
-      always points at complete uploads).
+    * **Create** (channel page): one click makes one post. Its `Produce` job
+      runs Claude + the renderer, uploads the slides to `content/<key>/`, then
+      writes the manifest `inbox/<key>.json` last, so a manifest always points
+      at complete uploads. The post is then `uploaded`.
+    * **Pull** (Content page): imports every manifest in `inbox/` as a post
+      ready to schedule, then removes the manifest. **Delete** drops a
+      manifest and its slides without importing.
 
-  `gen_rev` makes this safe to repeat: a manifest for an old revision (the
-  admin regenerated in the meantime) is discarded on import.
+  `content_key` names the post on every machine, so pulling on the machine
+  that made it, or pulling a regenerated version, updates the same post.
   """
   import Ecto.Query
   require Logger
-  alias Socialmedia.{Repo, Posts, Storage}
+  alias Socialmedia.{Channels, Posts, Repo, Storage}
+  alias Socialmedia.Channels.Channel
   alias Socialmedia.Posts.Post
-  alias Socialmedia.Content.{Matches, Work}
+  alias Socialmedia.Content.Matches
+  alias Socialmedia.Workers.Produce
 
-  @plan_key "plan.json"
-  # "Try again later" requests honoured per post (e.g. 8 × 45 min for a long match)
-  @max_retries 8
+  # A pulled post whose time has passed gets this much time to be reviewed
+  @review_minutes 60
 
-  ## Prod side
+  ## Create
 
-  @doc "Posts that need content right now, as Work."
-  def pending_work do
-    now = DateTime.utc_now()
+  @doc """
+  Creates one post and queues its Produce job. `attrs`: `:post_type`,
+  `:scheduled_at` (UTC) and an optional `:admin_note`.
+  """
+  def create(%Channel{} = channel, attrs) do
+    slot = Channels.slot_for(channel, attrs.post_type)
 
-    Repo.all(
-      from p in Post,
-        where:
-          (p.status == "planned" and p.generate_at <= ^now and p.scheduled_at > ^now) or
-            (p.status == "render_requested" and p.scheduled_at > ^now),
-        order_by: p.scheduled_at,
-        preload: [:channel, :schedule, :parent]
-    )
-    |> Enum.map(fn post ->
-      kind = if post.status == "planned", do: "generate", else: "render"
-      Work.from_post(post, kind, Posts.recent_data(post.channel, 20))
-    end)
-  end
-
-  @doc "Writes plan.json for the content node."
-  def publish_plan do
-    work = pending_work()
-
-    :ok =
-      Storage.put_json(@plan_key, %{
-        generated_at: DateTime.utc_now(),
-        work: Enum.map(work, &Work.to_json_map/1)
-      })
-
-    {:ok, length(work)}
-  end
-
-  @doc "Imports every manifest in inbox/. Returns the number imported."
-  def import_inbox do
-    {:ok, keys} = Storage.list("inbox/")
-
-    keys
-    |> Enum.filter(&String.ends_with?(&1, ".json"))
-    |> Enum.count(fn key ->
-      result =
-        with {:ok, manifest} <- Storage.get_json(key) do
-          import_manifest(manifest)
-        end
-
-      case result do
-        {:ok, _} ->
-          Storage.delete(key)
-          true
-
-        {:stale, why} ->
-          Logger.info("dropping stale manifest #{key}: #{why}")
-          Storage.delete(key)
-          false
-
-        other ->
-          Logger.warning("could not import #{key}: #{inspect(other)}")
-          false
+    Repo.transact(fn ->
+      with {:ok, post} <-
+             Posts.create_post(%{
+               channel_id: channel.id,
+               schedule_id: slot && slot.id,
+               post_type: attrs.post_type,
+               scheduled_at: attrs.scheduled_at,
+               admin_note: attrs[:admin_note],
+               status: "creating"
+             }),
+           {:ok, _job} <- Produce.enqueue(post) do
+        {:ok, post}
       end
     end)
   end
 
-  def import_manifest(%{"post_id" => id, "rev" => rev} = m) do
-    case Posts.get_post(id) do
-      nil ->
-        {:stale, "post #{id} is gone"}
+  @doc "Uploads a finished post (slides, then manifest) and marks it `uploaded`."
+  def upload(%Post{} = post, %{data: data, caption: caption, slides: files} = result) do
+    post = Repo.preload(post, [:channel, :parent])
 
-      %Post{gen_rev: ^rev, status: status} = post
-      when status in ["planned", "render_requested"] ->
-        apply_manifest(post, m)
+    scheduled_at =
+      if post.post_type == "fixture",
+        do: Matches.fixture_time(data, post.scheduled_at),
+        else: post.scheduled_at
 
-      %Post{} = post ->
-        {:stale, "post #{id} is rev #{post.gen_rev} / #{post.status}"}
-    end
-  end
+    keys =
+      for file <- files do
+        key = "content/#{post.content_key}/#{Path.basename(file)}"
+        :ok = Storage.put_file(key, file, "image/jpeg")
+        key
+      end
 
-  defp apply_manifest(post, %{"status" => "ok"} = m) do
-    old = post.slide_paths
+    # A regenerated post can have fewer slides than before
+    Enum.each(post.slide_paths -- keys, &Storage.delete/1)
+
+    :ok =
+      Storage.put_json(manifest_key(post.content_key), %{
+        key: post.content_key,
+        channel: post.channel.handle,
+        post_type: post.post_type,
+        scheduled_at: scheduled_at,
+        parent_key: post.parent && post.parent.content_key,
+        facts: post.facts,
+        admin_note: post.admin_note,
+        data: data,
+        caption: caption,
+        sources: result[:sources] || [],
+        notes: result[:notes],
+        slides: keys,
+        made_at: DateTime.utc_now()
+      })
 
     with {:ok, post} <-
-           Posts.mark(post, "needs_review", %{
-             data: m["data"],
-             caption: m["caption"],
-             sources: m["sources"] || post.sources,
-             agent_log: m["notes"] || post.agent_log,
-             slide_paths: m["slides"],
+           Posts.mark(post, "uploaded", %{
+             scheduled_at: scheduled_at,
+             data: data,
+             caption: caption,
+             sources: result[:sources] || post.sources,
+             agent_log: result[:notes] || post.agent_log,
+             slide_paths: keys,
              error: nil
            }) do
-      # Previous revision's slides are no longer referenced
-      Enum.each(old -- m["slides"], &Storage.delete/1)
       if post.post_type == "fixture", do: Matches.after_fixture(post)
       {:ok, post}
     end
   end
 
-  defp apply_manifest(post, %{"status" => "failed", "retry_after_minutes" => mins} = m)
-       when is_integer(mins) and mins > 0 do
-    if post.retries < @max_retries do
-      Posts.retry_later(post, mins, "Waiting: #{m["error"]}")
+  ## Pull
+
+  def manifest_key(content_key), do: "inbox/#{content_key}.json"
+
+  @doc "Manifests waiting in S3, oldest first. Each has a `\"manifest\"` key (its S3 key)."
+  def manifests do
+    {:ok, keys} = Storage.list("inbox/")
+
+    for key <- keys,
+        String.ends_with?(key, ".json"),
+        {:ok, m} <- [Storage.get_json(key)] do
+      Map.put(m, "manifest", key)
+    end
+    |> Enum.sort_by(&(&1["made_at"] || ""))
+  end
+
+  @doc "Pulls every manifest. Returns how many posts were imported."
+  def pull_all, do: Enum.count(manifests(), &match?({:ok, %Post{}}, pull(&1)))
+
+  @doc """
+  Imports one manifest as a post ready to schedule, then removes the manifest.
+  A post that is already scheduled or live here is left alone.
+  """
+  def pull(%{"manifest" => mkey} = m) do
+    with %Channel{} = ch <- Channels.get_channel_by_handle(m["channel"]) || {:error, :no_channel},
+         {:ok, at, _} <- DateTime.from_iso8601(m["scheduled_at"] || "") do
+      attrs = %{
+        channel_id: ch.id,
+        post_type: m["post_type"],
+        scheduled_at: review_time(at),
+        parent_id: parent_id(m["parent_key"]),
+        facts: m["facts"],
+        admin_note: m["admin_note"],
+        data: m["data"],
+        caption: m["caption"],
+        sources: m["sources"] || [],
+        agent_log: m["notes"],
+        slide_paths: m["slides"] || [],
+        error: nil
+      }
+
+      result =
+        case Repo.get_by(Post, content_key: m["key"]) do
+          nil ->
+            Posts.create_post(Map.merge(attrs, %{content_key: m["key"], status: "needs_review"}))
+
+          %Post{status: s} = post when s in ~w(planned creating uploaded needs_review failed) ->
+            Posts.mark(post, "needs_review", attrs)
+
+          %Post{} = post ->
+            Logger.info("pull: #{m["key"]} is already #{post.status} here, kept as is")
+            {:ok, :kept}
+        end
+
+      Storage.delete(mkey)
+      result
     else
-      Posts.mark(post, "failed", %{error: "Gave up after #{post.retries} tries: #{m["error"]}"})
+      {:error, :no_channel} -> {:error, "no channel #{m["channel"]} here"}
+      _ -> {:error, "manifest #{mkey} has no valid time"}
     end
   end
 
-  defp apply_manifest(post, %{"status" => "failed"} = m) do
-    msg = if m["skip"], do: "Agent skipped: #{m["error"]}", else: m["error"]
-    Posts.mark(post, "failed", %{error: msg})
-  end
+  @doc "Deletes a manifest and its slides from S3 without importing it."
+  def delete(%{"manifest" => mkey} = m) do
+    Enum.each(m["slides"] || [], &Storage.delete/1)
+    Storage.delete(mkey)
 
-  ## Mac side
-
-  @doc "Reads plan.json. A missing plan means no work."
-  def read_plan do
-    case Storage.get_json(@plan_key) do
-      {:ok, %{"work" => list}} -> {:ok, Enum.map(list, &Work.from_json_map/1)}
-      {:error, :not_found} -> {:ok, []}
-      error -> error
+    # Made on this machine: the post's slides are gone, so it can't be pulled any more
+    case Repo.one(from p in Post, where: p.content_key == ^m["key"] and p.status == "uploaded") do
+      nil -> :ok
+      post -> Posts.reject(post, "deleted_from_s3")
     end
+
+    :ok
   end
 
-  def inbox_key(%Work{post_id: id, rev: rev}), do: "inbox/#{id}-#{rev}.json"
+  defp parent_id(nil), do: nil
+  defp parent_id(key), do: Repo.one(from p in Post, where: p.content_key == ^key, select: p.id)
 
-  @doc "True when this request was already delivered (waiting for prod to import)."
-  def delivered?(%Work{} = w), do: Storage.exists?(inbox_key(w))
+  # Unscheduled posts are rejected once their time passes, so give late ones time for review
+  defp review_time(at) do
+    earliest =
+      DateTime.utc_now() |> DateTime.add(@review_minutes * 60) |> DateTime.truncate(:second)
 
-  @doc "Uploads slides untouched, then the manifest."
-  def deliver(%Work{} = w, %{data: data, caption: caption, slides: files} = result) do
-    keys =
-      for file <- files do
-        key = "content/#{w.post_id}/#{w.rev}/#{Path.basename(file)}"
-        :ok = Storage.put_file(key, file, "image/jpeg")
-        key
-      end
-
-    Storage.put_json(inbox_key(w), %{
-      status: "ok",
-      post_id: w.post_id,
-      rev: w.rev,
-      data: data,
-      caption: caption,
-      sources: result[:sources],
-      notes: result[:notes],
-      slides: keys
-    })
-  end
-
-  def deliver_failure(%Work{} = w, error, skip?, retry_after_minutes \\ nil) do
-    Storage.put_json(inbox_key(w), %{
-      status: "failed",
-      post_id: w.post_id,
-      rev: w.rev,
-      error: error,
-      skip: skip?,
-      retry_after_minutes: retry_after_minutes
-    })
+    if DateTime.compare(at, earliest) == :lt, do: earliest, else: at
   end
 end

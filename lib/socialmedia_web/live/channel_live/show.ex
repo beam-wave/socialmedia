@@ -1,16 +1,23 @@
 defmodule SocialmediaWeb.ChannelLive.Show do
-  @moduledoc "One channel: its upcoming posts (Week) and its posting slots (Slots)."
+  @moduledoc """
+  One channel: create a post, see its posts (Week), and edit its slots (Slots).
+  A slot gives a post type its default time and its agent instructions.
+  """
   use SocialmediaWeb, :live_view
   import SocialmediaWeb.AdminComponents
-  alias Socialmedia.{Channels, Posts}
+  alias Socialmedia.{Channels, Content, Posts}
   alias Socialmedia.Channels.Schedule
-  alias Socialmedia.Workers.Planner
   alias SocialmediaWeb.PostText
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
     channel = Channels.get_channel!(id)
-    {:ok, socket |> assign(channel: channel, page_title: channel.handle, editing: nil) |> load()}
+
+    {:ok,
+     socket
+     |> assign(channel: channel, page_title: channel.handle, editing: nil)
+     |> load()
+     |> assign_create(nil)}
   end
 
   @impl true
@@ -70,9 +77,38 @@ defmodule SocialmediaWeb.ChannelLive.Show do
     end
   end
 
-  def handle_event("plan", _, socket) do
-    Planner.enqueue()
-    {:noreply, put_flash(socket, :info, "Planning the next 7 days…")}
+  ## Events: create
+
+  def handle_event("create_change", %{"create" => params}, socket) do
+    # A new post type gets its own default time; other edits are kept as typed
+    params =
+      if params["post_type"] != socket.assigns.create_form[:post_type].value,
+        do: Map.delete(params, "at"),
+        else: params
+
+    {:noreply, assign_create(socket, params)}
+  end
+
+  def handle_event("create", %{"create" => params}, socket) do
+    ch = socket.assigns.channel
+    note = String.trim(params["note"] || "")
+
+    with true <- params["post_type"] in socket.assigns.post_types || {:error, :bad_type},
+         {:ok, at} <- SocialmediaWeb.ContentLive.parse_local(params["at"], ch.timezone),
+         true <- DateTime.compare(at, DateTime.utc_now()) == :gt || {:error, :time_passed},
+         {:ok, _post} <-
+           Content.create(ch, %{
+             post_type: params["post_type"],
+             scheduled_at: at,
+             admin_note: if(note != "", do: note)
+           }) do
+      {:noreply,
+       socket
+       |> put_flash(:info, "Creating it now. It's uploaded to S3 when done.")
+       |> assign_create(Map.take(params, ["post_type"]))}
+    else
+      {:error, reason} -> {:noreply, put_flash(socket, :error, explain(reason))}
+    end
   end
 
   ## Events: slots
@@ -101,12 +137,10 @@ defmodule SocialmediaWeb.ChannelLive.Show do
       end
 
     case result do
-      {:ok, s} ->
-        Planner.replan(s)
-
+      {:ok, _s} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Slot saved. Upcoming posts re-planned.")
+         |> put_flash(:info, "Slot saved.")
          |> assign(editing: nil)
          |> load()}
 
@@ -117,16 +151,47 @@ defmodule SocialmediaWeb.ChannelLive.Show do
 
   def handle_event("toggle_slot", %{"id" => id}, socket) do
     s = Channels.get_schedule!(id)
-    {:ok, s} = Channels.update_schedule(s, %{active: !s.active})
-    Planner.replan(s)
-    {:noreply, load(socket)}
+    {:ok, _} = Channels.update_schedule(s, %{active: !s.active})
+    {:noreply, socket |> load() |> assign_create(nil)}
   end
 
   def handle_event("delete_slot", %{"id" => id}, socket) do
     s = Channels.get_schedule!(id)
     {:ok, _} = Channels.delete_schedule(s)
-    Planner.enqueue()
-    {:noreply, socket |> put_flash(:info, "Slot deleted") |> load()}
+    {:noreply, socket |> put_flash(:info, "Slot deleted") |> load() |> assign_create(nil)}
+  end
+
+  defp explain(:bad_type), do: "Pick a post type."
+  defp explain(:bad_time), do: "That date/time isn't valid."
+  defp explain(:time_passed), do: "Pick a time in the future."
+  defp explain(other), do: inspect(other)
+
+  # Post types this channel makes: its slots' types, or every type if it has none.
+  # Results aren't made here: each fixture creates its own.
+  defp assign_create(socket, params) do
+    ch = socket.assigns.channel
+
+    types =
+      case socket.assigns.slots |> Enum.map(& &1.post_type) |> Enum.uniq() do
+        [] -> Schedule.post_types()
+        slot_types -> slot_types
+      end
+      |> List.delete("result")
+
+    params = params || %{}
+    type = if params["post_type"] in types, do: params["post_type"], else: List.first(types)
+
+    at =
+      params["at"] ||
+        ch
+        |> Channels.next_slot_time(type)
+        |> DateTime.shift_zone!(ch.timezone)
+        |> Calendar.strftime("%Y-%m-%dT%H:%M")
+
+    form =
+      to_form(%{"post_type" => type, "at" => at, "note" => params["note"] || ""}, as: :create)
+
+    assign(socket, post_types: types, create_form: form)
   end
 
   defp normalize(params, socket) do
@@ -150,7 +215,6 @@ defmodule SocialmediaWeb.ChannelLive.Show do
     <Layouts.app
       flash={@flash}
       nav_channels={@nav_channels}
-      roles={@roles}
       current_path={@current_path}
     >
       <.page_header title={@channel.handle} subtitle={"#{@channel.name} · #{@channel.timezone}"}>
@@ -161,9 +225,6 @@ defmodule SocialmediaWeb.ChannelLive.Show do
           ]}>
             {if @channel.dry_run, do: "Dry run", else: "Publishing live"}
           </span>
-          <button :if={@roles.primary} phx-click="plan" class="btn btn-sm btn-outline">
-            Plan 7 days
-          </button>
         </:actions>
       </.page_header>
 
@@ -177,9 +238,70 @@ defmodule SocialmediaWeb.ChannelLive.Show do
         </.link>
       </div>
 
+      <.create_panel
+        :if={@live_action == :week}
+        form={@create_form}
+        post_types={@post_types}
+        channel={@channel}
+      />
       <.week :if={@live_action == :week} days={@days} today={@today} channel={@channel} />
       <.slots :if={@live_action == :slots} slots={@slots} form={@form} editing={@editing} />
     </Layouts.app>
+    """
+  end
+
+  attr :form, :any, required: true
+  attr :post_types, :list, required: true
+  attr :channel, :map, required: true
+
+  defp create_panel(assigns) do
+    ~H"""
+    <section class="rounded-lg border-2 border-base-content p-4">
+      <.form
+        for={@form}
+        id="create-form"
+        phx-change="create_change"
+        phx-submit="create"
+        class="grid gap-3 md:grid-cols-[180px_220px_minmax(0,1fr)_auto] md:items-end"
+      >
+        <.input
+          field={@form[:post_type]}
+          type="select"
+          label="Post type"
+          options={Enum.map(@post_types, &{post_type_label(&1), &1})}
+        />
+        <.input
+          field={@form[:at]}
+          type="datetime-local"
+          label={
+            if @form[:post_type].value == "fixture",
+              do: "Match day (#{@channel.timezone})",
+              else: "Goes live (#{@channel.timezone})"
+          }
+        />
+        <.input
+          field={@form[:note]}
+          type="text"
+          label="Note for the agent (optional)"
+          placeholder={
+            if @form[:post_type].value == "fixture",
+              do: "e.g. the India v Australia match",
+              else: "e.g. warmer tone, a startup from Bengaluru"
+          }
+        />
+        <div class="fieldset mb-2">
+          <button id="create-button" class="btn btn-primary" phx-disable-with="Queuing…">
+            <.icon name="hero-sparkles" class="size-4" /> Create
+          </button>
+        </div>
+      </.form>
+      <p class="text-xs muted mt-1">
+        {if @form[:post_type].value == "fixture",
+          do:
+            "Claude picks that day's match. Its result post is added once the fixture is made: enter the score there.",
+          else: "One click makes one post: Claude writes it, it's rendered, then uploaded to S3."} Pull it on the Content page to schedule it.
+      </p>
+    </section>
     """
   end
 
@@ -189,11 +311,7 @@ defmodule SocialmediaWeb.ChannelLive.Show do
 
   defp week(assigns) do
     ~H"""
-    <.empty :if={@days == []} text="No posts in this window. Add a slot, then plan the week.">
-      <.link patch={~p"/channels/#{@channel.id}/slots"} class="btn btn-sm btn-primary">
-        Add a slot
-      </.link>
-    </.empty>
+    <.empty :if={@days == []} text="No posts yet. Create one above." />
 
     <section :for={{date, posts} <- @days} class="space-y-2">
       <h2 class="text-xs uppercase tracking-wider muted">
@@ -228,9 +346,6 @@ defmodule SocialmediaWeb.ChannelLive.Show do
             </div>
             <div class="text-xs muted truncate">
               {post_type_label(p.post_type)}
-              <span :if={p.status == "planned" && p.generate_at}>
-                · writing from {local(p.generate_at, @channel.timezone, "%a %H:%M")}
-              </span>
               <span :if={p.error}>· {p.error}</span>
               <span :if={p.reject_reason}>· {String.replace(p.reject_reason, "_", " ")}</span>
             </div>
@@ -261,7 +376,7 @@ defmodule SocialmediaWeb.ChannelLive.Show do
       <section>
         <.empty
           :if={@slots == []}
-          text="No slots yet. Each slot creates one post on the chosen days."
+          text="No slots yet. A slot sets a post type's default time and agent instructions."
         />
         <ul :if={@slots != []} class="rounded-lg border hairline divide-y divide-base-300">
           <li :for={s <- @slots} class={["px-3 py-3 flex items-center gap-4", !s.active && "faint"]}>
@@ -282,9 +397,8 @@ defmodule SocialmediaWeb.ChannelLive.Show do
                   {String.slice(name, 0, 2)}
                 </span>
               </div>
-              <div class="text-xs muted">
-                Written {s.lead_hours}h before{if s.extra_instructions && s.extra_instructions != "",
-                  do: " · " <> s.extra_instructions}
+              <div :if={s.extra_instructions not in [nil, ""]} class="text-xs muted">
+                {s.extra_instructions}
               </div>
             </div>
             <button phx-click="toggle_slot" phx-value-id={s.id} class="btn btn-xs btn-ghost">
@@ -296,7 +410,7 @@ defmodule SocialmediaWeb.ChannelLive.Show do
             <button
               phx-click="delete_slot"
               phx-value-id={s.id}
-              data-confirm="Delete this slot? Untouched upcoming posts from it are removed."
+              data-confirm="Delete this slot?"
               class="btn btn-xs btn-ghost"
             >
               <.icon name="hero-trash" class="size-3.5" />
@@ -337,13 +451,6 @@ defmodule SocialmediaWeb.ChannelLive.Show do
             </div>
             <p :for={{msg, _} <- @form[:weekdays].errors} class="text-xs mt-1">{msg}</p>
           </fieldset>
-          <.input
-            field={@form[:lead_hours]}
-            type="number"
-            label="Write it how many hours before?"
-            min="0"
-            max="168"
-          />
           <.input
             field={@form[:extra_instructions]}
             type="textarea"

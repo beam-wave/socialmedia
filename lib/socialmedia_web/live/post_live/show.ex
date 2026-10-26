@@ -71,7 +71,7 @@ defmodule SocialmediaWeb.PostLive.Show do
     act(
       socket,
       &Posts.regenerate(&1, note),
-      "Sent to the Mac. New version arrives in a few minutes."
+      "Writing it again. The new version is uploaded to S3 when done."
     )
   end
 
@@ -100,7 +100,7 @@ defmodule SocialmediaWeb.PostLive.Show do
         act(
           socket,
           &Posts.enter_facts(&1, facts),
-          "Saved. Claude writes the result post on the Mac next."
+          "Saved. Claude is writing the result post."
         )
     end
   end
@@ -134,7 +134,7 @@ defmodule SocialmediaWeb.PostLive.Show do
         act(
           socket,
           &Posts.update_content(&1, %{data: data}),
-          "Saved. The Mac re-renders the slides."
+          "Saved. Re-rendering the slides."
         )
 
       _ ->
@@ -152,7 +152,10 @@ defmodule SocialmediaWeb.PostLive.Show do
   defp explain(:slot_passed), do: "The slot time has passed."
   defp explain(:time_passed), do: "Pick a time in the future."
   defp explain(:bad_time), do: "That date/time isn't valid."
-  defp explain(:not_reviewable), do: "This post can't be changed in its current state."
+
+  defp explain(:not_reviewable),
+    do: "This post can't be changed in its current state. Pull it first if it's in S3."
+
   defp explain(:not_approved), do: "Only approved posts can do that."
   defp explain(:final), do: "This post is already final."
   defp explain(other), do: inspect(other)
@@ -163,7 +166,6 @@ defmodule SocialmediaWeb.PostLive.Show do
     <Layouts.app
       flash={@flash}
       nav_channels={@nav_channels}
-      roles={@roles}
       current_path={@current_path}
     >
       <div class="text-xs muted">
@@ -225,7 +227,7 @@ defmodule SocialmediaWeb.PostLive.Show do
             {local(@child.scheduled_at, @post.channel.timezone, "%a %d %b · %H:%M")}
           </.link>
           ({status_label(@child.status)}){if @child.status == "planned",
-            do: " · written when the match should be over"}
+            do: " · enter the result there to write it"}
         </span>
       </div>
 
@@ -255,9 +257,11 @@ defmodule SocialmediaWeb.PostLive.Show do
             :if={@post.slide_paths == []}
             class="slide-thumb w-full rounded-lg border border-dashed hairline grid place-items-center text-sm muted"
           >
-            {if @post.status in ~w(planned render_requested),
-              do: "Being made on the Mac…",
-              else: "No slides yet"}
+            {case @post.status do
+              "creating" -> "Being made…"
+              "planned" -> "Enter the match result to write it"
+              _ -> "No slides yet"
+            end}
           </div>
           <img
             :if={@post.slide_paths != []}
@@ -300,11 +304,17 @@ defmodule SocialmediaWeb.PostLive.Show do
               name="caption"
               rows="12"
               phx-debounce="300"
-              disabled={!Post.reviewable?(@post) or is_nil(@post.data)}
+              disabled={
+                !Post.reviewable?(@post) or is_nil(@post.data) or
+                  @post.status in ~w(creating uploaded)
+              }
               class="textarea w-full text-sm leading-relaxed"
             >{@caption}</textarea>
             <button
-              :if={Post.reviewable?(@post) and @post.data && @caption != (@post.caption || "")}
+              :if={
+                Post.reviewable?(@post) and @post.data && @post.status not in ~w(creating uploaded) &&
+                  @caption != (@post.caption || "")
+              }
               class="btn btn-sm btn-outline"
             >
               Save caption
@@ -328,7 +338,7 @@ defmodule SocialmediaWeb.PostLive.Show do
           </div>
 
           <form
-            :if={Post.reviewable?(@post) and @post.status != "planned"}
+            :if={Post.reviewable?(@post) and @post.status not in ~w(planned creating)}
             phx-submit="regenerate"
             class="rounded-lg border hairline p-3 space-y-2"
           >
@@ -490,8 +500,11 @@ defmodule SocialmediaWeb.PostLive.Show do
           </button>
         <% "rejected" -> %>
           <button phx-click="restore" class="btn btn-sm btn-outline">Restore</button>
-        <% s when s in ["planned", "failed", "render_requested"] -> %>
-          <button phx-click="reject" class="btn btn-sm btn-ghost" data-confirm="Reject this slot?">
+        <% "uploaded" -> %>
+          <span class="text-sm muted">In S3. Pull it on the Content page to schedule.</span>
+          <.link navigate={~p"/content"} class="btn btn-sm btn-outline">Content</.link>
+        <% s when s in ["planned", "failed", "creating"] -> %>
+          <button phx-click="reject" class="btn btn-sm btn-ghost" data-confirm="Reject this post?">
             Reject
           </button>
           <button

@@ -1,18 +1,33 @@
 defmodule SocialmediaWeb.ContentLive do
   @moduledoc """
-  The admin's working list: content the Mac has made, ready to edit and
-  schedule. Edit the caption and time inline, then Schedule (= approve).
+  The admin's working list. Pull brings in what's waiting in S3; then edit
+  the caption and time inline and Schedule (= approve, which queues the
+  Oban publish job for that time).
   """
   use SocialmediaWeb, :live_view
   import Ecto.Query
   import SocialmediaWeb.AdminComponents
-  alias Socialmedia.{Repo, Posts, Channels}
+  alias Socialmedia.{Repo, Posts, Channels, Content}
   alias Socialmedia.Posts.Post
   alias SocialmediaWeb.PostText
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, page_title: "Content", channels: Channels.list_channels())}
+    {:ok,
+     socket
+     |> assign(page_title: "Content", channels: Channels.list_channels())
+     |> load_s3()}
+  end
+
+  # S3 is only read on mount and when asked (Refresh, Pull, Delete, or a post made here)
+  defp load_s3(socket) do
+    if connected?(socket) do
+      assign(socket, s3: Content.manifests(), s3_error: nil)
+    else
+      assign(socket, s3: [], s3_error: nil)
+    end
+  rescue
+    e -> assign(socket, s3: [], s3_error: Exception.message(e))
   end
 
   @impl true
@@ -24,6 +39,9 @@ defmodule SocialmediaWeb.ContentLive do
   end
 
   @impl true
+  def handle_info({:post_updated, %{status: "uploaded"}}, socket),
+    do: {:noreply, socket |> load() |> load_s3()}
+
   def handle_info({:post_updated, _}, socket), do: {:noreply, load(socket)}
 
   defp load(socket) do
@@ -44,14 +62,8 @@ defmodule SocialmediaWeb.ContentLive do
     assign(socket,
       ready: Map.get(by, "needs_review", []),
       scheduled: Map.get(by, "approved", []) ++ Map.get(by, "publishing", []),
-      needs_facts:
-        by
-        |> Map.get("planned", [])
-        |> Enum.filter(&(&1.post_type == "result" and is_nil(&1.facts))),
-      waiting:
-        (Map.get(by, "planned", [])
-         |> Enum.reject(&(&1.post_type == "result" and is_nil(&1.facts)))) ++
-          Map.get(by, "render_requested", []),
+      needs_facts: by |> Map.get("planned", []) |> Enum.filter(&(&1.post_type == "result")),
+      creating: Map.get(by, "creating", []),
       failed: Map.get(by, "failed", []),
       live: by |> Map.get("published", []) |> Enum.reverse() |> Enum.take(10)
     )
@@ -92,7 +104,53 @@ defmodule SocialmediaWeb.ContentLive do
     do: simple(socket, Posts.reject(Posts.get_post!(id)), "Rejected")
 
   def handle_event("retry", %{"id" => id}, socket),
-    do: simple(socket, Posts.regenerate(Posts.get_post!(id)), "Sent back to the Mac")
+    do: simple(socket, Posts.regenerate(Posts.get_post!(id)), "Writing it again…")
+
+  def handle_event("refresh_s3", _, socket), do: {:noreply, load_s3(socket)}
+
+  def handle_event("pull_all", _, socket) do
+    n = Content.pull_all()
+    {:noreply, socket |> put_flash(:info, "Pulled #{n} post(s)") |> load() |> load_s3()}
+  end
+
+  def handle_event("pull", %{"key" => key}, socket) do
+    socket =
+      case find_manifest(socket, key) do
+        nil ->
+          put_flash(socket, :error, "It's no longer in S3.")
+
+        m ->
+          case Content.pull(m) do
+            {:ok, _} -> put_flash(socket, :info, "Pulled. It's ready to schedule.")
+            {:error, why} -> put_flash(socket, :error, why)
+          end
+      end
+
+    {:noreply, socket |> load() |> load_s3()}
+  end
+
+  def handle_event("delete_s3", %{"key" => key}, socket) do
+    socket =
+      case find_manifest(socket, key) do
+        nil -> socket
+        m -> Content.delete(m) && put_flash(socket, :info, "Deleted from S3")
+      end
+
+    {:noreply, load_s3(socket)}
+  end
+
+  defp find_manifest(socket, key), do: Enum.find(socket.assigns.s3, &(&1["key"] == key))
+
+  defp manifest_tz(m, channels) do
+    Enum.find_value(channels, "Asia/Kolkata", &(&1.handle == m["channel"] && &1.timezone))
+  end
+
+  defp manifest_time(m, channels) do
+    case DateTime.from_iso8601(m["scheduled_at"] || "") do
+      {:ok, at, _} -> local(at, manifest_tz(m, channels), "%a %d %b · %H:%M")
+      _ -> "no time"
+    end
+  end
 
   defp simple(socket, {:ok, _}, msg), do: {:noreply, put_flash(socket, :info, msg)}
   defp simple(socket, {:error, r}, _), do: {:noreply, put_flash(socket, :error, explain(r))}
@@ -130,12 +188,11 @@ defmodule SocialmediaWeb.ContentLive do
     <Layouts.app
       flash={@flash}
       nav_channels={@nav_channels}
-      roles={@roles}
       current_path={@current_path}
     >
       <.page_header
         title="Content"
-        subtitle="Made on the Mac, ready for you. Edit the caption and time, then Schedule. Unscheduled posts are dropped when their time passes."
+        subtitle="Pull what's in S3, edit the caption and time, then Schedule. Unscheduled posts are dropped when their time passes."
       >
         <:actions>
           <form phx-change="filter">
@@ -148,6 +205,64 @@ defmodule SocialmediaWeb.ContentLive do
           </form>
         </:actions>
       </.page_header>
+
+      <section id="s3-inbox" class="space-y-2">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-sm font-semibold">
+            In S3, not pulled yet <span class="muted font-normal">· {length(@s3)}</span>
+          </h2>
+          <div class="flex gap-2">
+            <button id="refresh-s3" phx-click="refresh_s3" class="btn btn-sm btn-ghost">
+              <.icon name="hero-arrow-path" class="size-4" /> Refresh
+            </button>
+            <button
+              id="pull-all"
+              phx-click="pull_all"
+              disabled={@s3 == []}
+              class="btn btn-sm btn-primary"
+              phx-disable-with="Pulling…"
+            >
+              <.icon name="hero-cloud-arrow-down" class="size-4" /> Pull all
+            </button>
+          </div>
+        </div>
+        <p :if={@s3_error} class="text-xs font-semibold">Couldn't read S3: {@s3_error}</p>
+        <.empty
+          :if={@s3 == [] and is_nil(@s3_error)}
+          text="Nothing in S3. Create posts from a channel page; they land here when done."
+        />
+        <ul :if={@s3 != []} class="rounded-lg border hairline divide-y divide-base-300">
+          <li
+            :for={m <- @s3}
+            id={"s3-#{m["key"]}"}
+            class="flex flex-wrap items-center gap-3 px-3 py-2.5"
+          >
+            <img
+              :if={(m["slides"] || []) != []}
+              src={slide_src(hd(m["slides"]))}
+              class="slide-thumb w-10 rounded border hairline"
+              alt=""
+            />
+            <div class="min-w-0 flex-1">
+              <div class="text-sm truncate">{PostText.title(%{data: m["data"]}) || "Untitled"}</div>
+              <div class="text-xs muted">
+                {m["channel"]} · {post_type_label(m["post_type"])} · {manifest_time(m, @channels)}
+              </div>
+            </div>
+            <button
+              phx-click="delete_s3"
+              phx-value-key={m["key"]}
+              data-confirm="Delete this post and its slides from S3?"
+              class="btn btn-sm btn-ghost"
+            >
+              <.icon name="hero-trash" class="size-4" /> Delete
+            </button>
+            <button phx-click="pull" phx-value-key={m["key"]} class="btn btn-sm btn-outline">
+              Pull
+            </button>
+          </li>
+        </ul>
+      </section>
 
       <section :if={@needs_facts != []} class="space-y-2">
         <h2 class="text-sm font-semibold">
@@ -173,7 +288,7 @@ defmodule SocialmediaWeb.ContentLive do
         </h2>
         <.empty
           :if={@ready == []}
-          text="Nothing waiting. New content shows up here as soon as the Mac uploads it."
+          text="Nothing to schedule. Pull from S3 above, or create a post on a channel page."
         />
 
         <article :for={p <- @ready} id={"ready-#{p.id}"} class="rounded-lg border hairline p-4">
@@ -307,25 +422,16 @@ defmodule SocialmediaWeb.ContentLive do
         </ul>
       </section>
 
-      <section class="space-y-2">
+      <section :if={@creating != []} class="space-y-2">
         <h2 class="text-sm font-semibold">
-          Waiting for the Mac <span class="muted font-normal">· {length(@waiting)}</span>
+          Being made here <span class="muted font-normal">· {length(@creating)}</span>
         </h2>
-        <p class="text-xs muted">
-          Planned from your slots. The Mac picks up each one when its writing time comes.
-        </p>
-        <ul
-          :if={@waiting != []}
-          class="rounded-lg border border-dashed hairline divide-y divide-base-300 text-sm"
-        >
-          <li :for={p <- Enum.take(@waiting, 12)} class="flex items-center gap-3 px-3 py-2">
-            <span class="mono text-xs w-28 muted">
-              {local(p.scheduled_at, p.channel.timezone, "%a %d · %H:%M")}
-            </span>
+        <ul class="rounded-lg border border-dashed hairline divide-y divide-base-300 text-sm">
+          <li :for={p <- @creating} class="flex items-center gap-3 px-3 py-2">
+            <span class="loading loading-spinner loading-xs"></span>
             <span class="flex-1 truncate">{p.channel.handle} · {post_type_label(p.post_type)}</span>
-            <.status_badge status={p.status} />
-            <span :if={p.status == "planned" && p.generate_at} class="text-xs faint">
-              writes {local(p.generate_at, p.channel.timezone, "%a %d %b %H:%M")}
+            <span class="mono text-xs muted">
+              {local(p.scheduled_at, p.channel.timezone, "%a %d · %H:%M")}
             </span>
           </li>
         </ul>

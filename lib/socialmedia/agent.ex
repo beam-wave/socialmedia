@@ -72,7 +72,7 @@ defmodule Socialmedia.Agent do
     Today is: #{Date.utc_today() |> Date.to_iso8601()}
     #{series_line(channel, local)}
     #{line("Slot instructions from the admin", work.extra_instructions)}
-    #{line("Admin note for this regeneration (highest priority)", work.admin_note)}
+    #{line("Admin note for this post (highest priority)", work.admin_note)}
     #{related(work)}
     #{facts(work)}
     Recent posts on this channel (newest first). Don't repeat their topic, quote, startup, movie, match or hook:

@@ -1,22 +1,17 @@
 defmodule Socialmedia.ContentBusTest do
   use Socialmedia.DataCase, async: false
+  use Oban.Testing, repo: Socialmedia.Repo
   import Socialmedia.Fixtures
-  alias Socialmedia.{Content, Posts, Storage}
-  alias Socialmedia.Content.Work
+  alias Socialmedia.{Content, Posts, Repo, Storage}
+  alias Socialmedia.Posts.Post
+  alias Socialmedia.Workers.Produce
 
   setup do
     File.rm_rf!(Socialmedia.Storage.Local.root())
     :ok
   end
 
-  defp due_post(attrs \\ %{}) do
-    past = DateTime.utc_now() |> DateTime.add(-10) |> DateTime.truncate(:second)
-
-    insert_post(
-      channel(),
-      Map.merge(%{status: "planned", data: nil, slide_paths: [], generate_at: past}, attrs)
-    )
-  end
+  defp hours(n), do: DateTime.utc_now() |> DateTime.add(n * 3600) |> DateTime.truncate(:second)
 
   defp slide_file(name) do
     path = Path.join(System.tmp_dir!(), name)
@@ -24,83 +19,132 @@ defmodule Socialmedia.ContentBusTest do
     path
   end
 
-  test "prod publishes plan.json, Mac delivers, prod imports into review" do
-    p = due_post()
-
-    # prod
-    assert {:ok, 1} = Content.publish_plan()
-
-    # Mac
-    assert {:ok, [%Work{post_id: id, rev: 1, kind: "generate"} = w]} = Content.read_plan()
-    assert id == p.id
-    refute Content.delivered?(w)
-
-    :ok =
-      Content.deliver(w, %{
+  defp made(post, slides \\ ["s-01.jpg", "s-02.jpg"]) do
+    {:ok, post} =
+      Content.upload(post, %{
         data: %{"quotes" => [%{"quote" => "q"}]},
         caption: "cap",
-        sources: [],
+        sources: [%{"url" => "https://example.com"}],
         notes: "n",
-        slides: [slide_file("s-01.jpg"), slide_file("s-02.jpg")]
+        slides: Enum.map(slides, &slide_file/1)
       })
 
-    assert Content.delivered?(w)
+    post
+  end
 
-    # prod
-    assert Content.import_inbox() == 1
-    post = Posts.get_post!(p.id)
-    assert post.status == "needs_review"
-    assert post.caption == "cap"
-    assert post.slide_paths == ["content/#{p.id}/1/s-01.jpg", "content/#{p.id}/1/s-02.jpg"]
+  test "each click creates one post and queues one Produce job" do
+    ch = channel()
+    schedule(ch)
+
+    assert {:ok, post} = Content.create(ch, %{post_type: "quote", scheduled_at: hours(5)})
+    assert post.status == "creating" and post.content_key
+    assert post.schedule_id
+    assert_enqueued(worker: Produce, args: %{post_id: post.id})
+
+    {:ok, other} = Content.create(ch, %{post_type: "quote", scheduled_at: hours(29)})
+    assert length(all_enqueued(worker: Produce)) == 2
+    refute other.content_key == post.content_key
+  end
+
+  test "upload puts slides then the manifest in S3; pulling here makes it ready to schedule" do
+    {:ok, post} = Content.create(channel(), %{post_type: "quote", scheduled_at: hours(5)})
+    post = made(post)
+
+    assert post.status == "uploaded"
+    key = post.content_key
+    assert post.slide_paths == ["content/#{key}/s-01.jpg", "content/#{key}/s-02.jpg"]
     assert {:ok, "jpeg-bytes-s-01.jpg"} = Storage.get(hd(post.slide_paths))
-    assert {:ok, []} = Storage.list("inbox/")
+    assert [%{"key" => ^key, "caption" => "cap"}] = Content.manifests()
 
-    # nothing left to do
-    assert {:ok, 0} = Content.publish_plan()
+    assert Content.pull_all() == 1
+    post = Posts.get_post!(post.id)
+    assert post.status == "needs_review" and post.caption == "cap"
+    assert Content.manifests() == []
+    assert Repo.aggregate(Post, :count) == 1
   end
 
-  test "a manifest for an old revision is dropped" do
-    p = due_post()
-    {:ok, 1} = Content.publish_plan()
-    {:ok, [w]} = Content.read_plan()
+  test "pulling on another machine creates the post from the manifest" do
+    ch = channel()
+    {:ok, post} = Content.create(ch, %{post_type: "quote", scheduled_at: hours(5)})
+    post = made(post)
+    # the other machine's database doesn't have it
+    Repo.delete!(post)
 
-    # admin regenerates before the Mac delivers rev 1
-    {:ok, _} = Posts.regenerate(Posts.get_post!(p.id), "again")
-    :ok = Content.deliver(w, %{data: %{}, caption: "old", slides: [slide_file("o.jpg")]})
-
-    assert Content.import_inbox() == 0
-    assert %{status: "planned", gen_rev: 2} = Posts.get_post!(p.id)
-    assert {:ok, []} = Storage.list("inbox/")
+    [m] = Content.manifests()
+    assert {:ok, pulled} = Content.pull(m)
+    assert pulled.content_key == post.content_key
+    assert pulled.status == "needs_review" and pulled.channel_id == ch.id
+    assert pulled.slide_paths == post.slide_paths
+    assert pulled.sources == [%{"url" => "https://example.com"}]
+    assert pulled.scheduled_at == post.scheduled_at
   end
 
-  test "agent skips arrive as failures with the reason" do
-    p = due_post()
-    {:ok, _} = Content.publish_plan()
-    {:ok, [w]} = Content.read_plan()
-    :ok = Content.deliver_failure(w, "no match today", true)
+  test "a pulled post whose time has passed gets time for review" do
+    {:ok, post} = Content.create(channel(), %{post_type: "quote", scheduled_at: hours(5)})
+    post = made(post)
+    Repo.delete!(post)
+    [m] = Content.manifests()
 
-    Content.import_inbox()
-    assert %{status: "failed", error: "Agent skipped: no match today"} = Posts.get_post!(p.id)
+    {:ok, pulled} = Content.pull(%{m | "scheduled_at" => DateTime.to_iso8601(hours(-2))})
+    assert DateTime.diff(pulled.scheduled_at, DateTime.utc_now()) in 3500..3600
   end
 
-  test "re-render replaces the previous revision's slides" do
-    p = due_post()
-    {:ok, _} = Content.publish_plan()
-    {:ok, [w]} = Content.read_plan()
-    :ok = Content.deliver(w, %{data: %{"a" => 1}, caption: "c", slides: [slide_file("v1.jpg")]})
-    Content.import_inbox()
+  test "a post already scheduled here is kept when pulled again" do
+    {:ok, post} = Content.create(channel(), %{post_type: "quote", scheduled_at: hours(5)})
+    post = made(post)
+    Content.pull_all()
+    {:ok, _} = Posts.approve(Posts.get_post!(post.id))
 
-    {:ok, post} = Posts.update_content(Posts.get_post!(p.id), %{data: %{"a" => 2}})
-    assert post.status == "render_requested" and post.gen_rev == 2
+    # regenerated on another machine and uploaded again
+    :ok =
+      Storage.put_json(Content.manifest_key(post.content_key), %{
+        key: post.content_key,
+        channel: post.channel.handle,
+        post_type: "quote",
+        scheduled_at: post.scheduled_at,
+        caption: "newer",
+        slides: post.slide_paths
+      })
 
-    {:ok, _} = Content.publish_plan()
-    {:ok, [w2]} = Content.read_plan()
-    assert w2.kind == "render" and w2.rev == 2 and w2.data == %{"a" => 2}
-    :ok = Content.deliver(w2, %{data: %{"a" => 2}, caption: "c2", slides: [slide_file("v2.jpg")]})
-    Content.import_inbox()
+    [m] = Content.manifests()
+    assert {:ok, :kept} = Content.pull(m)
+    assert %{status: "approved", caption: "cap"} = Posts.get_post!(post.id)
+    assert Content.manifests() == []
+  end
 
-    post = Posts.get_post!(p.id)
-    assert post.slide_paths == ["content/#{p.id}/2/v2.jpg"]
-    assert {:error, :not_found} = Storage.get("content/#{p.id}/1/v1.jpg")
+  test "regenerating replaces the previous slides" do
+    {:ok, post} = Content.create(channel(), %{post_type: "quote", scheduled_at: hours(5)})
+    post = made(post, ["s-01.jpg", "s-02.jpg"])
+    {:ok, post} = Posts.regenerate(post, "again")
+    post = made(post, ["s-01.jpg"])
+
+    assert post.slide_paths == ["content/#{post.content_key}/s-01.jpg"]
+    assert {:ok, ["content/" <> _]} = Storage.list("content/#{post.content_key}/")
+  end
+
+  test "delete drops the manifest and slides without importing" do
+    {:ok, post} = Content.create(channel(), %{post_type: "quote", scheduled_at: hours(5)})
+    post = made(post)
+
+    [m] = Content.manifests()
+    :ok = Content.delete(m)
+
+    assert Content.manifests() == []
+    assert {:ok, []} = Storage.list("content/#{post.content_key}/")
+    assert %{status: "rejected", reject_reason: "deleted_from_s3"} = Posts.get_post!(post.id)
+  end
+
+  test "a manifest for an unknown channel stays in S3" do
+    {:ok, post} = Content.create(channel(), %{post_type: "quote", scheduled_at: hours(5)})
+    made(post)
+    [m] = Content.manifests()
+
+    assert {:error, "no channel @nope here"} = Content.pull(%{m | "channel" => "@nope"})
+    assert [_] = Content.manifests()
+  end
+
+  test "Produce only runs for a post that is being created" do
+    p = insert_post(channel(), %{status: "needs_review"})
+    assert {:cancel, _} = perform_job(Produce, %{post_id: p.id})
   end
 end

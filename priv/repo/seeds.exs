@@ -13,7 +13,7 @@ channels = [
     template_dir: "spotlight.startups",
     base_data: %{"theme" => "cobalt"},
     slots: [
-      %{post_type: "top5", weekdays: [1], time_of_day: ~T[11:00:00], lead_hours: 48}
+      %{post_type: "top5", weekdays: [1], time_of_day: ~T[11:00:00]}
     ]
   },
   %{
@@ -34,8 +34,7 @@ channels = [
       %{
         post_type: "quote",
         weekdays: Enum.to_list(1..7),
-        time_of_day: ~T[21:00:00],
-        lead_hours: 36
+        time_of_day: ~T[21:00:00]
       }
     ]
   },
@@ -57,8 +56,7 @@ channels = [
       %{
         post_type: "quote",
         weekdays: Enum.to_list(1..7),
-        time_of_day: ~T[06:00:00],
-        lead_hours: 36
+        time_of_day: ~T[06:00:00]
       }
     ]
   },
@@ -73,8 +71,8 @@ channels = [
         post_type: "fixture",
         weekdays: Enum.to_list(1..7),
         time_of_day: ~T[12:00:00],
-        lead_hours: 10,
-        extra_instructions: "Pick by the skill's priority: India, ICC events, T20 leagues, The Hundred, T10 leagues. Skip if no match starts today."
+        extra_instructions:
+          "Pick by the skill's priority: India, ICC events, T20 leagues, The Hundred, T10 leagues. Skip if no match starts today."
       }
       # Result posts aren't a slot: each fixture creates its own, timed from the match start
     ]
@@ -86,7 +84,7 @@ channels = [
     template_dir: "bollyvibe",
     base_data: %{"theme" => "marquee", "format" => "post"},
     slots: [
-      %{post_type: "movie", weekdays: [2, 5], time_of_day: ~T[18:00:00], lead_hours: 48}
+      %{post_type: "movie", weekdays: [2, 5], time_of_day: ~T[18:00:00]}
     ]
   }
 ]

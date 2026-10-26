@@ -2,18 +2,16 @@ defmodule Socialmedia.Posts.Post do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @statuses ~w(planned render_requested needs_review approved publishing published failed rejected)
+  # creating: Claude + the renderer are on it. uploaded: in S3, waiting for a Pull.
+  # planned: a result post waiting for the admin's match facts.
+  @statuses ~w(planned creating uploaded needs_review approved publishing published failed rejected)
 
   schema "posts" do
     field :scheduled_at, :utc_datetime
     field :post_type, :string
-    field :status, :string, default: "planned"
-    # Slot the planner made this post for; scheduled_at is when it goes out (admin can move it)
-    field :slot_at, :utc_datetime
-    field :generate_at, :utc_datetime
-    # Content request number, bumped on regenerate / re-render (names the request on the S3 bus)
-    field :gen_rev, :integer, default: 1
-    field :retries, :integer, default: 0
+    field :status, :string, default: "creating"
+    # Same on every machine; the post's folder in S3 (content/<key>/, inbox/<key>.json)
+    field :content_key, :string
     # Facts the admin typed in (match result); the agent writes from these
     field :facts, :map
     # Template data for exactly one Instagram post (channel base_data + one item)
@@ -49,10 +47,7 @@ defmodule Socialmedia.Posts.Post do
       :scheduled_at,
       :post_type,
       :status,
-      :slot_at,
-      :generate_at,
-      :gen_rev,
-      :retries,
+      :content_key,
       :parent_id,
       :facts,
       :data,
@@ -68,15 +63,22 @@ defmodule Socialmedia.Posts.Post do
       :ig_media_id,
       :permalink
     ])
-    |> validate_required([:channel_id, :scheduled_at, :post_type, :status])
+    |> put_new_key()
+    |> validate_required([:channel_id, :scheduled_at, :post_type, :status, :content_key])
     |> validate_inclusion(:status, @statuses)
     |> validate_length(:caption, max: 2200)
-    |> unique_constraint([:schedule_id, :slot_at])
+    |> unique_constraint(:content_key)
+  end
+
+  defp put_new_key(cs) do
+    if get_field(cs, :content_key),
+      do: cs,
+      else: put_change(cs, :content_key, Ecto.UUID.generate())
   end
 
   @doc "True while the post can still be edited, regenerated or approved."
   def reviewable?(%__MODULE__{status: s}),
-    do: s in ~w(planned render_requested needs_review approved failed)
+    do: s in ~w(planned creating uploaded needs_review approved failed)
 
   def final?(%__MODULE__{status: s}), do: s in ~w(published rejected)
 end

@@ -25,11 +25,6 @@ defmodule SocialmediaWeb.DashboardLive do
     end
   end
 
-  def handle_event("plan", _, socket) do
-    Socialmedia.Workers.Planner.enqueue()
-    {:noreply, put_flash(socket, :info, "Planning the next 7 days…")}
-  end
-
   defp load(socket) do
     today = DateTime.now!(@tz) |> DateTime.to_date()
     {:ok, from} = DateTime.new(today, ~T[00:00:00], @tz)
@@ -67,7 +62,6 @@ defmodule SocialmediaWeb.DashboardLive do
     <Layouts.app
       flash={@flash}
       nav_channels={@nav_channels}
-      roles={@roles}
       current_path={@current_path}
     >
       <.page_header
@@ -75,9 +69,9 @@ defmodule SocialmediaWeb.DashboardLive do
         subtitle={"#{Calendar.strftime(hd(@days), "%a %d %b")} – #{Calendar.strftime(List.last(@days), "%a %d %b")} · times in IST"}
       >
         <:actions>
-          <button :if={@roles.primary} phx-click="plan" class="btn btn-sm btn-outline">
-            <.icon name="hero-calendar-days" class="size-4" /> Plan 7 days
-          </button>
+          <.link navigate={~p"/content"} class="btn btn-sm btn-outline">
+            <.icon name="hero-cloud-arrow-down" class="size-4" /> Pull from S3
+          </.link>
         </:actions>
       </.page_header>
 
@@ -86,8 +80,8 @@ defmodule SocialmediaWeb.DashboardLive do
         <.stat label="Scheduled" value={@counts["approved"] || 0} />
         <.stat label="Live" value={@counts["published"] || 0} />
         <.stat
-          label="Waiting for the Mac"
-          value={(@counts["planned"] || 0) + (@counts["render_requested"] || 0)}
+          label="Being made"
+          value={(@counts["creating"] || 0) + (@counts["uploaded"] || 0)}
         />
         <.stat label="Failed" value={@counts["failed"] || 0} />
       </div>
