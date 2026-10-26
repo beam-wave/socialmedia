@@ -4,10 +4,10 @@ defmodule Socialmedia.Content.Matches do
 
   Claude writes the fixture (match card + 3 prediction questions) for the day
   the admin picked. Once it's made, the result post is created and timed from
-  the match start and format. It waits for the admin to type the match facts
-  (summary, innings scores, best bat/bowl per innings, POM); then Claude writes
-  the result post from those facts (no web search) and scores the fixture's
-  predictions. The fixture goes out before the first ball.
+  the match start and format. It waits for the admin to enter the scores and
+  the player of the match; the app then builds it without Claude (see
+  `Socialmedia.Content.MatchResult`) and renders it. The fixture goes out
+  before the first ball.
   """
   import Ecto.Query
   alias Socialmedia.{Repo, Posts}
@@ -61,27 +61,11 @@ defmodule Socialmedia.Content.Matches do
   def first_match(%{"posts" => [m | _]}), do: m
   def first_match(_), do: nil
 
-  @doc "Result posts are written from facts the admin types in."
+  @doc "Result posts are built from the scores the admin enters."
   def needs_facts?(%Post{post_type: "result", parent_id: id}) when not is_nil(id), do: true
   def needs_facts?(_), do: false
 
-  @doc "Blank facts form shaped by the fixture (teams in order, two innings)."
-  def blank_facts(%Post{parent: %Post{data: fx_data}}) do
-    fx = first_match(fx_data) || %{}
-
-    %{
-      "summary" => "",
-      "pom" => "",
-      "innings" => [
-        %{"team" => fx["team1"], "score" => "", "best_bat" => "", "best_bowl" => ""},
-        %{"team" => fx["team2"], "score" => "", "best_bat" => "", "best_bowl" => ""}
-      ]
-    }
-  end
-
-  def blank_facts(_), do: %{"summary" => "", "pom" => "", "innings" => []}
-
-  # The result waits for the admin's facts before Claude writes it.
+  # The result waits for the admin's scores.
   defp ensure_result(fixture, start, duration_min) do
     scheduled_at =
       start

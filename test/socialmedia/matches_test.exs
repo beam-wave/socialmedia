@@ -4,7 +4,6 @@ defmodule Socialmedia.MatchesTest do
   import Socialmedia.Fixtures
   alias Socialmedia.{Content, Posts, Repo}
   alias Socialmedia.Posts.Post
-  alias Socialmedia.Content.Work
   alias Socialmedia.Workers.Produce
 
   setup do
@@ -18,6 +17,10 @@ defmodule Socialmedia.MatchesTest do
 
   defp fixture_data(start, type \\ "T20") do
     %{
+      "teams" => %{
+        "IND" => %{"code" => "IND", "name" => "India", "color" => "#1f5fd1"},
+        "AUS" => %{"code" => "AUS", "name" => "Australia", "color" => "#d9a400"}
+      },
       "posts" => [
         %{
           "type" => "fixture",
@@ -25,9 +28,55 @@ defmodule Socialmedia.MatchesTest do
           "team2" => "AUS",
           "start_utc" => iso(start),
           "match_type" => type,
-          "questions" => [%{"q" => "Who wins the match?", "options" => ["India", "Australia"]}]
+          "series" => "T20I Series",
+          "match" => "2nd T20I",
+          "venue" => "Wankhede, Mumbai",
+          "questions" => [
+            %{"q" => "Who wins the match?", "options" => ["India", "Australia"]},
+            %{"q" => "First-innings score?", "options" => ["Under 160", "160–190", "190+"]},
+            %{
+              "q" => "Player of the match?",
+              "options" => ["Virat Kohli", "Pat Cummins", "Travis Head"]
+            }
+          ]
         }
       ]
+    }
+  end
+
+  defp facts do
+    %{
+      "innings" => [
+        %{
+          "team" => "AUS",
+          "runs" => "184",
+          "wkts" => "7",
+          "overs" => "20.0",
+          "bat_name" => "Travis Head",
+          "bat_runs" => "61",
+          "bat_balls" => "39",
+          "bowl_name" => "Jasprit Bumrah",
+          "bowl_w" => "3",
+          "bowl_r" => "24",
+          "bowl_ov" => "4"
+        },
+        %{
+          "team" => "IND",
+          "runs" => "188",
+          "wkts" => "4",
+          "overs" => "18.3",
+          "bat_name" => "Virat Kohli",
+          "bat_runs" => "78*",
+          "bat_balls" => "44",
+          "bowl_name" => "",
+          "bowl_w" => "",
+          "bowl_r" => "",
+          "bowl_ov" => ""
+        }
+      ],
+      "pom" => "Kohli",
+      "pom_figures" => "78* (44)",
+      "result" => ""
     }
   end
 
@@ -50,28 +99,29 @@ defmodule Socialmedia.MatchesTest do
     # not handed to Claude until the admin types the result
     refute_enqueued(worker: Produce, args: %{post_id: result.id})
 
-    facts = %{
-      "summary" => "India won by 6 wkts",
-      "pom" => "Kohli 78* (44)",
-      "innings" => [%{"team" => "AUS", "score" => "184/7 (20)"}]
-    }
-
-    assert {:ok, result} = Posts.enter_facts(result, facts)
+    assert {:ok, result} = Posts.enter_facts(result, facts())
     assert result.status == "creating"
-    assert_enqueued(worker: Produce, args: %{post_id: result.id})
+    # built by the app, so only the renderer runs
+    assert_enqueued(worker: Produce, args: %{post_id: result.id, render_only: true})
 
-    # Claude gets the facts plus the fixture whose questions it scores
-    result = Repo.preload(Posts.get_post!(result.id), :parent)
-    w = Work.from_post(result, "generate", [])
-    assert w.facts == facts
-    assert w.related["posts"] |> hd() |> Map.get("questions") |> length() == 1
-    assert Socialmedia.Agent.build_prompt(w) =~ "Match facts entered by the admin"
+    %{"posts" => [r], "teams" => %{"IND" => _}} = result.data
+    assert r["result"] == "*India* beat Australia by 6 wickets"
+    assert r["winner"] == "IND" and r["team1"] == "AUS"
+    assert Enum.map(r["answers"], & &1["answer"]) == ["A", "B", "A"]
+  end
+
+  test "bad scores are refused with a message", %{ch: ch} do
+    fx = make_fixture(ch, hours(5), fixture_data(hours(10)))
+    result = Repo.get_by!(Post, parent_id: fx.id)
+    bad = put_in(facts(), ["innings", Access.at(0), "runs"], "lots")
+    assert {:error, "Innings 1: runs must be a whole number."} = Posts.enter_facts(result, bad)
+    assert Posts.get_post!(result.id).status == "planned"
   end
 
   test "the result's manifest points at its fixture, so a pull links them", %{ch: ch} do
     fx = make_fixture(ch, hours(5), fixture_data(hours(10)))
     result = Repo.get_by!(Post, parent_id: fx.id)
-    {:ok, result} = Posts.enter_facts(result, %{"pom" => "x", "innings" => []})
+    {:ok, result} = Posts.enter_facts(result, facts())
     file = Path.join(System.tmp_dir!(), "res-#{result.id}.jpg")
     File.write!(file, "jpg")
     {:ok, _} = Content.upload(result, %{data: %{"posts" => []}, caption: "r", slides: [file]})

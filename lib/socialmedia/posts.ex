@@ -84,13 +84,20 @@ defmodule Socialmedia.Posts do
   def create_linked(attrs), do: create_post(attrs)
 
   @doc """
-  Admin typed the facts for a result post. Claude writes it from them right away.
+  Admin entered the scores for a result post. The app builds its data (no
+  agent) and renders it right away. Returns `{:error, message}` for bad scores.
   """
   def enter_facts(%Post{} = post, facts) when is_map(facts) do
-    if Post.final?(post) or post.status == "publishing" do
-      {:error, :final}
-    else
-      remake(post, %{facts: facts})
+    post = Repo.preload(post, [:parent, :channel])
+
+    cond do
+      Post.final?(post) or post.status == "publishing" ->
+        {:error, :final}
+
+      true ->
+        with {:ok, data} <- Socialmedia.Content.MatchResult.build(post, facts) do
+          remake(post, %{facts: facts, data: data}, render_only: true)
+        end
     end
   end
 

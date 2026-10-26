@@ -1,6 +1,6 @@
 ---
 name: mid-innings
-description: Writes @mid.innings cricket posts. A match-day fixture post with a 3-question prediction quiz (who wins, first-innings score, player of the match), and after the match a result post, built from facts the admin enters, with the scorecard and the prediction answer key. Use when the prompt asks for a mid.innings post (post_type fixture or result).
+description: Writes @mid.innings match-day fixture posts with a 3-question prediction quiz (who wins, first-innings score, player of the match). Result posts are built by the app from the admin's scores, not by you. Use when the prompt asks for a mid.innings fixture post.
 ---
 
 # @mid.innings: predict before, check after
@@ -8,9 +8,7 @@ description: Writes @mid.innings cricket posts. A match-day fixture post with a 
 Every featured match gets two linked posts:
 
 1. **fixture** (before the match): match card, then a 3-question prediction quiz, then Comment & Follow. Fans comment their picks like `1A 2B 3C`.
-2. **result** (after the match): scorecard, then the **Prediction check** (the same 3 questions with the correct answer highlighted), then top performers, then Comment & Follow asking *"What was the turning point of the match?"*
-
-The app creates the result post from your fixture (timed from `start_utc` + `match_type`). The admin then types in the match facts, and you write the post from them.
+2. **result** (after the match): scorecard, then the **Prediction check** (the same 3 questions with the correct answer highlighted), then top performers, then Comment & Follow. The app builds this one itself from the admin's scores, timed from your `start_utc` + `match_type`.
 
 Output `post.teams` (code → {code, name, color}) for both teams, and `post.posts` with exactly one item.
 
@@ -47,31 +45,7 @@ Usually `{"q": "Drop your *3 predictions* like 1A 2B 3C", "q_hi": "अपने 
 
 ## result
 
-The admin types the match facts into the app, and the prompt has them under **"Match facts entered by the admin"**:
-- `summary`: free text
-- `innings`: per innings, the batting team, a score like "184/7 (20)", the best batter like "Kohli 78* (44)", and the best bowler like "Bumrah 3/24 (4)"
-- `pom`: Player of the Match
-
-**Treat these facts as the truth. Don't search for the result.** Only search if a fact is missing and you need it, such as an overs count, and say so in `notes`.
-
-The prompt also includes the **"Linked fixture post"**. Score **its** questions; don't invent new ones.
-
-Build `post.posts[0]` from the facts:
-- Keep `series`, `match` and `venue` from the fixture. `team1` is the side that batted first and `team2` the other. `winner` is the team code.
-- `result`: one line with the winner in `*stars*`, e.g. "*India* beat Australia by 6 wickets". Work out the margin from the scores if the summary doesn't state it.
-- `innings`: runs, wickets and overs per innings, in batting order.
-- `pom`: `{name, figures}`.
-- `bat`: one entry per innings, that innings' best batter (`team` = batting side).
-- `bowl`: one entry per innings, that innings' best bowler (`team` = bowling side).
-- `answers`: the fixture's 3 questions, with `q` and `options` copied **exactly**.
-  - `answer` is the correct letter. Q1 is the winner, Q2 is the first-innings total against the bands, Q3 is the POM against the 3 names.
-  - Use `X` when none of the options happened.
-  - Add a short `note` with the fact, e.g. "New Zealand made 186/5".
-- `hook`: always exactly this open question, with **no options and no named players or moments**, so fans write their own view:
-  `{"q": "What was the *turning point* of the match? Comment your view 👇", "q_hi": "मैच का *टर्निंग पॉइंट* क्या था? कमेंट में अपनी राय लिखो 👇"}`
-- Copy `teams` from the fixture.
-
-If the facts are contradictory, or too thin to build the post (e.g. no scores), set `skip: true` and say what's missing in `notes`. The admin will fix the facts.
+You don't write result posts. The app builds them from the scores the admin enters (both innings, best batter and bowler, player of the match). It works out the winner, the margin and the prediction answers from your fixture's 3 questions. That's why the questions must follow the exact pattern above: Q1 the two full team names, Q2 score bands like "Under 160" / "160–190" / "190+", Q3 three player names.
 
 ## Team colours
 Use the team's well-known kit colour as hex:
@@ -91,4 +65,4 @@ Use the team's well-known kit colour as hex:
 
 For IPL teams use their primary colour. Codes are 2–4 letters.
 
-For fixtures, always put the fixture URLs in `sources`. For results, `sources` can be empty because the admin's facts are the source.
+Always put the fixture URLs in `sources`.

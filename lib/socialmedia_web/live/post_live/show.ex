@@ -16,14 +16,28 @@ defmodule SocialmediaWeb.PostLive.Show do
     {post.parent, post.child}
   end
 
-  alias Socialmedia.Content.Matches
+  alias Socialmedia.Content.{Matches, MatchResult}
 
-  defp build_facts_form(%{parent: parent} = post) do
+  # Teams for the dropdowns and player names to suggest, from the fixture
+  defp build_facts_form(%{parent: parent} = post, facts \\ nil) do
     post = %{post | parent: parent}
-    facts = post.facts || Matches.blank_facts(post)
-    teams = (parent && parent.data && parent.data["teams"]) || %{}
-    team_opts = Enum.map(teams, fn {code, t} -> {t["name"] || code, code} end)
-    %{facts: facts, team_opts: team_opts}
+    facts = facts || post.facts || MatchResult.blank(post)
+    fx_data = (parent && parent.data) || %{}
+    teams = fx_data["teams"] || %{}
+    fx = Matches.first_match(fx_data) || %{}
+
+    players =
+      (Enum.map(fx["watch"] || [], & &1["name"]) ++
+         Enum.flat_map(fx["questions"] || [], fn q ->
+           if q["q"] =~ ~r/player/i, do: q["options"], else: []
+         end))
+      |> Enum.uniq()
+
+    %{
+      facts: facts,
+      team_opts: Enum.map(teams, fn {code, t} -> {t["name"] || code, code} end),
+      players: players
+    }
   end
 
   defp load(socket, post) do
@@ -76,32 +90,16 @@ defmodule SocialmediaWeb.PostLive.Show do
   end
 
   def handle_event("save_facts", %{"facts" => f}, socket) do
-    innings =
-      f
-      |> Map.get("innings", %{})
-      |> Enum.sort_by(fn {k, _} -> String.to_integer(k) end)
-      |> Enum.map(&elem(&1, 1))
-      |> Enum.reject(&(String.trim(&1["score"] || "") == ""))
+    facts = MatchResult.clean(f)
 
-    facts = %{
-      "summary" => String.trim(f["summary"] || ""),
-      "pom" => String.trim(f["pom"] || ""),
-      "innings" => innings
-    }
+    case Posts.enter_facts(socket.assigns.post, facts) do
+      {:ok, _} ->
+        {:noreply, socket |> put_flash(:info, "Saved. Rendering the result post.") |> reload()}
 
-    cond do
-      innings == [] ->
-        {:noreply, put_flash(socket, :error, "Add at least one innings score.")}
-
-      facts["pom"] == "" ->
-        {:noreply, put_flash(socket, :error, "Add the player of the match.")}
-
-      true ->
-        act(
-          socket,
-          &Posts.enter_facts(&1, facts),
-          "Saved. Claude is writing the result post."
-        )
+      {:error, reason} ->
+        # Keep what was typed so it can be fixed
+        form = build_facts_form(%{socket.assigns.post | parent: socket.assigns.parent}, facts)
+        {:noreply, socket |> assign(facts: form) |> put_flash(:error, explain(reason))}
     end
   end
 
@@ -158,6 +156,7 @@ defmodule SocialmediaWeb.PostLive.Show do
 
   defp explain(:not_approved), do: "Only approved posts can do that."
   defp explain(:final), do: "This post is already final."
+  defp explain(msg) when is_binary(msg), do: msg
   defp explain(other), do: inspect(other)
 
   @impl true
@@ -386,30 +385,26 @@ defmodule SocialmediaWeb.PostLive.Show do
 
   defp facts_form(assigns) do
     ~H"""
-    <form phx-submit="save_facts" class="rounded-lg border-2 border-base-content p-4 space-y-4">
+    <form
+      id="facts-form"
+      phx-submit="save_facts"
+      class="rounded-lg border-2 border-base-content p-4 space-y-4"
+    >
       <div class="flex flex-wrap items-baseline justify-between gap-2">
         <h2 class="font-semibold">Match result</h2>
         <span class="text-xs muted">
-          {if @post.facts,
-            do: "Edit and save to have Claude rewrite it.",
-            else: "Type what happened. Claude writes the post and scores the predictions."}
+          Enter the scores. The winner, margin and prediction answers are worked out for you.
         </span>
       </div>
 
-      <label class="block text-sm">
-        <span class="block mb-1 font-medium">Summary</span>
-        <textarea
-          name="facts[summary]"
-          rows="2"
-          class="textarea w-full text-sm"
-          placeholder="India won by 6 wickets with 9 balls left. Kohli anchored the chase."
-        >{@facts.facts["summary"]}</textarea>
-      </label>
+      <datalist id="fixture-players">
+        <option :for={name <- @facts.players} value={name} />
+      </datalist>
 
       <div class="grid md:grid-cols-2 gap-4">
         <fieldset
           :for={{inn, i} <- Enum.with_index(@facts.facts["innings"] || [])}
-          class="rounded-md border hairline p-3 space-y-2"
+          class="rounded-md border hairline p-3 space-y-3"
         >
           <legend class="px-1 text-xs uppercase tracking-wider muted">Innings {i + 1}</legend>
           <label class="block text-xs">
@@ -424,51 +419,126 @@ defmodule SocialmediaWeb.PostLive.Show do
               </option>
             </select>
           </label>
-          <label class="block text-xs">
-            <span class="block muted mb-1">Score</span>
-            <input
-              name={"facts[innings][#{i}][score]"}
-              value={inn["score"]}
-              class="input input-sm w-full mono"
-              placeholder="184/7 (20)"
+          <div class="grid grid-cols-3 gap-2">
+            <.num name={"facts[innings][#{i}][runs]"} value={inn["runs"]} label="Runs" ph="184" />
+            <.num name={"facts[innings][#{i}][wkts]"} value={inn["wkts"]} label="Wickets" ph="7" />
+            <.num
+              name={"facts[innings][#{i}][overs]"}
+              value={inn["overs"]}
+              label="Overs"
+              ph="20.0"
+              mode="decimal"
             />
-          </label>
-          <label class="block text-xs">
-            <span class="block muted mb-1">Best batter</span>
-            <input
-              name={"facts[innings][#{i}][best_bat]"}
-              value={inn["best_bat"]}
-              class="input input-sm w-full"
-              placeholder="Virat Kohli 78* (44)"
+          </div>
+          <div class="grid grid-cols-[minmax(0,1fr)_64px_64px] gap-2">
+            <label class="block text-xs">
+              <span class="block muted mb-1">Best batter</span>
+              <input
+                name={"facts[innings][#{i}][bat_name]"}
+                value={inn["bat_name"]}
+                list="fixture-players"
+                class="input input-sm w-full"
+                placeholder="Virat Kohli"
+              />
+            </label>
+            <.num
+              name={"facts[innings][#{i}][bat_runs]"}
+              value={inn["bat_runs"]}
+              label="Runs"
+              ph="78*"
+              mode="text"
             />
-          </label>
-          <label class="block text-xs">
-            <span class="block muted mb-1">Best bowler (fielding side)</span>
-            <input
-              name={"facts[innings][#{i}][best_bowl]"}
-              value={inn["best_bowl"]}
-              class="input input-sm w-full"
-              placeholder="Jasprit Bumrah 3/24 (4)"
+            <.num
+              name={"facts[innings][#{i}][bat_balls]"}
+              value={inn["bat_balls"]}
+              label="Balls"
+              ph="44"
             />
-          </label>
+          </div>
+          <div class="grid grid-cols-[minmax(0,1fr)_52px_52px_52px] gap-2">
+            <label class="block text-xs">
+              <span class="block muted mb-1">Best bowler (fielding side)</span>
+              <input
+                name={"facts[innings][#{i}][bowl_name]"}
+                value={inn["bowl_name"]}
+                list="fixture-players"
+                class="input input-sm w-full"
+                placeholder="Jasprit Bumrah"
+              />
+            </label>
+            <.num name={"facts[innings][#{i}][bowl_w]"} value={inn["bowl_w"]} label="Wkts" ph="3" />
+            <.num name={"facts[innings][#{i}][bowl_r]"} value={inn["bowl_r"]} label="Runs" ph="24" />
+            <.num
+              name={"facts[innings][#{i}][bowl_ov]"}
+              value={inn["bowl_ov"]}
+              label="Ov"
+              ph="4"
+              mode="decimal"
+            />
+          </div>
         </fieldset>
       </div>
 
-      <div class="flex flex-wrap items-end gap-3">
-        <label class="block text-sm flex-1 min-w-60">
+      <div class="grid md:grid-cols-[minmax(0,1fr)_200px] gap-3">
+        <label class="block text-sm">
           <span class="block mb-1 font-medium">Player of the match</span>
           <input
             name="facts[pom]"
             value={@facts.facts["pom"]}
+            list="fixture-players"
             class="input input-sm w-full"
-            placeholder="Virat Kohli 78* (44)"
+            placeholder="Virat Kohli"
           />
         </label>
-        <button class="btn btn-sm btn-primary" phx-disable-with="Saving…">
-          {if @post.facts, do: "Save and rewrite", else: "Save result"}
+        <label class="block text-sm">
+          <span class="block mb-1 font-medium">Performance</span>
+          <input
+            name="facts[pom_figures]"
+            value={@facts.facts["pom_figures"]}
+            class="input input-sm w-full"
+            placeholder="78* (44)"
+          />
+        </label>
+      </div>
+
+      <div class="flex flex-wrap items-end gap-3">
+        <label class="block text-xs flex-1 min-w-60">
+          <span class="block muted mb-1">
+            Result line (optional; leave empty to work it out from the scores, use for DLS or no result)
+          </span>
+          <input
+            name="facts[result]"
+            value={@facts.facts["result"]}
+            class="input input-sm w-full"
+            placeholder="*India* beat Australia by 6 wickets (DLS)"
+          />
+        </label>
+        <button id="save-facts" class="btn btn-sm btn-primary" phx-disable-with="Saving…">
+          {if @post.facts, do: "Save and re-render", else: "Make result post"}
         </button>
       </div>
     </form>
+    """
+  end
+
+  attr :name, :string, required: true
+  attr :value, :any, default: nil
+  attr :label, :string, required: true
+  attr :ph, :string, default: nil
+  attr :mode, :string, default: "numeric"
+
+  defp num(assigns) do
+    ~H"""
+    <label class="block text-xs">
+      <span class="block muted mb-1">{@label}</span>
+      <input
+        name={@name}
+        value={@value}
+        inputmode={@mode}
+        class="input input-sm w-full mono"
+        placeholder={@ph}
+      />
+    </label>
     """
   end
 
