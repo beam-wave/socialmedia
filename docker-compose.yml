@@ -8,5 +8,25 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  # The full app in prod mode on http://localhost:4999, using the dev database.
+  #   docker compose up -d --build app
+  # Creating content needs CLAUDE_CODE_OAUTH_TOKEN in .env (run `claude setup-token`).
+  app:
+    build: .
+    depends_on:
+      - db
+    ports:
+      - "4999:4000"
+    env_file: .env
+    environment:
+      DATABASE_URL: ecto://postgres:postgres@db/socialmedia_dev
+      PHX_HOST: localhost
+      PHX_SERVER: "true"
+      PORT: "4000"
+      # Local only. The dev key, so channel tokens saved in dev still decrypt
+      CLOAK_KEY: 1QVGJkE0nBwNq7fgSrJk8EYb2lX4lD0vZz0qP6Xr6Gk=
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-local-docker-only-not-a-secret-local-docker-only-not-a-secret-local-docker-only}
+
 volumes:
   pgdata:

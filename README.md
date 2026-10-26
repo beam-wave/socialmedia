@@ -50,6 +50,16 @@ mix phx.server                            # http://localhost:4000
 
 You also need Claude Code installed and logged in (`claude` on PATH). The app strips `ANTHROPIC_API_KEY` from the CLI's environment, so it always runs on your subscription.
 
+### In Docker
+
+The whole app (Elixir release, Node, Chromium and Claude Code) runs on http://localhost:4999, against the dev database and the S3 settings in `.env`:
+
+```bash
+docker compose up -d --build app
+```
+
+To create content in the container, run `claude setup-token` once on your Mac and add the token to `.env` as `CLAUDE_CODE_OAUTH_TOKEN=…`, then restart with `docker compose up -d app`.
+
 To try a single channel without touching the queue:
 
 ```bash
