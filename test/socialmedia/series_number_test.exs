@@ -28,6 +28,17 @@ defmodule Socialmedia.SeriesNumberTest do
     assert create(ch).series_number == 43
   end
 
+  test "a failed post gives up its number and takes the next one when retried" do
+    ch = channel()
+    first = create(ch)
+    failed = create(ch)
+    {:ok, _} = Posts.fail(failed, "boom")
+    assert create(ch).series_number == 43
+    {:ok, retried} = Posts.regenerate(Posts.get_post!(failed.id))
+    assert retried.series_number == 44
+    assert first.series_number == 42
+  end
+
   test "channels without a series get no number" do
     ch = channel(%{base_data: %{"theme" => "x"}})
     assert create(ch).series_number == nil

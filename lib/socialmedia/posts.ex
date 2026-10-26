@@ -67,8 +67,8 @@ defmodule Socialmedia.Posts do
 
   @doc """
   Next Day N / quote N for a series channel (one with `base_data.series_start`):
-  one more than the highest number not rejected, or `series_start.n` for the
-  first post. Nil for other channels.
+  one more than the highest number held, or `series_start.n` for the first
+  post. Rejected and failed posts don't hold one. Nil for other channels.
   """
   def next_series_number(%Channel{id: channel_id, base_data: base}) do
     case base do
@@ -76,7 +76,7 @@ defmodule Socialmedia.Posts do
         last =
           Repo.one(
             from p in Post,
-              where: p.channel_id == ^channel_id and p.status != "rejected",
+              where: p.channel_id == ^channel_id and p.status not in ["rejected", "failed"],
               select: max(p.series_number)
           )
 
@@ -123,9 +123,16 @@ defmodule Socialmedia.Posts do
     end
   end
 
-  # Back to `creating` and a new Produce job (any publish job is dropped)
+  # Back to `creating` and a new Produce job (any publish job is dropped).
+  # A failed post gave up its number, so it takes the next free one.
   defp remake(post, attrs, opts \\ []) do
     cancel_jobs(post)
+
+    attrs =
+      if post.status == "failed" and post.series_number,
+        do:
+          Map.put(attrs, :series_number, next_series_number(Repo.preload(post, :channel).channel)),
+        else: attrs
 
     Repo.transact(fn ->
       with {:ok, post} <-

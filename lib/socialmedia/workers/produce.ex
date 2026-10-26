@@ -2,7 +2,7 @@ defmodule Socialmedia.Workers.Produce do
   @moduledoc """
   Makes one post: runs the agent and the renderer (or only the renderer after
   the admin edited the slide data), then uploads it to S3 for a Pull.
-  One job per click; the `claude` queue runs them one at a time. A fixture
+  One job per click, and only one runs at a time, even across servers. A fixture
   run returns every match that day: the first fills this post, and each of
   the others gets its own post and a render-only job.
   """
@@ -21,8 +21,32 @@ defmodule Socialmedia.Workers.Produce do
   @impl Oban.Worker
   def timeout(_job), do: Application.get_env(:socialmedia, :claude_timeout_ms) + :timer.minutes(5)
 
+  # The `claude` queue runs one job per server; this lock makes it one at a
+  # time across every server on this database (e.g. Docker and a local one).
+  @lock 727_001
+  @busy_retry_seconds 30
+
   @impl Oban.Worker
-  def perform(%Oban.Job{args: %{"post_id" => id} = args, attempt: attempt, max_attempts: max}) do
+  def perform(%Oban.Job{} = job) do
+    Repo.checkout(
+      fn ->
+        case Repo.query!("SELECT pg_try_advisory_lock($1)", [@lock]).rows do
+          [[true]] ->
+            try do
+              make(job)
+            after
+              Repo.query!("SELECT pg_advisory_unlock($1)", [@lock])
+            end
+
+          _ ->
+            {:snooze, @busy_retry_seconds}
+        end
+      end,
+      timeout: :infinity
+    )
+  end
+
+  defp make(%Oban.Job{args: %{"post_id" => id} = args, attempt: attempt, max_attempts: max}) do
     case Posts.get_post(id) do
       %{status: "creating"} = post ->
         post = Repo.preload(post, :parent)

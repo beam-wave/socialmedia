@@ -80,7 +80,7 @@ defmodule Socialmedia.Agent.ClaudeCli do
         {:ok, IO.iodata_to_binary(acc)}
 
       {^port, {:exit_status, code}} ->
-        {:error, "claude exited with #{code}: #{tail(IO.iodata_to_binary(acc))}"}
+        {:error, exit_error(code, IO.iodata_to_binary(acc))}
     after
       remaining ->
         kill(port)
@@ -116,8 +116,28 @@ defmodule Socialmedia.Agent.ClaudeCli do
     end
   end
 
+  # A failed run still prints its result envelope; its `result` text says why
+  defp exit_error(code, out) do
+    case decode_envelope(out) do
+      {:ok, %{"result" => text} = env} when is_binary(text) and text != "" ->
+        error_text(env, text)
+
+      _ ->
+        "claude exited with #{code}: #{tail(out)}"
+    end
+  end
+
+  defp error_text(env, text) do
+    reason = env["terminal_reason"] || env["subtype"] || "error"
+
+    if text =~ ~r/not logged in|\/login|invalid api key|oauth|authenticat/i,
+      do:
+        "Claude isn't logged in here (#{tail(text)}). On a Mac run `claude` once and log in; in Docker run `claude setup-token` on the Mac and put the token in .env as CLAUDE_CODE_OAUTH_TOKEN.",
+      else: "claude error (#{reason}): #{tail(text)}"
+  end
+
   defp extract(%{"is_error" => true} = env),
-    do: {:error, "claude error (#{env["subtype"]}): #{tail(to_string(env["result"]))}"}
+    do: {:error, error_text(env, to_string(env["result"]))}
 
   defp extract(%{"structured_output" => out} = env) when is_map(out), do: {:ok, out, env}
 

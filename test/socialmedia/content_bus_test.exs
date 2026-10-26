@@ -141,6 +141,26 @@ defmodule Socialmedia.ContentBusTest do
     assert [_] = Content.manifests()
   end
 
+  test "Produce waits while another post is being made" do
+    p = insert_post(channel(), %{status: "creating"})
+
+    # another server holds the lock
+    holder =
+      Task.async(fn ->
+        {:ok, conn} = Postgrex.start_link(Keyword.drop(Repo.config(), [:pool]))
+        Postgrex.query!(conn, "SELECT pg_advisory_lock(727001)", [])
+
+        receive do
+          :done -> Postgrex.query!(conn, "SELECT pg_advisory_unlock(727001)", [])
+        end
+      end)
+
+    Process.sleep(100)
+    assert {:snooze, 30} = perform_job(Produce, %{post_id: p.id})
+    send(holder.pid, :done)
+    Task.await(holder)
+  end
+
   test "Produce only runs for a post that is being created" do
     p = insert_post(channel(), %{status: "needs_review"})
     assert {:cancel, _} = perform_job(Produce, %{post_id: p.id})

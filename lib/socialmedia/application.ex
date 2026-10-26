@@ -7,6 +7,8 @@ defmodule Socialmedia.Application do
 
   @impl true
   def start(_type, _args) do
+    Socialmedia.Workers.ProduceFailures.attach()
+
     children = [
       SocialmediaWeb.Telemetry,
       Socialmedia.Repo,
