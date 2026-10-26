@@ -79,23 +79,15 @@ defmodule SocialmediaWeb.ChannelLive.Show do
 
   ## Events: create
 
-  def handle_event("create_change", %{"create" => params}, socket) do
-    # A new post type gets its own default time; other edits are kept as typed
-    params =
-      if params["post_type"] != socket.assigns.create_form[:post_type].value,
-        do: Map.delete(params, "at"),
-        else: params
-
-    {:noreply, assign_create(socket, params)}
-  end
+  def handle_event("create_change", %{"create" => params}, socket),
+    do: {:noreply, assign_create(socket, params)}
 
   def handle_event("create", %{"create" => params}, socket) do
     ch = socket.assigns.channel
     note = String.trim(params["note"] || "")
 
     with true <- params["post_type"] in socket.assigns.post_types || {:error, :bad_type},
-         {:ok, at} <- SocialmediaWeb.ContentLive.parse_local(params["at"], ch.timezone),
-         true <- DateTime.compare(at, DateTime.utc_now()) == :gt || {:error, :time_passed},
+         {:ok, at} <- made_for(ch, params),
          {:ok, _post} <-
            Content.create(ch, %{
              post_type: params["post_type"],
@@ -105,7 +97,7 @@ defmodule SocialmediaWeb.ChannelLive.Show do
       {:noreply,
        socket
        |> put_flash(:info, "Creating it now. It's uploaded to S3 when done.")
-       |> assign_create(Map.take(params, ["post_type"]))}
+       |> assign_create(Map.take(params, ["post_type", "date"]))}
     else
       {:error, reason} -> {:noreply, put_flash(socket, :error, explain(reason))}
     end
@@ -162,9 +154,27 @@ defmodule SocialmediaWeb.ChannelLive.Show do
   end
 
   defp explain(:bad_type), do: "Pick a post type."
-  defp explain(:bad_time), do: "That date/time isn't valid."
-  defp explain(:time_passed), do: "Pick a time in the future."
+  defp explain(:bad_date), do: "Pick a match day from today on."
   defp explain(other), do: inspect(other)
+
+  # The time is picked when scheduling. A fixture is made for the match day
+  # chosen here; anything else for the slot's next time (the agent uses it for
+  # dates and streak numbers).
+  defp made_for(ch, %{"post_type" => "fixture"} = params) do
+    today = DateTime.now!(ch.timezone) |> DateTime.to_date()
+
+    case Date.from_iso8601(params["date"] || "") do
+      {:ok, date} ->
+        if Date.compare(date, today) == :lt,
+          do: {:error, :bad_date},
+          else: {:ok, Channels.slot_time_on(ch, "fixture", date)}
+
+      _ ->
+        {:error, :bad_date}
+    end
+  end
+
+  defp made_for(ch, %{"post_type" => type}), do: {:ok, Channels.next_slot_time(ch, type)}
 
   # Post types this channel makes: its slots' types, or every type if it has none.
   # Results aren't made here: each fixture creates its own.
@@ -181,15 +191,18 @@ defmodule SocialmediaWeb.ChannelLive.Show do
     params = params || %{}
     type = if params["post_type"] in types, do: params["post_type"], else: List.first(types)
 
-    at =
-      params["at"] ||
+    date =
+      params["date"] ||
         ch
-        |> Channels.next_slot_time(type)
+        |> Channels.next_slot_time("fixture")
         |> DateTime.shift_zone!(ch.timezone)
-        |> Calendar.strftime("%Y-%m-%dT%H:%M")
+        |> DateTime.to_date()
+        |> Date.to_iso8601()
 
     form =
-      to_form(%{"post_type" => type, "at" => at, "note" => params["note"] || ""}, as: :create)
+      to_form(%{"post_type" => type, "date" => date, "note" => params["note"] || ""},
+        as: :create
+      )
 
     assign(socket, post_types: types, create_form: form)
   end
@@ -262,7 +275,13 @@ defmodule SocialmediaWeb.ChannelLive.Show do
         id="create-form"
         phx-change="create_change"
         phx-submit="create"
-        class="grid gap-3 md:grid-cols-[180px_220px_minmax(0,1fr)_auto] md:items-end"
+        class={[
+          "grid gap-3 md:items-end",
+          if(@form[:post_type].value == "fixture",
+            do: "md:grid-cols-[180px_180px_minmax(0,1fr)_auto]",
+            else: "md:grid-cols-[180px_minmax(0,1fr)_auto]"
+          )
+        ]}
       >
         <.input
           field={@form[:post_type]}
@@ -271,13 +290,10 @@ defmodule SocialmediaWeb.ChannelLive.Show do
           options={Enum.map(@post_types, &{post_type_label(&1), &1})}
         />
         <.input
-          field={@form[:at]}
-          type="datetime-local"
-          label={
-            if @form[:post_type].value == "fixture",
-              do: "Match day (#{@channel.timezone})",
-              else: "Goes live (#{@channel.timezone})"
-          }
+          :if={@form[:post_type].value == "fixture"}
+          field={@form[:date]}
+          type="date"
+          label="Match day"
         />
         <.input
           field={@form[:note]}
@@ -299,7 +315,7 @@ defmodule SocialmediaWeb.ChannelLive.Show do
         {if @form[:post_type].value == "fixture",
           do:
             "Claude picks that day's match. Its result post is added once the fixture is made: enter the score there.",
-          else: "One click makes one post: Claude writes it, it's rendered, then uploaded to S3."} Pull it on the Content page to schedule it.
+          else: "One click makes one post: Claude writes it, it's rendered, then uploaded to S3."} Pull it on the Content page and pick its time when you schedule it.
       </p>
     </section>
     """

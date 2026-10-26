@@ -37,8 +37,9 @@ defmodule Socialmedia.Channels do
   end
 
   @doc """
-  Default "goes live" time for a new post: the slot's next day and time after
-  `now`, or tomorrow at noon when the type has no slot. UTC.
+  Time a new post is made for (the admin picks the real time when scheduling):
+  the slot's next day and time after `now`, or tomorrow at noon when the type
+  has no slot. UTC.
   """
   def next_slot_time(%Channel{timezone: tz} = channel, post_type, now \\ DateTime.utc_now()) do
     today = now |> DateTime.shift_zone!(tz) |> DateTime.to_date()
@@ -59,6 +60,17 @@ defmodule Socialmedia.Channels do
       at = local_to_utc(date, time, tz)
       if DateTime.compare(at, now) == :gt, do: at
     end)
+  end
+
+  @doc "The slot's time (noon without a slot) on a given local date. UTC."
+  def slot_time_on(%Channel{timezone: tz} = channel, post_type, %Date{} = date) do
+    time =
+      case slot_for(channel, post_type) do
+        %Schedule{time_of_day: t} -> t
+        nil -> ~T[12:00:00]
+      end
+
+    local_to_utc(date, time, tz)
   end
 
   defp local_to_utc(date, time, tz) do
