@@ -42,6 +42,7 @@ defmodule Socialmedia.Content do
                post_type: attrs.post_type,
                scheduled_at: attrs.scheduled_at,
                admin_note: attrs[:admin_note],
+               series_number: Posts.next_series_number(channel),
                status: "creating"
              }),
            {:ok, _job} <- Produce.enqueue(post) do
@@ -101,6 +102,7 @@ defmodule Socialmedia.Content do
         channel: post.channel.handle,
         post_type: post.post_type,
         scheduled_at: scheduled_at,
+        series_number: post.series_number,
         parent_key: post.parent && post.parent.content_key,
         facts: post.facts,
         admin_note: post.admin_note,
@@ -156,6 +158,7 @@ defmodule Socialmedia.Content do
       attrs = %{
         channel_id: ch.id,
         post_type: m["post_type"],
+        series_number: m["series_number"],
         scheduled_at: review_time(at),
         parent_id: parent_id(m["parent_key"]),
         facts: m["facts"],

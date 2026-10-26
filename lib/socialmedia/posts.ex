@@ -65,6 +65,28 @@ defmodule Socialmedia.Posts do
     )
   end
 
+  @doc """
+  Next Day N / quote N for a series channel (one with `base_data.series_start`):
+  one more than the highest number not rejected, or `series_start.n` for the
+  first post. Nil for other channels.
+  """
+  def next_series_number(%Channel{id: channel_id, base_data: base}) do
+    case base do
+      %{"series_start" => start} ->
+        last =
+          Repo.one(
+            from p in Post,
+              where: p.channel_id == ^channel_id and p.status != "rejected",
+              select: max(p.series_number)
+          )
+
+        if last, do: last + 1, else: (is_map(start) && start["n"]) || 1
+
+      _ ->
+        nil
+    end
+  end
+
   @doc "Published posts so far for the channel (used for streak numbers)."
   def published_count(%Channel{id: channel_id}) do
     Repo.aggregate(

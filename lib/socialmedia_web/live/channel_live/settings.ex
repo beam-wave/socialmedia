@@ -171,7 +171,7 @@ defmodule SocialmediaWeb.ChannelLive.Settings do
               <p class="text-xs muted mt-1">
                 Merged under every post: theme, format, lang, tags.
                 <code class="mono">series_start</code>
-                {~s({"date": "2026-10-26", "n": 42})} sets Day N / quote numbers.
+                {~s({"n": 1})} is the first Day N / quote number; each new post takes the next one.
               </p>
             </div>
           </div>

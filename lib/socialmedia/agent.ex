@@ -70,7 +70,7 @@ defmodule Socialmedia.Agent do
     Post type: #{work.post_type}
     Goes live: #{Calendar.strftime(local, "%A %d %B %Y, %H:%M")} (#{channel.timezone})
     Today is: #{Date.utc_today() |> Date.to_iso8601()}
-    #{series_line(channel, local)}
+    #{series_line(channel, work)}
     #{line("Slot instructions from the admin", work.extra_instructions)}
     #{line("Admin note for this post (highest priority)", work.admin_note)}
     #{fixtures_line(work)}
@@ -106,24 +106,17 @@ defmodule Socialmedia.Agent do
   defp line(_label, v) when v in [nil, ""], do: ""
   defp line(label, v), do: "#{label}: #{v}"
 
-  defp series_line(%{skill: "motivation2live"} = c, local),
-    do: "Streak: this is Day #{series_number(c, local)} of #{c.base_data["total_days"] || 365}."
+  defp series_line(%{skill: "motivation2live"} = c, work),
+    do: "Streak: this is Day #{series_number(work)} of #{c.base_data["total_days"] || 365}."
 
-  defp series_line(%{skill: "puree-heartz"} = c, local),
-    do: "This is quote number #{series_number(c, local)}."
+  defp series_line(%{skill: "puree-heartz"}, work),
+    do: "This is quote number #{series_number(work)}."
 
   defp series_line(_, _), do: ""
 
-  @doc "Running number (Day N, quote N) counted in days from `base_data.series_start`."
-  def series_number(%{base_data: base}, %DateTime{} = local) do
-    case base do
-      %{"series_start" => %{"date" => d, "n" => n}} ->
-        n + Date.diff(DateTime.to_date(local), Date.from_iso8601!(d))
-
-      _ ->
-        1
-    end
-  end
+  @doc "The post's running number (Day N, quote N), set when it was created."
+  def series_number(%Work{series_number: n}) when is_integer(n), do: n
+  def series_number(%Work{}), do: 1
 
   defp summarize("spotlight-startups", d),
     do:
@@ -162,27 +155,27 @@ defmodule Socialmedia.Agent do
     |> Map.drop(["series_start"])
     |> Map.put("handle", channel.handle)
     |> Map.merge(post_out)
-    |> put_app_fields(channel, local)
+    |> put_app_fields(channel, work, local)
   end
 
-  defp put_app_fields(data, %{skill: "motivation2live"} = c, local) do
+  defp put_app_fields(data, %{skill: "motivation2live"}, work, local) do
     update_first(data, "quotes", fn q ->
-      Map.merge(q, %{"day" => series_number(c, local), "date" => short_date(local)})
+      Map.merge(q, %{"day" => series_number(work), "date" => short_date(local)})
     end)
   end
 
-  defp put_app_fields(data, %{skill: "puree-heartz"} = c, local) do
+  defp put_app_fields(data, %{skill: "puree-heartz"}, work, local) do
     update_first(data, "quotes", fn q ->
-      n = series_number(c, local) |> Integer.to_string() |> String.pad_leading(2, "0")
+      n = series_number(work) |> Integer.to_string() |> String.pad_leading(2, "0")
       Map.merge(q, %{"number" => n, "date" => short_date(local)})
     end)
   end
 
-  defp put_app_fields(data, %{skill: "bollyvibe"}, local) do
+  defp put_app_fields(data, %{skill: "bollyvibe"}, _work, local) do
     Map.put(data, "today", local |> DateTime.to_date() |> Date.to_iso8601())
   end
 
-  defp put_app_fields(data, _, _), do: data
+  defp put_app_fields(data, _, _, _), do: data
 
   defp update_first(data, key, fun) do
     case data[key] do

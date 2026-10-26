@@ -19,6 +19,8 @@ defmodule Socialmedia.Content.Work do
     :related,
     # Facts entered by the admin (match result)
     :facts,
+    # Day N / quote N for series channels
+    :series_number,
     recent: []
   ]
 
@@ -37,6 +39,7 @@ defmodule Socialmedia.Content.Work do
       channel: Map.take(post.channel, @channel_fields),
       related: related_data(post),
       facts: post.facts,
+      series_number: post.series_number,
       recent: recent
     }
   end

@@ -40,6 +40,7 @@ defmodule Mix.Tasks.Agent.Try do
       scheduled_at: at,
       admin_note: opts[:note],
       channel: Map.take(channel, [:handle, :skill, :template_dir, :timezone, :base_data]),
+      series_number: Socialmedia.Posts.next_series_number(channel),
       recent: Socialmedia.Posts.recent_data(channel, 20)
     }
 

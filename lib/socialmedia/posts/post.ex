@@ -12,6 +12,8 @@ defmodule Socialmedia.Posts.Post do
     field :status, :string, default: "creating"
     # Same on every machine; the post's folder in S3 (content/<key>/, inbox/<key>.json)
     field :content_key, :string
+    # Day N / quote N for series channels, taken in order when the post is created
+    field :series_number, :integer
     # Facts the admin typed in (match result); the agent writes from these
     field :facts, :map
     # Template data for exactly one Instagram post (channel base_data + one item)
@@ -48,6 +50,7 @@ defmodule Socialmedia.Posts.Post do
       :post_type,
       :status,
       :content_key,
+      :series_number,
       :parent_id,
       :facts,
       :data,

@@ -28,7 +28,7 @@ channels = [
       "signature" => "puree_heartz",
       "tags" =>
         "#puree_heartz #couplequotes #lovequotes #heartquotes #hindiquotes #shayari #dilsedil #relationshipgoals",
-      "series_start" => %{"date" => "2026-10-26", "n" => 1}
+      "series_start" => %{"n" => 1}
     },
     slots: [
       %{
@@ -50,7 +50,7 @@ channels = [
       "total_days" => 365,
       "tags" =>
         "#motivation #discipline #dailymotivation #hindimotivation #success #mindset #motivation2live",
-      "series_start" => %{"date" => "2026-10-26", "n" => 42}
+      "series_start" => %{"n" => 1}
     },
     slots: [
       %{

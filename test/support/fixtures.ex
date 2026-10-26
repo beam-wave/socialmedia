@@ -13,7 +13,7 @@ defmodule Socialmedia.Fixtures do
         timezone: "Asia/Kolkata",
         base_data: %{
           "theme" => "concrete",
-          "series_start" => %{"date" => "2026-10-26", "n" => 42}
+          "series_start" => %{"n" => 42}
         }
       }
       |> Map.merge(attrs)
