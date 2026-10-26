@@ -54,7 +54,6 @@ if config_env() != :test do
         [
           {Oban.Plugins.Cron,
            crontab: [
-             {"*/5 * * * *", Socialmedia.Workers.Expirer},
              {"0 3 * * 1", Socialmedia.Workers.RefreshTokens}
            ]}
         ]

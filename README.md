@@ -6,7 +6,7 @@ Phoenix LiveView app that writes, renders, reviews and publishes posts for five 
 - **Writing** uses the local Claude Code CLI (`claude -p`) on your subscription, so no API key is needed. There is one agent with one skill per channel (`agent/.claude/skills/*`) and a JSON schema per channel (`agent/schemas/*`).
 - **Rendering** uses the channel studios (`channels/<dir>/template.html`), driven by Playwright through `renderer/render.js`. It produces 1080×1350 JPEGs at quality 100 plus the caption. The JPEGs are stored in S3.
 - **Publishing** goes straight to the Instagram Graph API (Instagram API with Instagram Login).
-- **Only scheduled posts go live.** The admin reviews each post in **Content**, edits the caption and time, and schedules it. Anything not scheduled by its time is rejected.
+- **Only scheduled posts go live.** The admin reviews each post in **Content**, edits the caption and time, and schedules it. Nothing is dropped automatically; reject what you don't want.
 
 ## How the pieces fit
 
@@ -24,7 +24,7 @@ Every step is a button, and every machine runs the same app with the same settin
 
 1. **Create.** On a channel page, pick the post type and when it goes live (for @mid.innings, the match day), add an optional note, and click **Create**. Each click makes one post: an Oban `Produce` job runs Claude, then the renderer, uploads the slides to `content/<key>/`, and writes the manifest `inbox/<key>.json` last, so a manifest always points at complete uploads. The `claude` queue runs one job at a time. The post shows as *In S3*.
 2. **Pull.** On **Content**, the *In S3* list shows what's waiting. **Pull all** (or **Pull** on one) turns each manifest into a post that's *Ready to schedule* and removes the manifest. **Delete** removes a manifest and its slides without importing.
-3. **Schedule.** Edit the caption and time, then click **Schedule**. That queues an Oban `Publish` job for that time, which hands Instagram 1-hour presigned S3 links. Anything not scheduled by its time is rejected automatically.
+3. **Schedule.** Edit the caption and time, then click **Schedule**. That queues an Oban `Publish` job for that time, which hands Instagram 1-hour presigned S3 links. Posts you don't schedule stay in the list until you reject them.
 
 Each post has a `content_key` that is the same on every machine. Pulling on the machine that made the post, or pulling a version you regenerated, updates the same post. A post that's already scheduled or live is left alone.
 
@@ -117,6 +117,6 @@ mix test
 The suite covers:
 - create → upload → pull, pulling on another machine, stale and deleted manifests, regenerated slides, using the folder storage adapter
 - the @mid.innings fixture → result flow
-- schedule and reschedule, and the expirer
+- schedule and reschedule
 - Claude CLI parsing and timeout, using a fake binary
 - Graph API publishing, using `Req.Test` stubs, and that a dry-run channel never calls Instagram

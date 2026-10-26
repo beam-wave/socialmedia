@@ -3,7 +3,7 @@ defmodule Socialmedia.PostsTest do
   use Oban.Testing, repo: Socialmedia.Repo
   import Socialmedia.Fixtures
   alias Socialmedia.Posts
-  alias Socialmedia.Workers.{Publish, Expirer, Produce}
+  alias Socialmedia.Workers.{Publish, Produce}
 
   test "approve schedules a publish job at the post's time" do
     p = insert_post(channel())
@@ -25,24 +25,6 @@ defmodule Socialmedia.PostsTest do
     {:ok, p} = insert_post(channel()) |> Posts.approve()
     assert {:ok, %{status: "needs_review"}} = Posts.unapprove(p)
     refute_enqueued(worker: Publish, args: %{post_id: p.id})
-  end
-
-  test "expirer rejects anything not approved by its time and keeps approved posts" do
-    ch = channel()
-    past = DateTime.utc_now() |> DateTime.add(-60) |> DateTime.truncate(:second)
-    review = insert_post(ch, %{scheduled_at: past})
-    planned = insert_post(ch, %{scheduled_at: past, status: "planned", data: nil})
-    approved = insert_post(ch, %{scheduled_at: past, status: "approved"})
-    uploaded = insert_post(ch, %{scheduled_at: past, status: "uploaded"})
-
-    Expirer.expire(DateTime.utc_now())
-
-    assert Posts.get_post!(review.id).status == "rejected"
-    assert Posts.get_post!(review.id).reject_reason == "not_approved_in_time"
-    assert Posts.get_post!(planned.id).status == "rejected"
-    assert Posts.get_post!(approved.id).status == "approved"
-    # made here and pulled elsewhere: kept, so the agent still sees it as history
-    assert Posts.get_post!(uploaded.id).status == "uploaded"
   end
 
   test "editing data re-renders here, editing caption goes back to review" do

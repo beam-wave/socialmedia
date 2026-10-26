@@ -49,7 +49,10 @@ defmodule SocialmediaWeb.ContentLive do
 
     base =
       from p in Post,
-        where: p.scheduled_at > ^DateTime.add(now, -86_400),
+        # Anything still waiting on the admin stays listed however old it is
+        where:
+          p.status in ~w(planned creating needs_review approved publishing failed) or
+            p.scheduled_at > ^DateTime.add(now, -86_400),
         order_by: p.scheduled_at,
         preload: [:channel]
 
@@ -192,7 +195,7 @@ defmodule SocialmediaWeb.ContentLive do
     >
       <.page_header
         title="Content"
-        subtitle="Pull what's in S3, edit the caption and time, then Schedule. Unscheduled posts are dropped when their time passes."
+        subtitle="Pull what's in S3, edit the caption and time, then Schedule. Reject anything you don't want."
       >
         <:actions>
           <form phx-change="filter">

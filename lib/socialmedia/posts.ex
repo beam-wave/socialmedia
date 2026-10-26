@@ -6,8 +6,8 @@ defmodule Socialmedia.Posts do
 
   `creating` and `uploaded` live on the machine that made the post; a Pull
   brings it in as `needs_review`. `failed` and `rejected` are side exits. Only
-  `approved` posts are ever published; anything not approved by its time is
-  rejected by `Socialmedia.Workers.Expirer`.
+  `approved` posts are ever published. Nothing is dropped automatically: the
+  admin rejects what they don't want.
   """
   import Ecto.Query
   alias Socialmedia.Repo

@@ -22,7 +22,7 @@ defmodule Socialmedia.Content do
   alias Socialmedia.Content.Matches
   alias Socialmedia.Workers.Produce
 
-  # A pulled post whose time has passed gets this much time to be reviewed
+  # A pulled post whose time has passed is moved this far ahead, so it can be scheduled as is
   @review_minutes 60
 
   ## Create
@@ -205,7 +205,7 @@ defmodule Socialmedia.Content do
   defp parent_id(nil), do: nil
   defp parent_id(key), do: Repo.one(from p in Post, where: p.content_key == ^key, select: p.id)
 
-  # Unscheduled posts are rejected once their time passes, so give late ones time for review
+  # Scheduling needs a future time
   defp review_time(at) do
     earliest =
       DateTime.utc_now() |> DateTime.add(@review_minutes * 60) |> DateTime.truncate(:second)
