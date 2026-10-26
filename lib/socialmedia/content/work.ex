@@ -17,6 +17,10 @@ defmodule Socialmedia.Content.Work do
     :extra_instructions,
     :data,
     :channel,
+    # Data of the linked fixture post, for result posts
+    :related,
+    # Facts entered by the admin (match result)
+    :facts,
     recent: []
   ]
 
@@ -34,9 +38,14 @@ defmodule Socialmedia.Content.Work do
       extra_instructions: post.schedule && post.schedule.extra_instructions,
       data: post.data,
       channel: Map.take(post.channel, @channel_fields),
+      related: related_data(post),
+      facts: post.facts,
       recent: recent
     }
   end
+
+  defp related_data(%Post{parent: %Post{data: data}}), do: data
+  defp related_data(_), do: nil
 
   def to_json_map(%__MODULE__{} = w) do
     w
@@ -58,6 +67,8 @@ defmodule Socialmedia.Content.Work do
       extra_instructions: m["extra_instructions"],
       data: m["data"],
       channel: Map.new(@channel_fields, &{&1, ch[Atom.to_string(&1)]}),
+      related: m["related"],
+      facts: m["facts"],
       recent: m["recent"] || []
     }
   end

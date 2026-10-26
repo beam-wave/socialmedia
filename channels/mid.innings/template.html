@@ -47,6 +47,10 @@
 .qq div{display:flex;flex-wrap:wrap;gap:12px}
 .qq span{font-size:28px;font-weight:600;padding:8px 20px 8px 8px;border-radius:999px;border:2px solid var(--a-rule);display:flex;gap:12px;align-items:center}
 .qq span i{font-style:normal;width:40px;height:40px;border-radius:50%;background:var(--a-hi);color:var(--a-ink);display:grid;place-items:center;font-weight:700;font-size:22px}
+.qq span.ok{background:var(--a-hi);color:var(--a-ink);border-color:transparent}
+.qq span.ok i{background:var(--a-ink);color:var(--a-hi)}
+.qq span.no{opacity:.45}
+.qq p small{display:block;font-family:var(--a-body);font-size:26px;font-weight:600;color:var(--a-dim);margin-top:6px}
 .how{font-family:var(--a-display);font-size:34px;letter-spacing:.04em;text-transform:uppercase;background:var(--a-hi);color:var(--a-ink);padding:20px 28px;border-radius:16px;flex:none;text-align:center}
 /* result */
 .res-line{font-family:var(--a-display);font-weight:700;font-size:70px;line-height:1.02;text-transform:uppercase;margin:0;flex:none}
@@ -74,11 +78,12 @@
 const {esc,hl,clean,pad,ctaSlide,hookOf,captionHook}=Studio;
 const HOOKS=[
   {q:"Who wins *tonight*?",options:"teams"},
+  {q:"Was your *prediction correct*?",q_hi:"आपका *प्रेडिक्शन* सही निकला?",options:["All 3 right","2 right","1 or none"]},
   {q:"Comment *your score prediction*. Closest guess gets pinned.",q_hi:"अपना *स्कोर प्रेडिक्शन* लिखो, सबसे सही वाला पिन होगा।"},
   {q:"Who's your *player of the match* pick?",q_hi:"आपका *प्लेयर ऑफ़ द मैच* कौन?"},
   {q:"Toss winner should *bat or bowl*?",options:["Bat first","Bowl first"]},
   {q:"Predict the *first-innings total*.",options:["Under 160","160–180","180–200","200+"]},
-  {q:"Turning point of the match? *Comment the over.*",q_hi:"मैच कहाँ पलटा? *ओवर बताओ।*"},
+  {q:"What was the *turning point* of the match? Comment your view 👇",q_hi:"मैच का *टर्निंग पॉइंट* क्या था? कमेंट में अपनी राय लिखो 👇"},
   {q:"Rate the captaincy today *out of 10*.",q_hi:"आज की कप्तानी को *10 में से* नंबर दो।"},
   {q:"One change to the XI *for the next game*?",q_hi:"अगले मैच के लिए *एक बदलाव*?"},
   {q:"Was this the *match of the season*?",options:["Yes","Not even close"]},
@@ -112,7 +117,7 @@ function result(d,p,t,size){
     <h3 class="res-line fit" data-max="76" data-min="48"><span>${hl(p.result)}</span></h3>
     <div class="inn">${inn}</div>
     ${p.pom?`<div class="pom"><b>POTM</b><span>${esc(p.pom.name)}</span><em>${esc(p.pom.figures)}</em></div>`:""}
-    <div class="k-foot"><span>${esc(p.venue||"")}</span><span>Top performers →</span></div></section>`;
+    <div class="k-foot"><span>${esc(p.venue||"")}</span><span>${p.answers&&p.answers.length?"Your predictions →":"Top performers →"}</span></div></section>`;
 }
 function performers(d,p,t,size){
   const row=(x,v,u)=>`<div class="row"><i class="dot" style="--c:${esc(T(d,x.team).color)}"></i><span>${esc(x.name)}</span><strong>${esc(v)}<small>${esc(u)}</small></strong></div>`;
@@ -121,16 +126,22 @@ function performers(d,p,t,size){
     <div class="perf"><h3>Bowling</h3>${(p.bowl||[]).slice(0,3).map(x=>row(x,`${x.w}/${x.r}`,`(${x.ov} ov)`)).join("")}</div>
     <div class="k-foot"><span>${esc(p.series)} · ${esc(p.match)}</span><span>Your take on the next slide →</span></div></section>`;
 }
+function answers(d,p,t,size){
+  return `<section class="art ck ${t}${size==="story"?" story":""}">${head(d,p,"Prediction check",t)}
+    <div class="qs">${(p.answers||[]).slice(0,3).map((a,i)=>{const ok=String(a.answer||"").toUpperCase().charCodeAt(0)-65;
+      return `<div class="qq"><p><b>Q${i+1}</b>${esc(a.q)}${a.note?`<small>${esc(a.note)}</small>`:""}</p><div>${(a.options||[]).map((o,j)=>`<span class="${j===ok?"ok":"no"}"><i>${String.fromCharCode(65+j)}</i>${esc(o)}</span>`).join("")}</div></div>`;}).join("")}</div>
+    <div class="how">Answer key: ${(p.answers||[]).slice(0,3).map((a,i)=>`${i+1}${esc(String(a.answer||"?").toUpperCase())}`).join(" · ")}</div></section>`;
+}
 function posts(d){
   return (d.posts||[]).map((p,i)=>{
     const t="t-"+(p.theme||d.theme||"floodlight"), size=d.format==="story"?"story":"post";
     const a=T(d,p.team1).name,b=T(d,p.team2).name;
     const isFix=p.type!=="result";
-    const h=resolve(hookOf(d,p,isFix?HOOKS[0]:HOOKS[5]),p,d);
+    const h=resolve(hookOf(d,p,isFix?HOOKS[0]:HOOKS[6]),p,d);
     const cta=ctaSlide(d,{cls:t,size,question:h.q,question_hi:h.q_hi,options:h.options,chip:isFix?"Predict":"Your take",
-      placeholder:isFix?"My prediction is…":"The turning point was…",followLine:d.follow_line||"Fixtures before, scores after, every match. Follow and turn on notifications for match days."});
+      placeholder:isFix?"1A · 2B · 3C":"For me, the turning point was…",followLine:d.follow_line||"Fixtures before, scores after, every match. Follow so you never miss a match day."});
     const slides=isFix?[{name:"fixture",html:fixture(d,p,t,size),size},...(p.questions&&p.questions.length?[{name:"quiz",html:questions(d,p,t,size),size}]:[]),{name:"comment-follow",html:cta,size}]
-      :[{name:"result",html:result(d,p,t,size),size},{name:"performers",html:performers(d,p,t,size),size},{name:"comment-follow",html:cta,size}];
+      :[{name:"result",html:result(d,p,t,size),size},...(p.answers&&p.answers.length?[{name:"answers",html:answers(d,p,t,size),size}]:[]),{name:"performers",html:performers(d,p,t,size),size},{name:"comment-follow",html:cta,size}];
     const tagSeries="#"+String(p.series||"").toLowerCase().replace(/[^a-z0-9]/g,"");
     const caption=isFix?`🏏 MATCH DAY: ${a} vs ${b}
 ${p.series} · ${p.match}
@@ -141,16 +152,17 @@ ${(p.questions||[]).map((q,j)=>`Q${j+1}. ${q.q} ${(q.options||[]).map((o,k)=>`${
 ${p.questions&&p.questions.length?"\nAnswer like 1A 2B 3A 👇\n":""}
 ${captionHook(h)}
 
-Follow ${d.handle} for the score summary right after the match 🔔
+Follow ${d.handle} for the score summary right after the match 🏏
 
 #cricket ${tagSeries} #${String(p.team1).toLowerCase()}vs${String(p.team2).toLowerCase()} #cricketlovers #midinnings`
 :`🏏 RESULT: ${clean(p.result)}
 
 ${(p.innings||[]).map(x=>`${T(d,x.team).name}: ${x.runs}/${x.wkts} (${x.overs} ov)`).join("\n")}
 ${p.pom?`\n⭐ Player of the match: ${p.pom.name} (${p.pom.figures})\n`:""}
+${p.answers&&p.answers.length?`\n✅ Prediction answers: ${p.answers.map((a,i)=>`${i+1}${String(a.answer||"?").toUpperCase()}`).join(" · ")}\n${p.answers.map((a,i)=>`Q${i+1}. ${a.q} → ${(a.options||[])[String(a.answer||"A").toUpperCase().charCodeAt(0)-65]||""}`).join("\n")}\nCheck your picks from the match-day post ☝️\n`:""}
 ${captionHook(h)}
 
-Follow ${d.handle} for fixtures, predictions and scores every match day 🔔
+Follow ${d.handle} for fixtures, predictions and scores every match day 🏏
 
 #cricket ${tagSeries} #${String(p.team1).toLowerCase()}vs${String(p.team2).toLowerCase()} #cricketlovers #midinnings`;
     return {id:(isFix?"fixture-":"result-")+pad(i+1),label:`${isFix?"Pre-match":"Post-match"} · ${a} vs ${b}`,slides,caption};
@@ -162,20 +174,21 @@ Studio.mount({
   note:"The sample scores are made up. Use official scorecards. Team badges are colour circles with short codes, so no team logos are needed.",
   controls:[{key:"theme",label:"Theme",perItem:true,options:[["floodlight","Floodlight"],["navy","Navy"],["whites","Test whites"]]},{key:"format",label:"Size",options:[["post","Feed post 4:5"],["story","Story / Reel 9:16"]]}],
   hooks:HOOKS, posts,
-  guide:[["teams","Code, name and colour for each team.","Badges are drawn from this, so no logos are needed."],["type","\"fixture\" or \"result\".","Fixtures get a quiz slide; results get a performers slide."],["questions","Up to 3 pre-match questions","with options. Fans answer like 1A 2B 3A."],["form1 / form2","Last 5 results, such as \"WWLWW\".","Wins are highlighted."],["result","One line.","Wrap the winner in *stars* to highlight it."],["hook",'Use "options":"teams"',"to offer the two teams as answers."]],
+  guide:[["teams","Code, name and colour for each team.","Badges are drawn from this, so no logos are needed."],["type","\"fixture\" or \"result\".","Fixtures get a quiz slide; results get a performers slide."],["questions","3 questions: who wins, first-innings score, player of the match.","Fans answer like 1A 2B 3A."],["answers","Result posts: the fixture's 3 questions with the correct letter.","Shown as a Prediction check slide."],["form1 / form2","Last 5 results, such as \"WWLWW\".","Wins are highlighted."],["result","One line.","Wrap the winner in *stars* to highlight it."],["hook",'Use "options":"teams"',"to offer the two teams as answers."]],
   sample:{theme:"floodlight",format:"post",handle:"@mid.innings",
     teams:{IND:{code:"IND",name:"India",color:"#1f5fd1"},AUS:{code:"AUS",name:"Australia",color:"#d9a400"}},
     posts:[
       {type:"fixture",series:"Sample T20I Series 2026",match:"2nd T20I",format:"T20 · Day/Night",team1:"IND",team2:"AUS",form1:"WWLWW",form2:"WLWLW",date:"Wed, 28 Oct",time:"7:00 PM IST",venue:"Sample Stadium, Mumbai",
         watch:[{name:"Batter One",team:"IND",stat:"212 runs · SR 168"},{name:"Bowler Two",team:"AUS",stat:"9 wkts · Econ 6.8"},{name:"All-rounder Three",team:"IND",stat:"6 wkts · 140 runs"}],
-        questions:[{q:"Who wins the toss?",options:["India","Australia"]},{q:"First-innings total?",options:["Under 170","170–190","190+"]},{q:"Most sixes in the match?",options:["Under 10","10–15","16+"]}],
+        questions:[{q:"Who wins the match?",options:["India","Australia"]},{q:"First-innings score?",options:["Under 170","170–190","190+"]},{q:"Player of the match?",options:["Batter One","Bowler Two","All-rounder Three"]}],
         hook:{q:"Who wins *tonight*?",options:"teams"}},
       {type:"result",series:"Sample T20I Series 2026",match:"2nd T20I",team1:"IND",team2:"AUS",winner:"IND",venue:"Sample Stadium, Mumbai",
         result:"*India* beat Australia by 6 wickets",
         innings:[{team:"AUS",runs:184,wkts:7,overs:"20.0"},{team:"IND",runs:188,wkts:4,overs:"18.3"}],
         pom:{name:"Batter One",figures:"78* (44)"},
+        answers:[{q:"Who wins the match?",options:["India","Australia"],answer:"A"},{q:"First-innings score?",options:["Under 170","170–190","190+"],answer:"B",note:"Australia made 184/7"},{q:"Player of the match?",options:["Batter One","Bowler Two","All-rounder Three"],answer:"A"}],
         bat:[{name:"Batter One",team:"IND",runs:"78*",balls:44},{name:"Opener Four",team:"AUS",runs:61,balls:39},{name:"Finisher Five",team:"IND",runs:42,balls:21}],
         bowl:[{name:"Bowler Two",team:"AUS",w:3,r:29,ov:4},{name:"Spinner Six",team:"IND",w:2,r:24,ov:4},{name:"Pacer Seven",team:"IND",w:2,r:33,ov:4}],
-        hook:{q:"Turning point of the match? *Comment the over.*",q_hi:"मैच कहाँ पलटा? *ओवर बताओ।*"}}]}
+        hook:{q:"What was the *turning point* of the match? Comment your view 👇",q_hi:"मैच का *टर्निंग पॉइंट* क्या था? कमेंट में अपनी राय लिखो 👇"}}]}
 });
 </script></body></html>

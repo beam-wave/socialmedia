@@ -11,9 +11,29 @@ defmodule SocialmediaWeb.PostLive.Show do
     {:ok, socket |> assign(slide: 0) |> load(Posts.get_post!(id))}
   end
 
+  defp linked(post) do
+    post = Socialmedia.Repo.preload(post, [:parent, :child])
+    {post.parent, post.child}
+  end
+
+  alias Socialmedia.Content.Matches
+
+  defp build_facts_form(%{parent: parent} = post) do
+    post = %{post | parent: parent}
+    facts = post.facts || Matches.blank_facts(post)
+    teams = (parent && parent.data && parent.data["teams"]) || %{}
+    team_opts = Enum.map(teams, fn {code, t} -> {t["name"] || code, code} end)
+    %{facts: facts, team_opts: team_opts}
+  end
+
   defp load(socket, post) do
+    {parent, child} = linked(post)
+
     assign(socket,
       post: post,
+      parent: parent,
+      child: child,
+      facts: if(Matches.needs_facts?(post), do: build_facts_form(%{post | parent: parent})),
       page_title:
         "#{post.channel.handle} · #{local(post.scheduled_at, post.channel.timezone, "%a %d %b %H:%M")}",
       caption: post.caption || "",
@@ -53,6 +73,36 @@ defmodule SocialmediaWeb.PostLive.Show do
       &Posts.regenerate(&1, note),
       "Sent to the Mac. New version arrives in a few minutes."
     )
+  end
+
+  def handle_event("save_facts", %{"facts" => f}, socket) do
+    innings =
+      f
+      |> Map.get("innings", %{})
+      |> Enum.sort_by(fn {k, _} -> String.to_integer(k) end)
+      |> Enum.map(&elem(&1, 1))
+      |> Enum.reject(&(String.trim(&1["score"] || "") == ""))
+
+    facts = %{
+      "summary" => String.trim(f["summary"] || ""),
+      "pom" => String.trim(f["pom"] || ""),
+      "innings" => innings
+    }
+
+    cond do
+      innings == [] ->
+        {:noreply, put_flash(socket, :error, "Add at least one innings score.")}
+
+      facts["pom"] == "" ->
+        {:noreply, put_flash(socket, :error, "Add the player of the match.")}
+
+      true ->
+        act(
+          socket,
+          &Posts.enter_facts(&1, facts),
+          "Saved. Claude writes the result post on the Mac next."
+        )
+    end
   end
 
   def handle_event("move", %{"at" => at}, socket) do
@@ -158,6 +208,32 @@ defmodule SocialmediaWeb.PostLive.Show do
         </div>
         <.actions post={@post} />
       </div>
+
+      <div
+        :if={@parent || @child}
+        class="text-sm rounded-lg border hairline px-3 py-2 flex items-center gap-2"
+      >
+        <.icon name="hero-link" class="size-4 muted" />
+        <span :if={@parent}>
+          Scores the predictions from the
+          <.link navigate={~p"/posts/#{@parent.id}"} class="underline">match-day post</.link>
+          ({status_label(@parent.status)})
+        </span>
+        <span :if={@child}>
+          Result post:
+          <.link navigate={~p"/posts/#{@child.id}"} class="underline">
+            {local(@child.scheduled_at, @post.channel.timezone, "%a %d %b · %H:%M")}
+          </.link>
+          ({status_label(@child.status)}){if @child.status == "planned",
+            do: " · written when the match should be over"}
+        </span>
+      </div>
+
+      <.facts_form
+        :if={@facts && @post.status not in ~w(published publishing rejected)}
+        post={@post}
+        facts={@facts}
+      />
 
       <div :if={@post.error} class="rounded-lg border-2 border-base-content px-4 py-3 text-sm">
         <div class="font-semibold flex items-center gap-1.5">
@@ -292,6 +368,97 @@ defmodule SocialmediaWeb.PostLive.Show do
         </section>
       </div>
     </Layouts.app>
+    """
+  end
+
+  attr :post, :map, required: true
+  attr :facts, :map, required: true
+
+  defp facts_form(assigns) do
+    ~H"""
+    <form phx-submit="save_facts" class="rounded-lg border-2 border-base-content p-4 space-y-4">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 class="font-semibold">Match result</h2>
+        <span class="text-xs muted">
+          {if @post.facts,
+            do: "Edit and save to have Claude rewrite it.",
+            else: "Type what happened. Claude writes the post and scores the predictions."}
+        </span>
+      </div>
+
+      <label class="block text-sm">
+        <span class="block mb-1 font-medium">Summary</span>
+        <textarea
+          name="facts[summary]"
+          rows="2"
+          class="textarea w-full text-sm"
+          placeholder="India won by 6 wickets with 9 balls left. Kohli anchored the chase."
+        >{@facts.facts["summary"]}</textarea>
+      </label>
+
+      <div class="grid md:grid-cols-2 gap-4">
+        <fieldset
+          :for={{inn, i} <- Enum.with_index(@facts.facts["innings"] || [])}
+          class="rounded-md border hairline p-3 space-y-2"
+        >
+          <legend class="px-1 text-xs uppercase tracking-wider muted">Innings {i + 1}</legend>
+          <label class="block text-xs">
+            <span class="block muted mb-1">Batting team</span>
+            <select name={"facts[innings][#{i}][team]"} class="select select-sm w-full">
+              <option
+                :for={{label, code} <- @facts.team_opts}
+                value={code}
+                selected={code == inn["team"]}
+              >
+                {label}
+              </option>
+            </select>
+          </label>
+          <label class="block text-xs">
+            <span class="block muted mb-1">Score</span>
+            <input
+              name={"facts[innings][#{i}][score]"}
+              value={inn["score"]}
+              class="input input-sm w-full mono"
+              placeholder="184/7 (20)"
+            />
+          </label>
+          <label class="block text-xs">
+            <span class="block muted mb-1">Best batter</span>
+            <input
+              name={"facts[innings][#{i}][best_bat]"}
+              value={inn["best_bat"]}
+              class="input input-sm w-full"
+              placeholder="Virat Kohli 78* (44)"
+            />
+          </label>
+          <label class="block text-xs">
+            <span class="block muted mb-1">Best bowler (fielding side)</span>
+            <input
+              name={"facts[innings][#{i}][best_bowl]"}
+              value={inn["best_bowl"]}
+              class="input input-sm w-full"
+              placeholder="Jasprit Bumrah 3/24 (4)"
+            />
+          </label>
+        </fieldset>
+      </div>
+
+      <div class="flex flex-wrap items-end gap-3">
+        <label class="block text-sm flex-1 min-w-60">
+          <span class="block mb-1 font-medium">Player of the match</span>
+          <input
+            name="facts[pom]"
+            value={@facts.facts["pom"]}
+            class="input input-sm w-full"
+            placeholder="Virat Kohli 78* (44)"
+          />
+        </label>
+        <button class="btn btn-sm btn-primary" phx-disable-with="Saving…">
+          {if @post.facts, do: "Save and rewrite", else: "Save result"}
+        </button>
+      </div>
+    </form>
     """
   end
 

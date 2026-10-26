@@ -164,6 +164,19 @@
           "additionalProperties": false
         }
       ]
+    },
+    "retry_after_minutes": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 360
+        }
+      ],
+      "description": "With skip=true: ask the app to try again later (e.g. match still in progress). Null otherwise."
     }
   }
 }

@@ -25,8 +25,8 @@ defmodule Socialmedia.Workers.Produce do
         {:ok, result} ->
           Content.deliver(work, result)
 
-        {:skip, notes} ->
-          Content.deliver_failure(work, notes, true)
+        {:skip, notes, retry_after} ->
+          Content.deliver_failure(work, notes, true, retry_after)
 
         {:error, reason} when attempt < max ->
           Logger.warning(

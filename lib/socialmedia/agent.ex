@@ -10,7 +10,8 @@ defmodule Socialmedia.Agent do
 
   @doc """
   Generates template data for one post. Returns
-  `{:ok, %{data: map, sources: list, notes: string}}`, `{:skip, notes}` or `{:error, reason}`.
+  `{:ok, %{data: map, sources: list, notes: string}}`, `{:skip, notes, retry_after_minutes | nil}`
+  or `{:error, reason}`.
   """
   def generate(%Work{channel: channel} = work, opts \\ []) do
     with {:ok, schema_json, schema} <- load_schema(channel.skill),
@@ -18,7 +19,7 @@ defmodule Socialmedia.Agent do
          :ok <- validate(schema, out) do
       case out do
         %{"skip" => true} ->
-          {:skip, out["notes"] || "agent skipped without a note"}
+          {:skip, out["notes"] || "agent skipped without a note", out["retry_after_minutes"]}
 
         %{"post" => post_out} when is_map(post_out) ->
           {:ok,
@@ -72,6 +73,8 @@ defmodule Socialmedia.Agent do
     #{series_line(channel, local)}
     #{line("Slot instructions from the admin", work.extra_instructions)}
     #{line("Admin note for this regeneration (highest priority)", work.admin_note)}
+    #{related(work)}
+    #{facts(work)}
     Recent posts on this channel (newest first). Don't repeat their topic, quote, startup, movie, match or hook:
     #{if recent == [], do: "- none yet", else: Enum.map_join(recent, "\n", &"- #{&1}")}
 
@@ -79,6 +82,19 @@ defmodule Socialmedia.Agent do
     """
     |> String.replace(~r/\n{3,}/, "\n\n")
   end
+
+  defp related(%Work{related: data}) when is_map(data) do
+    "Linked fixture post (score these exact questions in `answers`):\n" <> Jason.encode!(data)
+  end
+
+  defp related(_), do: ""
+
+  defp facts(%Work{facts: f}) when is_map(f) and map_size(f) > 0 do
+    "Match facts entered by the admin. They are verified: use them as the source of truth and don't search for the result:\n" <>
+      Jason.encode!(f, pretty: true)
+  end
+
+  defp facts(_), do: ""
 
   defp line(_label, v) when v in [nil, ""], do: ""
   defp line(label, v), do: "#{label}: #{v}"

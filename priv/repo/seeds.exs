@@ -74,15 +74,9 @@ channels = [
         weekdays: Enum.to_list(1..7),
         time_of_day: ~T[12:00:00],
         lead_hours: 10,
-        extra_instructions: "Skip if there is no India, ICC or IPL/WPL match today."
-      },
-      %{
-        post_type: "result",
-        weekdays: Enum.to_list(1..7),
-        time_of_day: ~T[23:45:00],
-        lead_hours: 1,
-        extra_instructions: "Result of today's featured match. Skip if it hasn't finished."
+        extra_instructions: "Pick by the skill's priority: India, ICC events, T20 leagues, The Hundred, T10 leagues. Skip if no match starts today."
       }
+      # Result posts aren't a slot: each fixture creates its own, timed from the match start
     ]
   },
   %{

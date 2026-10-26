@@ -42,7 +42,6 @@ All five templates already include a comment question on the last slide and in t
 - **Schedule:** "New domain every Monday. Next week: AI Agents." (@spotlight.startups)
 - **First to know:** "Every new poster and teaser, the day it drops." (@bollyvibe)
 - **Daily ritual:** "A little love in your feed every day." (@puree_heartz)
-- **Notification nudge:** "Turn on 🔔 so tomorrow's quote finds you first."
 - **Callback:** "We'll check your predictions on Monday." This gives people a reason to return to the profile.
 
 ## 3. Stop hooks (first line of slide 1 or the caption)
@@ -111,7 +110,7 @@ All five templates already include a comment question on the last slide and in t
 - One change to the XI for the next game?
 - Tag the friend you always argue cricket with.
 
-**Follow hook:** "Score summary right after the match. Turn on 🔔 for match days."
+**Follow hook:** "Score summary right after the match. Follow so you never miss a match day."
 
 ### @bollyvibe
 - Will you watch it first day, first show? FDFS / Weekend / OTT

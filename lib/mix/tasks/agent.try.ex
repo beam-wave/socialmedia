@@ -23,7 +23,8 @@ defmodule Mix.Tasks.Agent.Try do
     at =
       case rest do
         [iso] ->
-          iso
+          # Accept 2026-10-28T12:00 as well as full seconds
+          if(String.length(iso) == 16, do: iso <> ":00", else: iso)
           |> NaiveDateTime.from_iso8601!()
           |> DateTime.from_naive!(channel.timezone)
           |> DateTime.shift_zone!("Etc/UTC")
@@ -63,8 +64,8 @@ defmodule Mix.Tasks.Agent.Try do
             Mix.raise("render failed: #{e}")
         end
 
-      {:skip, notes} ->
-        Mix.shell().info("Agent skipped: #{notes}")
+      {:skip, notes, retry} ->
+        Mix.shell().info("Agent skipped (retry in #{inspect(retry)} min): #{notes}")
 
       {:error, e} ->
         Mix.raise("agent failed: #{e}")

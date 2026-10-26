@@ -94,7 +94,7 @@ function posts(d){
         <div><b>Language</b><span>${esc(m.language)}</span></div><div><b>Studio</b><span>${esc(m.studio)}</span></div></div>
       ${m.teaser_url?`<div class="d-teaser">${ICON.play}<div><strong>Watch the official teaser</strong><span>Link in bio · ${esc(shortUrl(m.teaser_url))}</span></div></div>`:""}</section>`;
     const cta=ctaSlide(d,{cls:t,size,question:h.q,question_hi:h.q_hi,options:h.options,chip:"Your verdict",placeholder:"My verdict is…",
-      followLine:d.follow_line||"Every new poster and teaser, the day it drops. Follow and turn on notifications."});
+      followLine:d.follow_line||"Every new poster and teaser, the day it drops. Follow so you never miss one."});
     const caption=`🎬 ${m.title}${m.title_hi?" | "+m.title_hi:""}
 📅 Release: ${fmtDate(m.release_date)} (${when.toLowerCase()})
 ⭐ Starring: ${(m.cast||[]).join(", ")}
@@ -102,7 +102,7 @@ function posts(d){
 ${m.teaser_url?`\n▶️ Official teaser: ${m.teaser_url}\n(Link also in bio and today's story)\n`:""}
 ${captionHook(h)}
 
-Follow ${d.handle} for every new poster and teaser the day it drops 🔔
+Follow ${d.handle} for every new poster and teaser the day it drops 🎬
 ${m.credit?`\nPoster and teaser: ${m.credit}. Shared for promotional purposes.`:""}
 
 #bollywood #upcomingmovies #${String(m.title||"").toLowerCase().replace(/[^a-z0-9]/g,"")} #teaser #newmovie #bollyvibe`;

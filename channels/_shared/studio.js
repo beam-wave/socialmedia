@@ -33,7 +33,7 @@ function ctaSlide(d,o){
     ${opts.length?`<div class="cta-opts">${opts.map((x,i)=>`<span><b>${o.numbered?pad(i+1):String.fromCharCode(65+i)}</b>${esc(x)}</span>`).join("")}</div>`:""}
     <div class="cta-box"><i></i><span>${esc(o.placeholder||"Drop your answer in the comments…")}</span><em>Post</em></div>
     <div class="cta-follow"><div class="cta-btn">Follow</div><p>${esc(o.followLine||"Follow "+d.handle+" so you don't miss the next one")}</p></div>
-    <div class="cta-row"><span>${ICON.bell} Turn on notifications</span><span>${ICON.save} Save</span><span>${ICON.send} Share</span></div>
+    <div class="cta-row"><span>${ICON.heart} Like</span><span>${ICON.save} Save</span><span>${ICON.send} Share</span></div>
   </section>`;
 }
 
@@ -100,7 +100,12 @@ function mount(c){
 
 /* Hook text for a post: item.hook overrides data.hook overrides channel default */
 function hookOf(d,item,fallback){return (item&&item.hook)||d.hook||fallback||{q:"What do you think?"};}
-function captionHook(h){return `💬 ${clean(h.q)}${h.q_hi?"\n💬 "+clean(h.q_hi):""}${h.options&&h.options.length?"\n"+h.options.map((o,i)=>`${h.numbered?pad(i+1):String.fromCharCode(65+i)}) ${o}`).join("   "):""}`;}
+/* Caption ending shared by every channel: the comment question, its options, and a
+   plain "comment below" call (skipped when the question already says comment). */
+function captionHook(h){
+  const ask=/comment/i.test(clean(h.q)+" "+clean(h.q_hi||""))?"":"\n👇 Drop your answer in the comments";
+  return `💬 ${clean(h.q)}${h.q_hi?"\n💬 "+clean(h.q_hi):""}${h.options&&h.options.length?"\n"+h.options.map((o,i)=>`${h.numbered?pad(i+1):String.fromCharCode(65+i)}) ${o}`).join("   "):""}${ask}`;
+}
 
 window.Studio={mount,render:d=>render(d),captions:()=>posts.map(p=>({id:p.id,text:p.caption})),ctaSlide,hookOf,captionHook,esc,hl,pad,initials,clean,ICON,get data(){return current;}};
 })();

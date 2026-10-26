@@ -69,7 +69,7 @@ function posts(d){
       <div class="q-tease">swipe & tell us →</div>
       <div class="q-foot"><span>${esc(q.date)}</span><span>${lang==="en"?L.en.foot:L.hi.foot}</span></div></section>`;
     const cta=ctaSlide(d,{cls:theme,size,question:h.q,question_hi:lang==="en"?"":h.q_hi,options:h.options,chip:lang==="hi"?"आपकी बारी":"Your turn",
-      placeholder:lang==="hi"?"दिल की बात यहाँ लिखो…":"Say it in the comments…",followLine:d.follow_line||"A little love in your feed every day. Turn on notifications so you never miss one."});
+      placeholder:lang==="hi"?"दिल की बात यहाँ लिखो…":"Say it in the comments…",followLine:d.follow_line||"A little love in your feed every day. Follow so you never miss one."});
     const body=lang==="en"?clean(q.quote):lang==="hi"?clean(q.quote_hi||q.quote):`${clean(q.quote)}\n\n${clean(q.quote_hi)}`;
     const hh=lang==="en"?{...h,q_hi:""}:lang==="hi"?{...h,q:h.q_hi||h.q,q_hi:""}:h;
     const caption=`${body}${q.author?"\n— "+q.author:""}
@@ -77,7 +77,6 @@ function posts(d){
 ${captionHook(hh)}
 
 Follow ${d.handle} for a little love every day 🤍
-Turn on 🔔 so tomorrow's quote finds you first.
 
 ${d.tags||""}`;
     return {id:"q"+(q.number||String(i+1).padStart(2,"0")),label:`Quote ${q.number||i+1} · ${q.date||""}`,slides:[{name:"card",html:card,size},{name:"comment-follow",html:cta,size}],caption};

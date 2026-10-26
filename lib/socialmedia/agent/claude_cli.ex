@@ -29,7 +29,12 @@ defmodule Socialmedia.Agent.ClaudeCli do
       "--permission-mode",
       "dontAsk",
       "--max-turns",
-      "40"
+      "40",
+      # Only agent/.claude (channel skills, permissions) — not the user's own
+      # skills, plugins, hooks or MCP servers, which could change the writing.
+      "--setting-sources",
+      "project",
+      "--strict-mcp-config"
     ]
 
     with {:ok, exe} <- find_executable(bin),

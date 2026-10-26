@@ -17,9 +17,11 @@ defmodule Socialmedia.Content do
   require Logger
   alias Socialmedia.{Repo, Posts, Storage}
   alias Socialmedia.Posts.Post
-  alias Socialmedia.Content.Work
+  alias Socialmedia.Content.{Matches, Work}
 
   @plan_key "plan.json"
+  # "Try again later" requests honoured per post (e.g. 8 × 45 min for a long match)
+  @max_retries 8
 
   ## Prod side
 
@@ -33,7 +35,7 @@ defmodule Socialmedia.Content do
           (p.status == "planned" and p.generate_at <= ^now and p.scheduled_at > ^now) or
             (p.status == "render_requested" and p.scheduled_at > ^now),
         order_by: p.scheduled_at,
-        preload: [:channel, :schedule]
+        preload: [:channel, :schedule, :parent]
     )
     |> Enum.map(fn post ->
       kind = if post.status == "planned", do: "generate", else: "render"
@@ -111,7 +113,17 @@ defmodule Socialmedia.Content do
            }) do
       # Previous revision's slides are no longer referenced
       Enum.each(old -- m["slides"], &Storage.delete/1)
+      if post.post_type == "fixture", do: Matches.after_fixture(post)
       {:ok, post}
+    end
+  end
+
+  defp apply_manifest(post, %{"status" => "failed", "retry_after_minutes" => mins} = m)
+       when is_integer(mins) and mins > 0 do
+    if post.retries < @max_retries do
+      Posts.retry_later(post, mins, "Waiting: #{m["error"]}")
+    else
+      Posts.mark(post, "failed", %{error: "Gave up after #{post.retries} tries: #{m["error"]}"})
     end
   end
 
@@ -157,13 +169,14 @@ defmodule Socialmedia.Content do
     })
   end
 
-  def deliver_failure(%Work{} = w, error, skip?) do
+  def deliver_failure(%Work{} = w, error, skip?, retry_after_minutes \\ nil) do
     Storage.put_json(inbox_key(w), %{
       status: "failed",
       post_id: w.post_id,
       rev: w.rev,
       error: error,
-      skip: skip?
+      skip: skip?,
+      retry_after_minutes: retry_after_minutes
     })
   end
 end

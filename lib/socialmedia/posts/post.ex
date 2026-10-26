@@ -13,6 +13,9 @@ defmodule Socialmedia.Posts.Post do
     field :generate_at, :utc_datetime
     # Content request number, bumped on regenerate / re-render (names the request on the S3 bus)
     field :gen_rev, :integer, default: 1
+    field :retries, :integer, default: 0
+    # Facts the admin typed in (match result); the agent writes from these
+    field :facts, :map
     # Template data for exactly one Instagram post (channel base_data + one item)
     field :data, :map
     field :caption, :string
@@ -29,6 +32,9 @@ defmodule Socialmedia.Posts.Post do
 
     belongs_to :channel, Socialmedia.Channels.Channel
     belongs_to :schedule, Socialmedia.Channels.Schedule
+    # Result posts point at the fixture whose predictions they score
+    belongs_to :parent, __MODULE__
+    has_one :child, __MODULE__, foreign_key: :parent_id
 
     timestamps(type: :utc_datetime)
   end
@@ -46,6 +52,9 @@ defmodule Socialmedia.Posts.Post do
       :slot_at,
       :generate_at,
       :gen_rev,
+      :retries,
+      :parent_id,
+      :facts,
       :data,
       :caption,
       :slide_paths,

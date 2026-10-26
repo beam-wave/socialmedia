@@ -44,7 +44,14 @@ defmodule SocialmediaWeb.ContentLive do
     assign(socket,
       ready: Map.get(by, "needs_review", []),
       scheduled: Map.get(by, "approved", []) ++ Map.get(by, "publishing", []),
-      waiting: Map.get(by, "planned", []) ++ Map.get(by, "render_requested", []),
+      needs_facts:
+        by
+        |> Map.get("planned", [])
+        |> Enum.filter(&(&1.post_type == "result" and is_nil(&1.facts))),
+      waiting:
+        (Map.get(by, "planned", [])
+         |> Enum.reject(&(&1.post_type == "result" and is_nil(&1.facts)))) ++
+          Map.get(by, "render_requested", []),
       failed: Map.get(by, "failed", []),
       live: by |> Map.get("published", []) |> Enum.reverse() |> Enum.take(10)
     )
@@ -141,6 +148,24 @@ defmodule SocialmediaWeb.ContentLive do
           </form>
         </:actions>
       </.page_header>
+
+      <section :if={@needs_facts != []} class="space-y-2">
+        <h2 class="text-sm font-semibold">
+          Match results to enter <span class="muted font-normal">· {length(@needs_facts)}</span>
+        </h2>
+        <ul class="rounded-lg border-2 border-base-content divide-y divide-base-300">
+          <li :for={p <- @needs_facts} class="flex items-center gap-3 px-3 py-2.5 text-sm">
+            <.icon name="hero-pencil-square" class="size-4" />
+            <div class="min-w-0 flex-1">
+              <div>{p.channel.handle} · result</div>
+              <div class="text-xs muted">
+                goes out {local(p.scheduled_at, p.channel.timezone, "%a %d %b · %H:%M")}
+              </div>
+            </div>
+            <.link navigate={~p"/posts/#{p.id}"} class="btn btn-sm btn-primary">Enter result</.link>
+          </li>
+        </ul>
+      </section>
 
       <section class="space-y-3">
         <h2 class="text-sm font-semibold">

@@ -85,6 +85,55 @@ defmodule Socialmedia.Posts do
     end
   end
 
+  @doc """
+  Admin typed the facts for a result post. Queues it for the agent right away
+  (as a new revision, so a version in flight is ignored).
+  """
+  def enter_facts(%Post{} = post, facts) when is_map(facts) do
+    if Post.final?(post) or post.status == "publishing" do
+      {:error, :final}
+    else
+      cancel_jobs(post, Workers.Publish)
+
+      post
+      |> mark("planned", %{
+        facts: facts,
+        generate_at: now(),
+        gen_rev: post.gen_rev + 1,
+        approved_at: nil,
+        error: nil
+      })
+      |> tap(fn _ -> request_sync() end)
+    end
+  end
+
+  @doc "Inserts a post that isn't from a slot (e.g. a result linked to its fixture)."
+  def create_linked(attrs) do
+    %Post{} |> Post.changeset(attrs) |> Repo.insert() |> broadcast()
+  end
+
+  @doc """
+  The agent asked to try later (e.g. the match isn't over). Re-queues the post
+  as a new revision and keeps review time before it goes out.
+  """
+  def retry_later(%Post{} = post, minutes, note) do
+    generate_at = DateTime.utc_now() |> DateTime.add(minutes * 60) |> DateTime.truncate(:second)
+    earliest = DateTime.add(generate_at, 45 * 60)
+
+    scheduled_at =
+      if DateTime.compare(post.scheduled_at, earliest) == :lt,
+        do: earliest,
+        else: post.scheduled_at
+
+    mark(post, "planned", %{
+      generate_at: generate_at,
+      scheduled_at: scheduled_at,
+      gen_rev: post.gen_rev + 1,
+      retries: post.retries + 1,
+      error: note
+    })
+  end
+
   ## Pipeline transitions (called by workers)
 
   def mark(%Post{} = post, status, attrs \\ %{}) do
@@ -182,8 +231,23 @@ defmodule Socialmedia.Posts do
       {:error, :final}
     else
       cancel_jobs(post)
-      mark(post, "rejected", %{reject_reason: reason})
+
+      with {:ok, rejected} <- mark(post, "rejected", %{reject_reason: reason}) do
+        reject_linked_result(rejected)
+        {:ok, rejected}
+      end
     end
+  end
+
+  # A result post scores the fixture's predictions, so it goes when the fixture goes
+  defp reject_linked_result(%Post{id: id}) do
+    Repo.all(
+      from p in Post,
+        where:
+          p.parent_id == ^id and
+            p.status in ["planned", "render_requested", "needs_review", "failed"]
+    )
+    |> Enum.each(&reject(&1, "fixture_rejected"))
   end
 
   @doc "Restore a rejected post whose slot is still ahead."
