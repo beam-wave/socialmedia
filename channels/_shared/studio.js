@@ -15,7 +15,7 @@ const clean=s=>String(s??"").replace(/\*/g,"");
 
 const ICON={
   comment:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20.5 11.5a8.5 8.5 0 0 1-12.4 7.6L3.5 20.5l1.4-4.4A8.5 8.5 0 1 1 20.5 11.5z"/></svg>',
-  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15L6 16z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>',
+  follow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.5" cy="8" r="4"/><path d="M2.5 20.5a7 7 0 0 1 14 0"/><path d="M19 8v6M16 11h6"/></svg>',
   save:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4.5-6 4.5z"/></svg>',
   send:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M21 3 10 14"/><path d="M21 3l-7 18-4-7-7-4z"/></svg>',
   heart:'<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2.1 0 3.6 1.2 5.2 3.1 1.6-1.9 3.1-3.1 5.2-3.1 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21z"/></svg>',
@@ -33,7 +33,7 @@ function ctaSlide(d,o){
     ${opts.length?`<div class="cta-opts">${opts.map((x,i)=>`<span><b>${o.numbered?pad(i+1):String.fromCharCode(65+i)}</b>${esc(x)}</span>`).join("")}</div>`:""}
     <div class="cta-box"><i></i><span>${esc(o.placeholder||"Drop your answer in the comments…")}</span><em>Post</em></div>
     <div class="cta-follow"><div class="cta-btn">Follow</div><p>${esc(o.followLine||"Follow "+d.handle+" so you don't miss the next one")}</p></div>
-    <div class="cta-row"><span>${ICON.heart} Like</span><span>${ICON.save} Save</span><span>${ICON.send} Share</span></div>
+    <div class="cta-row"><span>${ICON.follow} Follow</span><span>${ICON.save} Save</span><span>${ICON.send} Share</span></div>
   </section>`;
 }
 
