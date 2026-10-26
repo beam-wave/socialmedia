@@ -28,7 +28,8 @@ config :socialmedia, Oban,
   queues: [claude: 1, publish: 3, maintenance: 1],
   # Cron jobs are added in config/runtime.exs (not in tests)
   plugins: [
-    {Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 14},
+    # Deletes finished jobs (completed, cancelled, discarded) older than 15 days
+    {Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 15},
     {Oban.Plugins.Lifeline, rescue_after: :timer.minutes(30)}
   ]
 
