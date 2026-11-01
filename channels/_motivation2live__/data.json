@@ -1,5 +1,5 @@
 {
-  "theme": "concrete",
+  "theme": "ivory",
   "format": "post",
   "lang": "both",
   "handle": "@_motivation2live__",
@@ -21,7 +21,7 @@
     {
       "day": 43,
       "date": "Tue · 27 Oct",
-      "theme": "night",
+      "theme": "midnight",
       "quote": "Nobody is coming to save you. *Start anyway.*",
       "quote_hi": "कोई बचाने नहीं आएगा। *फिर भी शुरू करो।*",
       "action": "Do the task you've been postponing for 25 minutes. Just 25.",
@@ -38,7 +38,7 @@
     {
       "day": 44,
       "date": "Wed · 28 Oct",
-      "theme": "fire",
+      "theme": "cobalt",
       "quote": "Small steps every day beat *big plans someday*.",
       "quote_hi": "रोज़ के छोटे कदम, *किसी दिन के बड़े प्लान* से बेहतर हैं।",
       "action": "Write tomorrow's top 3 tasks before you sleep tonight.",

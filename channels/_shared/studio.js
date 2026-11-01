@@ -43,6 +43,8 @@ function fit(root){
     let s=max; el.style.fontSize=s+"px";
     const over=()=>w?el.scrollWidth>el.clientWidth+1:el.scrollHeight>el.clientHeight+1;
     while(over()&&s>min){s-=2;el.style.fontSize=s+"px";}
+    // data-hug: once sized, stop filling the space so the block sits with its neighbours
+    if("hug" in el.dataset)el.style.flex="0 0 auto";
   });
 }
 

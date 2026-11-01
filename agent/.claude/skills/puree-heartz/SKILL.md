@@ -15,7 +15,7 @@ description: Writes one @puree_heartz couple/heart quote post in English and Hin
 3. Write `quote_hi`: the same feeling in natural Hindi/Urdu-flavoured Devanagari (shayari tone welcome). Under 25 words, with its own `*highlight*`. It doesn't have to be a literal translation.
 4. Optional `note` / `note_hi`: a tiny line under the signature, like "send this to your home".
 5. Leave `author` empty for original lines. Only quote a real person if you verified it with WebSearch, and then add the source.
-6. Set `theme` to rotate moods: blush, midnight, petal, dusk. Don't repeat the most recent post's theme.
+6. Don't set a `theme`: the app picks the card's colour.
 7. Choose a `hook` from the bank (with `q_hi`). Prefer share/tag hooks; they spread reach.
 
 ## Hook bank

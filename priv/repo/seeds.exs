@@ -19,7 +19,7 @@ channels = [
     skill: "puree-heartz",
     template_dir: "puree_heartz",
     base_data: %{
-      "theme" => "blush",
+      "theme" => "butter",
       "format" => "post",
       "lang" => "both",
       "signature" => "puree_heartz",
@@ -34,7 +34,7 @@ channels = [
     skill: "motivation2live",
     template_dir: "_motivation2live__",
     base_data: %{
-      "theme" => "concrete",
+      "theme" => "ivory",
       "format" => "post",
       "lang" => "both",
       "total_days" => 365,

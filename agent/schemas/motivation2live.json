@@ -69,15 +69,6 @@
                     "type": "string",
                     "maxLength": 140
                   },
-                  "theme": {
-                    "type": "string",
-                    "enum": [
-                      "concrete",
-                      "night",
-                      "steel",
-                      "fire"
-                    ]
-                  },
                   "hook": {
                     "type": "object",
                     "properties": {
@@ -120,7 +111,6 @@
                   "quote_hi",
                   "action",
                   "action_hi",
-                  "theme",
                   "hook"
                 ],
                 "additionalProperties": false

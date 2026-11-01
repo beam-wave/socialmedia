@@ -4,37 +4,58 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Hind:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&family=Noto+Sans+Devanagari:wght@500;700;800&display=swap">
 <link rel="stylesheet" href="../_shared/studio.css">
 <style>
-/* Art: poster-style motivation. Condensed caps (Anton), marker-highlight phrase, a Day N / 365 streak bar. Themes: concrete, night, steel, fire. */
-.art{--a-bg:#e8e5de;--a-fg:#141414;--a-dim:rgba(20,20,20,.64);--a-hi:#ff4b1f;--a-ink:#ffffff;--a-rule:rgba(20,20,20,.18);--a-card:rgba(20,20,20,.05);--a-glow:rgba(255,75,31,.12);
-  --a-display:"Anton","Noto Sans Devanagari",Impact,"Arial Narrow",sans-serif;--a-display-w:400;--a-body:"Hind","Instrument Sans","Noto Sans Devanagari",system-ui,sans-serif}
-.art.t-night{--a-bg:#0e1a2b;--a-fg:#ffffff;--a-dim:rgba(255,255,255,.7);--a-hi:#ffb703;--a-ink:#111111;--a-rule:rgba(255,255,255,.2);--a-card:rgba(255,255,255,.06);--a-glow:rgba(255,183,3,.12)}
-.art.t-steel{--a-bg:#2a2e35;--a-fg:#ffffff;--a-dim:rgba(255,255,255,.7);--a-hi:#4cc9f0;--a-ink:#0b1a24;--a-rule:rgba(255,255,255,.2);--a-card:rgba(255,255,255,.06);--a-glow:rgba(76,201,240,.12)}
-.art.t-fire{--a-bg:linear-gradient(160deg,#ff8a00 0%,#e52e71 100%);--a-fg:#ffffff;--a-dim:rgba(255,255,255,.82);--a-hi:#fff200;--a-ink:#3a0010;--a-rule:rgba(255,255,255,.3);--a-card:rgba(255,255,255,.12);--a-glow:rgba(255,255,255,.12)}
-.cta-q{text-transform:uppercase;letter-spacing:.005em;line-height:1.02}
-.cta-q em{background:var(--a-hi);color:var(--a-ink);padding:0 .12em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+/* Art: calm poster. The quote is the only loud thing: condensed caps (Anton) straight on the background,
+   the punch phrase in the accent colour. One streak signal: a climber on a tonal mountain (summit = Day 365).
+   Six palettes (the app picks one at random per post); each is one hue in tones plus a single accent. */
+.art{--a-bg:#f4efe6;--a-fg:#16130f;--a-dim:rgba(22,19,15,.74);--a-hi:#b3261e;--a-ink:#ffffff;--a-rule:rgba(22,19,15,.14);--a-card:rgba(22,19,15,.05);--a-glow:rgba(179,38,30,.1);
+  --a-display:"Anton","Noto Sans Devanagari",Impact,"Arial Narrow",sans-serif;--a-display-w:400;--a-body:"Hind","Instrument Sans","Noto Sans Devanagari",system-ui,sans-serif;
+  --m-far:#e8e0d2;--m-mid:#d6cab6;--m-near:#16130f;--m-trail:rgba(244,239,230,.6);--m-foot:rgba(244,239,230,.88)}
+/* Measured palettes: main text 9.9:1 or more, accent 4.8:1 or more against the background.
+   Mountains are tones of the background so they never compete with the text. */
+.art.t-ivory{--a-bg:#f4efe6;--a-fg:#16130f;--a-dim:rgba(22,19,15,.74);--a-hi:#b3261e;--a-ink:#ffffff;--a-rule:rgba(22,19,15,.14);
+  --m-far:#e8e0d2;--m-mid:#d6cab6;--m-near:#16130f;--m-trail:rgba(244,239,230,.6);--m-foot:rgba(244,239,230,.88)}
+.art.t-midnight{--a-bg:#0b1426;--a-fg:#f6f3ec;--a-dim:rgba(246,243,236,.76);--a-hi:#f4b740;--a-ink:#1a1206;--a-rule:rgba(246,243,236,.16);
+  --m-far:#13203a;--m-mid:#1b2c4d;--m-near:#050a14;--m-trail:rgba(246,243,236,.5);--m-foot:rgba(246,243,236,.78)}
+.art.t-forest{--a-bg:#0f2a22;--a-fg:#f1f4ec;--a-dim:rgba(241,244,236,.76);--a-hi:#e9c46a;--a-ink:#10241c;--a-rule:rgba(241,244,236,.16);
+  --m-far:#16382d;--m-mid:#1e4739;--m-near:#07170f;--m-trail:rgba(241,244,236,.5);--m-foot:rgba(241,244,236,.78)}
+.art.t-volt{--a-bg:#141414;--a-fg:#ffffff;--a-dim:rgba(255,255,255,.72);--a-hi:#c8f24b;--a-ink:#111111;--a-rule:rgba(255,255,255,.16);
+  --m-far:#1f1f1f;--m-mid:#2b2b2b;--m-near:#000000;--m-trail:rgba(255,255,255,.45);--m-foot:rgba(255,255,255,.75)}
+.art.t-cobalt{--a-bg:#1a3a9c;--a-fg:#ffffff;--a-dim:rgba(255,255,255,.84);--a-hi:#ffd84a;--a-ink:#0c1d55;--a-rule:rgba(255,255,255,.22);
+  --m-far:#2246b0;--m-mid:#142e80;--m-near:#0b1a4d;--m-trail:rgba(255,255,255,.55);--m-foot:rgba(255,255,255,.82)}
+.art.t-sand{--a-bg:#ead9bd;--a-fg:#14213d;--a-dim:rgba(20,33,61,.76);--a-hi:#a33a0b;--a-ink:#ffffff;--a-rule:rgba(20,33,61,.16);
+  --m-far:#dfcaa8;--m-mid:#cdb48c;--m-near:#14213d;--m-trail:rgba(234,217,189,.6);--m-foot:rgba(234,217,189,.88)}
+.art::after{display:none}
+.cta-q{text-transform:uppercase;letter-spacing:.005em;line-height:1.04}
+.cta-q em{font-style:normal;color:var(--a-hi)}
 .cta-q small{text-transform:none}
 .cta-btn{font-family:var(--a-display);font-weight:400;letter-spacing:.04em;text-transform:uppercase;font-size:38px}
-.m{padding:84px 88px 80px;display:flex;flex-direction:column;gap:30px}
-.m.story{padding:200px 88px 190px}
-.m-top{display:flex;justify-content:space-between;align-items:center;flex:none}
-.m-day{font-family:var(--a-display);font-size:44px;letter-spacing:.04em}
+.m{padding:84px 88px 0;display:flex;flex-direction:column;overflow:hidden}
+.m.story{padding:180px 88px 0}
+.m-top{display:flex;justify-content:space-between;align-items:baseline;flex:none}
+.m-day{font-family:var(--a-display);font-size:40px;letter-spacing:.06em;color:var(--a-dim)}
 .m-day b{font-weight:400;color:var(--a-hi)}
-.m-handle{font-size:28px;font-weight:600;color:var(--a-dim)}
-.m-bar{height:12px;border-radius:6px;background:var(--a-rule);overflow:hidden;flex:none;margin-top:-10px}
-.m-bar i{display:block;height:100%;background:var(--a-hi)}
-.m-text{font-family:var(--a-display);text-transform:uppercase;line-height:1.02;letter-spacing:.005em;margin:0;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center}
-.m-text em{font-style:normal;background:var(--a-hi);color:var(--a-ink);padding:0 .12em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.m-handle{font-size:26px;font-weight:600;color:var(--a-dim);letter-spacing:.02em}
+.m-body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:34px;padding:40px 0 30px}
+.m-text{font-family:var(--a-display);text-transform:uppercase;line-height:1.04;letter-spacing:.01em;margin:0;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center}
+.m-text em{font-style:normal;color:var(--a-hi)}
 .m[lang=hi] .m-text{text-transform:none;font-weight:800;line-height:1.3}
-.m-alt{font-family:var(--a-body);font-weight:600;font-size:44px;line-height:1.4;margin:0;color:var(--a-fg);flex:none;max-height:190px;overflow:hidden}
-.m-alt em{font-style:normal;color:var(--a-hi)}
-.art.t-concrete .m-alt em{color:var(--a-hi)}
-.m-by{font-size:32px;font-weight:600;color:var(--a-dim);letter-spacing:.06em;text-transform:uppercase;flex:none}
-.m-act{display:grid;grid-template-columns:auto 1fr;gap:6px 24px;align-items:center;border:3px solid var(--a-fg);border-radius:20px;padding:24px 28px;flex:none}
-.m-act b{grid-row:span 2;font-family:var(--a-display);font-weight:400;font-size:30px;letter-spacing:.06em;text-transform:uppercase;background:var(--a-fg);color:var(--a-bg);padding:14px 18px;border-radius:12px;line-height:1.1;text-align:center}
-.art.t-fire .m-act b{color:#e5534b}
-.m-act p{margin:0;font-size:32px;line-height:1.3;font-weight:600}
-.m-act p + p{font-size:28px;font-weight:500;color:var(--a-dim)}
-.m-foot{display:flex;justify-content:space-between;font-size:26px;font-weight:600;color:var(--a-dim);flex:none;letter-spacing:.04em}
+.m-alt{font-family:var(--a-body);font-weight:500;font-size:40px;line-height:1.45;margin:0;color:var(--a-dim);flex:none;max-height:170px;overflow:hidden}
+.m-alt em{font-style:normal;color:var(--a-fg);font-weight:700}
+.m-by{font-size:28px;font-weight:600;color:var(--a-dim);letter-spacing:.08em;text-transform:uppercase;flex:none}
+.m-act{flex:none;border-left:6px solid var(--a-hi);padding:4px 0 4px 26px}
+.m-act b{display:block;font-family:var(--a-display);font-weight:400;font-size:26px;letter-spacing:.14em;text-transform:uppercase;color:var(--a-fg);margin-bottom:8px}
+.m-act p{margin:0;font-size:31px;line-height:1.32;font-weight:600;color:var(--a-fg)}
+.m-act p + p{font-size:26px;font-weight:500;color:var(--a-dim);margin-top:4px}
+.m-scene{flex:none;height:330px;margin:0 -88px;position:relative}
+.m.story .m-scene{height:500px;background:linear-gradient(transparent 299px,var(--m-near) 299px)}
+.m-scene svg{position:absolute;inset:0;width:100%;height:100%}
+.m-scene .far{fill:var(--m-far)}.m-scene .mid{fill:var(--m-mid)}.m-scene .near{fill:var(--m-near)}
+.m-scene .sun{fill:var(--a-hi)}.m-scene .hi{fill:var(--a-hi)}
+.m-scene .trail{fill:none;stroke:var(--m-trail);stroke-width:4;stroke-dasharray:2 12;stroke-linecap:round}
+.m-scene .done{fill:none;stroke:var(--a-hi);stroke-width:6;stroke-linecap:round;stroke-linejoin:round}
+.m-foot{position:absolute;right:88px;bottom:34px;display:flex;align-items:baseline;gap:22px;font-size:24px;font-weight:600;color:var(--m-foot);letter-spacing:.04em}
+.m-foot b{font-family:var(--a-display);font-weight:400;font-size:30px;letter-spacing:.08em;color:var(--m-foot)}
+.m.story .m-foot{bottom:96px}
 </style></head>
 <body><div id="app"></div>
 <script src="../_shared/studio.js"></script>
@@ -54,9 +75,44 @@ const HOOKS=[
   {q:"Tag a friend who *needs this push today*.",q_hi:"उस दोस्त को टैग करो जिसे *आज ये चाहिए*।"},
   {q:"Did you finish *yesterday's action*?",q_hi:"कल का *एक्शन* पूरा किया?",options:["Done","Doing it today"]}
 ];
+/* Mountain scene. The trail runs from the bottom left to the summit flag (Day 365);
+   the climber stands at today's share of it and the walked part is highlighted. */
+const TRAIL=[[120,284],[300,268],[240,250],[440,218],[396,196],[570,166],[540,148],[690,108],[760,68]];
+function along(t){
+  const seg=TRAIL.slice(1).map((p,i)=>Math.hypot(p[0]-TRAIL[i][0],p[1]-TRAIL[i][1]));
+  let left=t*seg.reduce((a,b)=>a+b,0);
+  for(let i=0;i<seg.length;i++){
+    if(left<=seg[i]||i===seg.length-1){const f=Math.min(1,left/seg[i]),a=TRAIL[i],b=TRAIL[i+1];
+      return {x:a[0]+(b[0]-a[0])*f,y:a[1]+(b[1]-a[1])*f,walked:[...TRAIL.slice(0,i+1),[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f]]};}
+    left-=seg[i];
+  }
+}
+function scene(day,of,story){
+  const at=along(Math.max(0,Math.min(1,day/of))), pts=l=>l.map(p=>p.map(n=>n.toFixed(1)).join(",")).join(" ");
+  return `<svg viewBox="0 0 1080 300" preserveAspectRatio="${story?"xMidYMin meet":"xMidYMax slice"}" aria-hidden="true">
+    <defs><radialGradient id="m-glow"><stop offset=".55" stop-color="var(--a-hi)" stop-opacity=".28"/><stop offset="1" stop-color="var(--a-hi)" stop-opacity="0"/></radialGradient></defs>
+    <circle cx="300" cy="168" r="170" fill="url(#m-glow)"/>
+    <circle class="sun" cx="300" cy="168" r="92"/>
+    <path class="far" d="M0 300V200l140-48 120 36 140-76 120 56 120-46 140 54 120-76 180 56V300z"/>
+    <path class="mid" d="M0 300V236l160-50 140 38 170-78 150 66 200-56 180 54 80-18v108z"/>
+    <path class="near" d="M0 300V250q120-28 220-24l200-60 140-40 200-60 120 70 200 40v124z"/>
+    <polyline class="trail" points="${pts(TRAIL)}"/>
+    <polyline class="done" points="${pts(at.walked)}"/>
+    <path d="M760 68V22" stroke="var(--m-trail)" stroke-width="5" stroke-linecap="round"/>
+    <path class="hi" d="M762 22h62l-13 16 13 16h-62z"/>
+    <text x="778" y="45" font-family="Anton,Impact,sans-serif" font-size="19" fill="var(--a-ink)">365</text>
+    <g transform="translate(${at.x.toFixed(1)} ${at.y.toFixed(1)}) scale(1.45)">
+      <circle r="15" class="hi" opacity=".35"/>
+      <g stroke="var(--a-hi)" stroke-width="5" stroke-linecap="round" fill="none">
+        <path d="M0 -12v-22M0 -34l-9 12M0 -34l9 -14M0 -12l-8 12M0 -12l9 11"/><path d="M9 -48l7 -8"/></g>
+      <rect x="-12" y="-36" width="9" height="16" rx="3" class="hi"/>
+      <circle cy="-42" r="7" class="hi"/>
+    </g>
+  </svg>`;
+}
 function posts(d){
   return (d.quotes||[]).map((q,i)=>{
-    const story=d.format==="story", size=story?"story":"post", lang=q.lang||d.lang||"both", theme="t-"+(q.theme||d.theme||"concrete");
+    const story=d.format==="story", size=story?"story":"post", lang=q.lang||d.lang||"both", theme="t-"+(q.theme||d.theme||"ivory");
     const hiMain=lang==="hi"||(!q.quote&&q.quote_hi);
     const main=hiMain?(q.quote_hi||q.quote):q.quote, alt=(lang==="both"&&!hiMain&&q.quote_hi)?q.quote_hi:"";
     const day=+q.day||i+1, of=+d.total_days||365, pct=Math.max(1,Math.min(100,day/of*100));
@@ -64,12 +120,14 @@ function posts(d){
     const h=hookOf(d,q,HOOKS[0]);
     const card=`<section class="art m ${theme}${story?" story":""}" lang="${hiMain?"hi":"en"}">
       <div class="m-top"><span class="m-day">Day <b>${pad(day,3)}</b> / ${of}</span><span class="m-handle">${esc(d.handle)}</span></div>
-      <div class="m-bar"><i style="width:${pct.toFixed(1)}%"></i></div>
-      <p class="m-text fit" data-max="${story?150:(alt?118:136)}" data-min="56"><span>${hl(main)}</span></p>
-      ${alt?`<p class="m-alt" lang="hi">${hl(alt)}</p>`:""}
-      ${q.author?`<div class="m-by">— ${esc(q.author)}</div>`:""}
-      ${act?`<div class="m-act"><b>Today's<br>action</b><p>${esc(act)}</p>${act2?`<p lang="hi">${esc(act2)}</p>`:""}</div>`:""}
-      <div class="m-foot"><span>${lang==="hi"?"सेव करो · कल सुबह फिर पढ़ो":"Save it · Read it again at 6 AM"}</span><span>Swipe →</span></div></section>`;
+      <div class="m-body">
+        <p class="m-text fit" data-hug data-max="${story?136:(alt?108:124)}" data-min="56"><span>${hl(main)}</span></p>
+        ${alt?`<p class="m-alt" lang="hi">${hl(alt)}</p>`:""}
+        ${q.author?`<div class="m-by">— ${esc(q.author)}</div>`:""}
+        ${act?`<div class="m-act"><b>Today's action</b><p>${esc(act)}</p>${act2?`<p lang="hi">${esc(act2)}</p>`:""}</div>`:""}
+      </div>
+      <div class="m-scene">${scene(day,of,story)}
+        <div class="m-foot"><span>${lang==="hi"?"सेव करो · कल सुबह फिर पढ़ो":"Save it · read again at 6 AM"}</span><b>Swipe →</b></div></div></section>`;
     const cta=ctaSlide(d,{cls:theme,size,question:h.q,question_hi:lang==="en"?"":h.q_hi,options:h.options,chip:lang==="hi"?"आपकी बारी":"Your move",
       placeholder:lang==="hi"?"यहाँ लिखो, ख़ुद से वादा करो…":"Write it down. Make it real…",followLine:d.follow_line||`A new push every morning, Day ${day+1} drops tomorrow. Follow so you don't break the streak.`});
     const hh=lang==="en"?{...h,q_hi:""}:lang==="hi"?{...h,q:h.q_hi||h.q,q_hi:""}:h;
@@ -92,14 +150,14 @@ Studio.mount({
   channel:"@_motivation2live__", title:"Daily Motivation Studio", accent:"#e8461c", itemsKey:"quotes",
   sub:"Each day is a 2-slide post: a quote card with a Day N / 365 streak and today's action, then a Comment & Follow slide.",
   note:"The samples are original lines. Credit real authors, and check that the quote is actually theirs. Many famous quotes are misattributed.",
-  controls:[{key:"theme",label:"Theme",perItem:true,options:[["concrete","Concrete"],["night","Night"],["steel","Steel"],["fire","Fire"]]},{key:"lang",label:"Language",perItem:true,options:[["both","English + Hindi"],["en","English"],["hi","Hindi"]]},{key:"format",label:"Size",options:[["post","Feed post 4:5"],["story","Story / Reel 9:16"]]}],
+  controls:[{key:"theme",label:"Theme",perItem:true,options:[["ivory","Ivory & red"],["midnight","Midnight & gold"],["forest","Forest & gold"],["volt","Black & lime"],["cobalt","Cobalt & yellow"],["sand","Sand & navy"]]},{key:"lang",label:"Language",perItem:true,options:[["both","English + Hindi"],["en","English"],["hi","Hindi"]]},{key:"format",label:"Size",options:[["post","Feed post 4:5"],["story","Story / Reel 9:16"]]}],
   hooks:HOOKS, posts,
   guide:[["day / total_days","The streak counter.","A streak gives people a reason to come back tomorrow."],["quote / quote_hi","Under 18 words works best.","Wrap the punch phrase in *stars* to highlight it."],["action / action_hi","One small task for today.","This is what turns a quote into a habit."],["author","Optional.","Leave empty for the channel's own lines."],["hook","The comment question.","Set it for the batch or per day."]],
-  sample:{theme:"concrete",format:"post",lang:"both",handle:"@_motivation2live__",total_days:365,
+  sample:{theme:"ivory",format:"post",lang:"both",handle:"@_motivation2live__",total_days:365,
     tags:"#motivation #discipline #dailymotivation #hindimotivation #success #mindset #motivation2live",
     quotes:[
       {day:42,date:"Mon · 26 Oct",quote:"Discipline is choosing *what you want most* over what you want now.",quote_hi:"अनुशासन मतलब *जो सबसे ज़्यादा चाहिए* उसे अभी की चाहत से ऊपर रखना।",action:"Put your phone in another room for the first hour of your day.",action_hi:"दिन का पहला घंटा फ़ोन दूसरे कमरे में रखो।",hook:{q:"Type *I'M IN* if you're showing up today.",q_hi:"आज मेहनत करोगे तो लिखो *मैं तैयार हूँ*।"}},
-      {day:43,date:"Tue · 27 Oct",theme:"night",quote:"Nobody is coming to save you. *Start anyway.*",quote_hi:"कोई बचाने नहीं आएगा। *फिर भी शुरू करो।*",action:"Do the task you've been postponing for 25 minutes. Just 25.",action_hi:"जो काम टाल रहे हो, उसे सिर्फ़ 25 मिनट दो।",hook:{q:"Day 1 or *one day*? Choose.",q_hi:"आज से या *किसी दिन*? चुनो।",options:["Day 1","One day"]}},
-      {day:44,date:"Wed · 28 Oct",theme:"fire",quote:"Small steps every day beat *big plans someday*.",quote_hi:"रोज़ के छोटे कदम, *किसी दिन के बड़े प्लान* से बेहतर हैं।",action:"Write tomorrow's top 3 tasks before you sleep tonight.",action_hi:"सोने से पहले कल के 3 सबसे ज़रूरी काम लिख लो।",hook:{q:"What time did you *wake up today*?",q_hi:"आज *कितने बजे* उठे?",options:["Before 6","6–8 AM","After 8"]}}]}
+      {day:43,date:"Tue · 27 Oct",theme:"midnight",quote:"Nobody is coming to save you. *Start anyway.*",quote_hi:"कोई बचाने नहीं आएगा। *फिर भी शुरू करो।*",action:"Do the task you've been postponing for 25 minutes. Just 25.",action_hi:"जो काम टाल रहे हो, उसे सिर्फ़ 25 मिनट दो।",hook:{q:"Day 1 or *one day*? Choose.",q_hi:"आज से या *किसी दिन*? चुनो।",options:["Day 1","One day"]}},
+      {day:44,date:"Wed · 28 Oct",theme:"cobalt",quote:"Small steps every day beat *big plans someday*.",quote_hi:"रोज़ के छोटे कदम, *किसी दिन के बड़े प्लान* से बेहतर हैं।",action:"Write tomorrow's top 3 tasks before you sleep tonight.",action_hi:"सोने से पहले कल के 3 सबसे ज़रूरी काम लिख लो।",hook:{q:"What time did you *wake up today*?",q_hi:"आज *कितने बजे* उठे?",options:["Before 6","6–8 AM","After 8"]}}]}
 });
 </script></body></html>

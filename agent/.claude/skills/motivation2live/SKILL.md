@@ -15,7 +15,7 @@ description: Writes one @_motivation2live__ daily motivation post (Day N / 365) 
 3. `quote_hi`: natural, conversational Hindi (tum-form), with its own `*highlight*`.
 4. `action` / `action_hi`: **one** small concrete task doable today in under 30 minutes. Not "be positive"; for example: "Write tomorrow's top 3 tasks before you sleep tonight."
 5. Leave `author` empty unless it's a verified real quote (then add the source).
-6. `theme`: rotate concrete, night, steel, fire. Don't repeat the last one.
+6. Don't set a `theme`: the app picks the card's colours.
 7. `hook` with `q_hi`, from the bank below.
 
 ## Hook bank

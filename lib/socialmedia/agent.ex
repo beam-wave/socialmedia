@@ -157,16 +157,20 @@ defmodule Socialmedia.Agent do
     |> put_app_fields(channel, work, local)
   end
 
-  defp put_app_fields(data, %{skill: "motivation2live"}, work, local) do
+  defp put_app_fields(data, %{skill: "motivation2live"} = c, work, local) do
     update_first(data, "quotes", fn q ->
-      Map.merge(q, %{"day" => series_number(work), "date" => short_date(local)})
+      Map.merge(q, %{
+        "day" => series_number(work),
+        "date" => short_date(local),
+        "theme" => pick_colour(c, work)
+      })
     end)
   end
 
-  defp put_app_fields(data, %{skill: "puree-heartz"}, work, local) do
+  defp put_app_fields(data, %{skill: "puree-heartz"} = c, work, local) do
     update_first(data, "quotes", fn q ->
       n = series_number(work) |> Integer.to_string() |> String.pad_leading(2, "0")
-      Map.merge(q, %{"number" => n, "date" => short_date(local)})
+      Map.merge(q, %{"number" => n, "date" => short_date(local), "theme" => pick_colour(c, work)})
     end)
   end
 
@@ -175,6 +179,28 @@ defmodule Socialmedia.Agent do
   end
 
   defp put_app_fields(data, _, _, _), do: data
+
+  # Card colours the app rotates per channel (template themes); `base_data.themes` can override the list
+  @colours %{
+    "puree-heartz" => ~w(butter mint lilac sky coral),
+    "motivation2live" => ~w(ivory midnight forest volt cobalt sand)
+  }
+
+  @doc "A random card colour, never the one the channel's last post used."
+  def pick_colour(%{base_data: base} = channel, %Work{recent: recent}) do
+    colours = (is_map(base) && base["themes"]) || Map.fetch!(@colours, channel.skill)
+
+    last =
+      case recent do
+        [%{"quotes" => [%{"theme" => t} | _]} | _] -> t
+        _ -> nil
+      end
+
+    case List.delete(colours, last) do
+      [] -> Enum.random(colours)
+      choices -> Enum.random(choices)
+    end
+  end
 
   defp update_first(data, key, fun) do
     case data[key] do
