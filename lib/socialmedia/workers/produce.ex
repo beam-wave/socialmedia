@@ -27,7 +27,16 @@ defmodule Socialmedia.Workers.Produce do
   @busy_retry_seconds 30
 
   @impl Oban.Worker
-  def perform(%Oban.Job{} = job) do
+  def perform(%Oban.Job{args: %{"post_id" => id}} = job) do
+    # A stale job (post deleted or no longer being made) ends without waiting its turn
+    case Posts.get_post(id) do
+      nil -> {:cancel, :post_deleted}
+      %{status: "creating"} -> with_lock(job)
+      post -> {:cancel, "post is #{post.status}, not creating"}
+    end
+  end
+
+  defp with_lock(job) do
     Repo.checkout(
       fn ->
         case Repo.query!("SELECT pg_try_advisory_lock($1)", [@lock]).rows do

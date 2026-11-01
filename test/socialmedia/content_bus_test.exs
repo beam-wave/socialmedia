@@ -145,20 +145,29 @@ defmodule Socialmedia.ContentBusTest do
     p = insert_post(channel(), %{status: "creating"})
 
     # another server holds the lock
+    test = self()
+
     holder =
       Task.async(fn ->
         {:ok, conn} = Postgrex.start_link(Keyword.drop(Repo.config(), [:pool]))
         Postgrex.query!(conn, "SELECT pg_advisory_lock(727001)", [])
+        send(test, :locked)
 
         receive do
           :done -> Postgrex.query!(conn, "SELECT pg_advisory_unlock(727001)", [])
         end
+
+        GenServer.stop(conn)
       end)
 
-    Process.sleep(100)
-    assert {:snooze, 30} = perform_job(Produce, %{post_id: p.id})
-    send(holder.pid, :done)
-    Task.await(holder)
+    assert_receive :locked, 5_000
+
+    try do
+      assert {:snooze, 30} = perform_job(Produce, %{post_id: p.id})
+    after
+      send(holder.pid, :done)
+      Task.await(holder)
+    end
   end
 
   test "Produce only runs for a post that is being created" do
