@@ -62,9 +62,9 @@ defmodule SocialmediaWeb.ChannelLive.Settings do
     ch = socket.assigns.channel
 
     check =
-      case ch.access_token && Graph.me(ch.access_token) do
-        nil -> {:error, "Save a token first"}
-        {:ok, %{"username" => u, "user_id" => id}} -> {:ok, "Connected as @#{u} (user id #{id})"}
+      case ch.access_token && ch.ig_user_id && Graph.account(ch.access_token, ch.ig_user_id) do
+        nil -> {:error, "Save the Instagram user id and a token first"}
+        {:ok, %{"username" => u, "id" => id}} -> {:ok, "Connected as @#{u} (user id #{id})"}
         {:ok, body} -> {:ok, "Connected: #{inspect(body)}"}
         {:error, e} -> {:error, to_string(e)}
       end

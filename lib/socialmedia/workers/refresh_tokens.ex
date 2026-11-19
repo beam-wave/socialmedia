@@ -13,6 +13,7 @@ defmodule Socialmedia.Workers.RefreshTokens do
 
     for ch <- Channels.list_channels(),
         ch.access_token,
+        Graph.refreshable?(ch.access_token),
         is_nil(ch.token_expires_at) or DateTime.compare(ch.token_expires_at, soon) == :lt do
       case Graph.refresh_token(ch.access_token) do
         {:ok, token, secs} ->

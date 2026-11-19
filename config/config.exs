@@ -38,7 +38,8 @@ config :socialmedia,
   claude_bin: "claude",
   claude_timeout_ms: :timer.minutes(12),
   node_bin: "node",
-  graph_api_base: "https://graph.instagram.com/v23.0"
+  graph_api_base: "https://graph.instagram.com/v23.0",
+  facebook_graph_api_base: "https://graph.facebook.com/v23.0"
 
 config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
 
