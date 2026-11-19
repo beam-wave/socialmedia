@@ -1,4 +1,5 @@
-# Production: the app only, bound to localhost. Postgres is the host's
+# Production: the app only, bound to localhost unless APP_BIND says otherwise
+# (APP_BIND=0.0.0.0 in .env serves it on the server's IP; set PHX_HOST to that IP). Postgres is the host's
 # `shared-db` container, reached through host.docker.internal; DATABASE_URL
 # and the other secrets live in .env (see .env.example).
 #
@@ -19,7 +20,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
-      - "127.0.0.1:${APP_PORT:-4010}:4000"
+      - "${APP_BIND:-127.0.0.1}:${APP_PORT:-4010}:4000"
     deploy:
       resources:
         limits:
