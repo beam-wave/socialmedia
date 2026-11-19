@@ -20,7 +20,11 @@ defmodule SocialmediaWeb.ChannelLive.Settings do
        channel: channel,
        page_title: if(channel.id, do: "#{channel.handle} settings", else: "New channel"),
        skills: list_dirs(Path.join([Paths.agent_dir(), ".claude", "skills"])),
-       templates: list_dirs(Paths.channels_dir()) |> Enum.reject(&String.starts_with?(&1, "_")),
+       # Folders with a template.html (skips _shared, keeps _motivation2live__)
+       templates:
+         Paths.channels_dir()
+         |> list_dirs()
+         |> Enum.filter(&File.exists?(Path.join([Paths.channels_dir(), &1, "template.html"]))),
        base_json: Jason.encode!(channel.base_data || %{}, pretty: true),
        json_error: nil,
        check: nil
