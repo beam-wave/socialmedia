@@ -30,4 +30,15 @@ defmodule SocialmediaWeb.ChannelSettingsTest do
     refute Graph.refreshable?("EAAabc")
     assert Graph.refreshable?("IGAAabc")
   end
+
+  test "toggling dry run with the token field empty keeps the saved token", %{conn: conn} do
+    {:ok, ch} = Socialmedia.Channels.update_channel(channel(), %{access_token: "IGAAsaved"})
+    {:ok, view, _} = live(conn, ~p"/channels/#{ch.id}/settings")
+
+    view |> form("form", channel: %{dry_run: "false", access_token: ""}) |> render_change()
+    view |> form("form", channel: %{dry_run: "false", access_token: ""}) |> render_submit()
+
+    ch = Socialmedia.Channels.get_channel!(ch.id)
+    assert ch.dry_run == false and ch.access_token == "IGAAsaved"
+  end
 end

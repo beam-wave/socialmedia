@@ -45,7 +45,7 @@ defmodule Socialmedia.Channels.Channel do
     |> validate_change(:timezone, fn :timezone, tz ->
       if Tzdata.zone_exists?(tz), do: [], else: [timezone: "is not a known timezone"]
     end)
-    |> update_change(:access_token, &String.trim/1)
+    |> update_change(:access_token, &(&1 && String.trim(&1)))
     |> unique_constraint(:handle)
   end
 end
