@@ -1,0 +1,26 @@
+# Production: the app only, bound to localhost. Postgres is the host's
+# `shared-db` container, reached through host.docker.internal; DATABASE_URL
+# and the other secrets live in .env (see .env.example).
+#
+#   docker compose -f docker-compose.prod.yml up -d --build
+#   docker compose -f docker-compose.prod.yml run --rm app /app/bin/seed
+#
+# The admin panel is at http://127.0.0.1:${APP_PORT:-4010} on the server; from
+# a laptop: ssh -L 4010:127.0.0.1:4010 <server>, then open http://localhost:4010
+services:
+  app:
+    build: .
+    image: socialmedia:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PHX_SERVER: "true"
+      PORT: "4000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "127.0.0.1:${APP_PORT:-4010}:4000"
+    deploy:
+      resources:
+        limits:
+          memory: 768m
