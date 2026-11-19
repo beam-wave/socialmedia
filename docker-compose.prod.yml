@@ -25,3 +25,13 @@ services:
       resources:
         limits:
           memory: 768m
+
+  # Free HTTPS without opening a port: a Cloudflare quick tunnel to the app.
+  # The *.trycloudflare.com address changes when this container restarts:
+  #   docker compose -f docker-compose.prod.yml logs tunnel | grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' | tail -1
+  tunnel:
+    image: cloudflare/cloudflared:2024.12.2
+    restart: unless-stopped
+    command: ["tunnel", "--no-autoupdate", "--url", "http://app:4000"]
+    depends_on:
+      - app

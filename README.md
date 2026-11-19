@@ -108,6 +108,16 @@ Instagram downloads each slide through a presigned S3 link, so neither machine n
    ```
 4. On the Mac, run `mix phx.server` with the same S3 vars and create posts there. Pull and schedule them on prod. Instagram tokens are set only on prod, which also refreshes them weekly.
 
+### The live server
+
+Prod runs on the shared server from `~/apps/socialmedia` with `docker-compose.prod.yml` (app + a Cloudflare quick tunnel; Postgres is the host's `shared-db`). The admin panel is at the tunnel's `https://….trycloudflare.com` address, which changes whenever the tunnel restarts:
+
+```bash
+ssh -i ~/.ssh/dravya.pem ubuntu@3.109.52.254 "cd ~/apps/socialmedia && docker compose -f docker-compose.prod.yml logs tunnel | grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' | tail -1"
+```
+
+To update it: `git pull && docker compose -f docker-compose.prod.yml up -d --build` in that folder.
+
 ## Tests
 
 ```bash
