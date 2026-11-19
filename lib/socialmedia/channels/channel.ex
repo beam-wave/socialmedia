@@ -45,6 +45,16 @@ defmodule Socialmedia.Channels.Channel do
     |> validate_change(:timezone, fn :timezone, tz ->
       if Tzdata.zone_exists?(tz), do: [], else: [timezone: "is not a known timezone"]
     end)
+    |> update_change(:access_token, &String.trim/1)
+    |> validate_change(:access_token, fn :access_token, token ->
+      # graph.instagram.com only takes Instagram Login tokens (IG…); Facebook ones are EAA…
+      if String.starts_with?(token, "EAA"),
+        do: [
+          access_token:
+            "is a Facebook token (EAA…). Use the Instagram token (IG…) from 'API setup with Instagram login'"
+        ],
+        else: []
+    end)
     |> unique_constraint(:handle)
   end
 end

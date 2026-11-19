@@ -112,8 +112,7 @@ if config_env() == :prod do
     url: [host: host, port: 443, scheme: "https"],
     # Extra hosts the admin panel is opened from, e.g. "//*.trycloudflare.com"
     # for a Cloudflare quick tunnel whose name changes on every restart
-    check_origin:
-      ["//#{host}" | String.split(System.get_env("PHX_ORIGINS", ""), ",", trim: true)],
+    check_origin: ["//#{host}" | String.split(System.get_env("PHX_ORIGINS", ""), ",", trim: true)],
     http: [
       # Enable IPv6 and bind on all interfaces.
       # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.
