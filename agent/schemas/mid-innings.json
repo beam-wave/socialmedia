@@ -164,7 +164,7 @@
                           ],
                           "additionalProperties": false
                         },
-                        "description": "Exactly: Q1 who wins the match (two team names), Q2 first-innings score bands (3 options), Q3 "Top performer?" (3 player names)"
+                        "description": "Exactly: Q1 who wins the match (two team names), Q2 first-innings score bands (3 options), Q3 Top performer? (3 player names)"
                       },
                       "hook": {
                         "type": "object",
