@@ -67,6 +67,14 @@ defmodule Socialmedia.Content.Matches do
 
   def split_fixtures(data), do: [data]
 
+  @doc "True when the fixture's match starts on `day` in timezone `tz` (or has no start time to check)."
+  def on_day?(data, %Date{} = day, tz) do
+    case start_time(data) do
+      {:ok, start, _} -> start |> DateTime.shift_zone!(tz) |> DateTime.to_date() == day
+      :error -> true
+    end
+  end
+
   def first_match(%{"posts" => [m | _]}), do: m
   def first_match(_), do: nil
 

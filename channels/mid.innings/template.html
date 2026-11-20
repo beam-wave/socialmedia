@@ -43,6 +43,9 @@
 .ck.t-splitbold .pom{margin-bottom:auto}
 .art.t-splitbold .inn div.won{border:3px solid #fff;background:rgba(255,255,255,.16)}
 .ck.t-splitbold .perf{flex:none}
+/* Fixture without players to watch: the match card sits in the middle */
+.ck.lean .vs{margin-top:auto}
+.ck.lean .info{margin-bottom:auto}
 .ck.t-splitbold .k-series + .perf{margin-top:auto}
 .ck.t-splitbold .perf + .perf{margin-bottom:auto}
 .vs-x svg{display:none}
@@ -134,7 +137,9 @@ const T=(d,c)=>(d.teams||{})[c]||{code:c,name:c,color:"#555"};
 /* The two teams' colours as CSS variables, for themes coloured by the match itself */
 /* Country flags for international teams (square SVGs from flag-icons, MIT). League teams keep code badges. */
 const FLAGS={IND:"in",AUS:"au",ENG:"gb-eng",PAK:"pk",SA:"za",NZ:"nz",SL:"lk",BAN:"bd",AFG:"af",IRE:"ie",ZIM:"zw",NED:"nl",SCO:"gb-sct",UAE:"ae",NEP:"np",OMA:"om",USA:"us",CAN:"ca",NAM:"na"};
-const flag=tm=>FLAGS[tm.code]?` flag" style="--c:${esc(tm.color)};--flag:url(https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/flags/1x1/${FLAGS[tm.code]}.svg)`:`" style="--c:${esc(tm.color)}`;
+/* A-teams and women's sides (INDA, INDW, AUSW...) fly their country's flag too */
+const flagOf=code=>FLAGS[code]||FLAGS[String(code||"").replace(/(A|W|U19)$/,"")];
+const flag=tm=>flagOf(tm.code)?` flag" style="--c:${esc(tm.color)};--flag:url(https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/flags/1x1/${flagOf(tm.code)}.svg)`:`" style="--c:${esc(tm.color)}`;
 const tc=(d,p)=>`--ca:${esc(T(d,p.team1).color)};--cb:${esc(T(d,p.team2).color)}`;
 /* Bat smashing the ball mid-shot, with speed trails; the ball carries the VS */
 const BATBALL=`<svg viewBox="0 0 260 260" aria-hidden="true">
@@ -157,13 +162,14 @@ function head(d,p,tag,t){return `<div class="k-top"><span>${esc(d.handle)}</span
 function fixture(d,p,t,size){
   const a=T(d,p.team1),b=T(d,p.team2);
   const form=f=>(f||"").split("").map(x=>`<i class="${x==="W"?"w":""}">${esc(x)}</i>`).join("");
-  return `<section class="art ck ${t}${size==="story"?" story":""}" style="${tc(d,p)}">${head(d,p,"Match day",t)}
+  const watch=(p.watch||[]).slice(0,3), hasForm=!!(p.form1||p.form2);
+  return `<section class="art ck ${t}${size==="story"?" story":""}${watch.length?"":" lean"}" style="${tc(d,p)}">${head(d,p,"Match day",t)}
     <div class="vs"><div class="team"><div class="badge${flag(a)}">${esc(a.code)}</div><b>${esc(a.name)}</b><div class="form">${form(p.form1)}</div></div>
       <div class="vs-x"><span>VS</span>${BATBALL}</div>
       <div class="team"><div class="badge${flag(b)}">${esc(b.code)}</div><b>${esc(b.name)}</b><div class="form">${form(p.form2)}</div></div></div>
     <div class="info"><div><b>Date</b><span>${esc(p.date)}</span></div><div><b>Start</b><span>${esc(p.time)}</span></div><div><b>Venue</b><span>${esc(p.venue)}</span></div></div>
-    <div class="watch"><h3>Players to watch</h3>${(p.watch||[]).slice(0,3).map(w=>`<div><i class="dot" style="--c:${esc(T(d,w.team).color)}"></i><span>${esc(w.name)}</span><em>${esc(w.stat)}</em></div>`).join("")}</div>
-    <div class="k-foot"><span>Last 5: W = win</span><span>Predict on the next slide →</span></div></section>`;
+    ${watch.length?`<div class="watch"><h3>Players to watch</h3>${watch.map(w=>`<div><i class="dot" style="--c:${esc(T(d,w.team).color)}"></i><span>${esc(w.name)}</span><em>${esc(w.stat)}</em></div>`).join("")}</div>`:""}
+    <div class="k-foot"><span>${hasForm?"Last 5: W = win":""}</span><span>Predict on the next slide →</span></div></section>`;
 }
 function questions(d,p,t,size){
   return `<section class="art ck ${t}${size==="story"?" story":""}" style="${tc(d,p)}">${head(d,p,"Pre-match quiz",t)}

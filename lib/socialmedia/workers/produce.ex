@@ -108,6 +108,9 @@ defmodule Socialmedia.Workers.Produce do
          notes: gen.notes,
          slides: rendered.slides
        }}
+    else
+      [] -> {:skip, "No relevant match starts on #{day(work)} (#{work.channel.timezone})", nil}
+      other -> other
     end
   end
 
@@ -117,7 +120,15 @@ defmodule Socialmedia.Workers.Produce do
     end
   end
 
-  # A fixture run can return all of the day's matches
-  defp split(%Work{post_type: "fixture"}, data), do: Matches.split_fixtures(data)
+  # A fixture run can return all of the day's matches; keep the ones that start on the chosen day
+  defp split(%Work{post_type: "fixture"} = work, data),
+    do:
+      data
+      |> Matches.split_fixtures()
+      |> Enum.filter(&Matches.on_day?(&1, day(work), work.channel.timezone))
+
   defp split(_work, data), do: [data]
+
+  defp day(%Work{scheduled_at: at, channel: %{timezone: tz}}),
+    do: at |> DateTime.shift_zone!(tz) |> DateTime.to_date()
 end

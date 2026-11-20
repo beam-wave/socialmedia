@@ -16,7 +16,7 @@ Output `post.teams` (code → {code, name, color}) for every team you use, and `
 
 ### Pick the matches
 - The prompt gives the match day and the timezone (IST).
-- Use WebSearch (ESPNcricinfo, Cricbuzz, ICC, BCCI) to find **every relevant match starting on that date** in these tiers, and return them most relevant first, **up to 6**:
+- Use WebSearch (ESPNcricinfo, Cricbuzz, ICC, BCCI) to find **every relevant match whose start time, in IST, falls on that date** (a match starting at 1:45 AM IST the next day belongs to the next day) in these tiers, and return them most relevant first, **up to 6**:
   1. **India**: men's or women's, any format
   2. **ICC events**: World Cups, Champions Trophy, WTC final, qualifiers
   3. **T20 leagues**: IPL, WPL, BBL, PSL, SA20, CPL, ILT20, MLC, BPL, LPL and other big ones
@@ -34,7 +34,7 @@ Output `post.teams` (code → {code, name, color}) for every team you use, and `
 - `start_utc`: the scheduled start in UTC, e.g. `2026-10-28T14:00:00Z`. Verify it, because the result post is timed from it.
 - `match_type`: T20, T10, ODI, Test or The Hundred.
 - `form1` / `form2`: each team's last 5 results in this format, newest last (e.g. "WWLWW"). Omit them if you can't verify.
-- `watch`: up to 3 in-form players with a short recent stat ("212 runs · SR 168 this series").
+- `watch`: **always 3** in-form players (mix both teams) with a short recent stat ("212 runs · SR 168 this series"). For smaller sides, use their leading run-scorer or wicket-taker in the series or season; search for it.
 
 ### `questions`: always exactly these 3, in this order
 1. **Who wins the match?** Options are the two full team names.

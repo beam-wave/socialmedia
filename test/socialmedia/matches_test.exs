@@ -189,6 +189,15 @@ defmodule Socialmedia.MatchesTest do
     assert Socialmedia.Agent.build_prompt(w) =~ "Return every relevant match"
   end
 
+  test "only matches starting on the chosen day (IST) count" do
+    on = %{"posts" => [%{"start_utc" => "2026-11-20T10:00:00Z"}]}
+    # 1:45 AM IST on the 21st
+    next = %{"posts" => [%{"start_utc" => "2026-11-20T20:15:00Z"}]}
+    assert Matches.on_day?(on, ~D[2026-11-20], "Asia/Kolkata")
+    refute Matches.on_day?(next, ~D[2026-11-20], "Asia/Kolkata")
+    assert Matches.on_day?(%{"posts" => [%{}]}, ~D[2026-11-20], "Asia/Kolkata")
+  end
+
   test "rejecting the fixture drops its result post", %{ch: ch} do
     fx = insert_post(ch, %{post_type: "fixture"})
     res = insert_post(ch, %{post_type: "result", status: "planned", data: nil, parent_id: fx.id})

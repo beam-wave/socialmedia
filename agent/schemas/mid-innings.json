@@ -137,7 +137,9 @@
                             "stat"
                           ],
                           "additionalProperties": false
-                        }
+                        },
+                        "minItems": 3,
+                        "description": "Exactly 3 in-form players, mixed from both teams, each with a short recent stat"
                       },
                       "questions": {
                         "type": "array",
@@ -231,7 +233,8 @@
                       "questions",
                       "hook",
                       "start_utc",
-                      "match_type"
+                      "match_type",
+                      "watch"
                     ],
                     "additionalProperties": false
                   },
