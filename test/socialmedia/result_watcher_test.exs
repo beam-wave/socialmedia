@@ -137,6 +137,41 @@ defmodule Socialmedia.ResultWatcherTest do
     assert Posts.get_post!(fx.id).source_match_id == "m1"
   end
 
+  test "a women's fixture matches the API's 'Women' team names, a men's one does not" do
+    fixture = fn series ->
+      %{
+        "teams" => %{
+          "STR" => %{"name" => "Adelaide Strikers"},
+          "REN" => %{"name" => "Melbourne Renegades"}
+        },
+        "posts" => [
+          %{
+            "team1" => "STR",
+            "team2" => "REN",
+            "series" => series,
+            "start_utc" => "2026-11-20T08:10:00Z"
+          }
+        ]
+      }
+    end
+
+    api = [
+      %{
+        "id" => "w1",
+        "dateTimeGMT" => "2026-11-20T08:10:00",
+        "teamInfo" => [
+          %{"name" => "Adelaide Strikers Women", "shortname" => "ASW"},
+          %{"name" => "Melbourne Renegades Women", "shortname" => "MRW"}
+        ]
+      }
+    ]
+
+    assert %{"id" => "w1"} =
+             Socialmedia.Cricket.Results.find(api, fixture.("Women's Big Bash League 2026-27"))
+
+    assert nil == Socialmedia.Cricket.Results.find(api, fixture.("Big Bash League 2026-27"))
+  end
+
   test "finds the match on a later page of the list", %{fx: fx, start: start} do
     card = card(false, "India need 20 runs")
 

@@ -14,10 +14,14 @@ defmodule Socialmedia.Cricket.Results do
     teams = fixture_data["teams"] || %{}
     wanted = Enum.map([fx["team1"], fx["team2"]], &names(teams, &1))
     start = parse(fx["start_utc"])
+    women? = women?(fx)
 
     Enum.find(matches, fn m ->
       sides =
-        Enum.map(m["teamInfo"] || Enum.map(m["teams"] || [], &%{"name" => &1}), &side_names/1)
+        Enum.map(
+          m["teamInfo"] || Enum.map(m["teams"] || [], &%{"name" => &1}),
+          &side_names(&1, women?)
+        )
 
       same_teams?(wanted, sides) and near?(start, parse(m["dateTimeGMT"]))
     end)
@@ -137,9 +141,22 @@ defmodule Socialmedia.Cricket.Results do
     |> Enum.map(&String.downcase/1)
   end
 
-  defp side_names(info),
-    do:
+  # A women's fixture may name its teams without "Women" ("Adelaide Strikers")
+  # while CricketData says "Adelaide Strikers Women"; match both forms
+  defp side_names(info, women?) do
+    names =
       [info["shortname"], info["name"]] |> Enum.reject(&is_nil/1) |> Enum.map(&String.downcase/1)
+
+    if women?,
+      do: Enum.uniq(names ++ Enum.map(names, &String.replace(&1, ~r/\s+(women|w)$/, ""))),
+      else: names
+  end
+
+  defp women?(fx),
+    do:
+      [fx["series"], fx["team1"], fx["team2"]]
+      |> Enum.join(" ")
+      |> String.match?(~r/women|wbbl|\bwpl\b/i)
 
   defp same_teams?([a, b], [x, y]),
     do: (overlap?(a, x) and overlap?(b, y)) or (overlap?(a, y) and overlap?(b, x))
