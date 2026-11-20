@@ -20,6 +20,8 @@ defmodule Socialmedia.Release do
     for repo <- repos() do
       {:ok, _, _} =
         Ecto.Migrator.with_repo(repo, fn _repo ->
+          # Channel tokens are encrypted: the vault must run to load existing channels
+          {:ok, _} = Socialmedia.Vault.start_link()
           Code.eval_file(Application.app_dir(@app, "priv/repo/seeds.exs"))
         end)
     end
