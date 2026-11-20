@@ -137,6 +137,38 @@ defmodule Socialmedia.ResultWatcherTest do
     assert Posts.get_post!(fx.id).source_match_id == "m1"
   end
 
+  test "finds the match on a later page of the list", %{fx: fx, start: start} do
+    card = card(false, "India need 20 runs")
+
+    Req.Test.stub(Socialmedia.Cricket.Cricapi, fn conn ->
+      conn = Plug.Conn.fetch_query_params(conn)
+
+      case {conn.request_path, conn.query_params["offset"]} do
+        {"/v1/currentMatches", "0"} ->
+          filler = for i <- 1..25, do: %{"id" => "f#{i}", "teams" => ["X", "Y"], "teamInfo" => []}
+
+          Req.Test.json(conn, %{
+            "status" => "success",
+            "data" => filler,
+            "info" => %{"totalRows" => 50}
+          })
+
+        {"/v1/currentMatches", "25"} ->
+          Req.Test.json(conn, %{
+            "status" => "success",
+            "data" => listing(start, false),
+            "info" => %{"totalRows" => 50}
+          })
+
+        {"/v1/match_scorecard", _} ->
+          Req.Test.json(conn, %{"status" => "success", "data" => card})
+      end
+    end)
+
+    assert {:snooze, 1800} = perform_job(ResultWatcher, %{post_id: fx.id})
+    assert Posts.get_post!(fx.id).source_match_id == "m1"
+  end
+
   test "finished: builds the result and publishes it straight away", %{fx: fx, start: start} do
     stub(start, card(true))
     assert :ok = perform_job(ResultWatcher, %{post_id: fx.id})

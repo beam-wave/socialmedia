@@ -78,8 +78,8 @@ defmodule Socialmedia.Workers.ResultWatcher do
   defp match_id(%Post{source_match_id: id}) when is_binary(id) and id != "", do: {:ok, id}
 
   defp match_id(fixture) do
-    with {:ok, matches} <- Cricapi.current_matches() do
-      case Results.find(matches, fixture.data) do
+    with {:ok, found} <- Cricapi.find_current(&Results.find([&1], fixture.data)) do
+      case found do
         %{"id" => id} ->
           {:ok, _} = fixture |> Post.changeset(%{source_match_id: id}) |> Repo.update()
           {:ok, id}
