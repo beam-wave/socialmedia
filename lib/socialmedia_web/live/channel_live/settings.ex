@@ -136,6 +136,11 @@ defmodule SocialmediaWeb.ChannelLive.Settings do
             <.input field={@form[:name]} label="Name" />
             <.input field={@form[:handle]} label="Instagram handle" placeholder="@mid.innings" />
             <.input field={@form[:timezone]} label="Timezone" placeholder="Asia/Kolkata" />
+            <.input
+              field={@form[:default_post_time]}
+              type="time"
+              label="Default post time (channel timezone)"
+            />
             <div class="pt-7"><.input field={@form[:active]} type="checkbox" label="Active" /></div>
           </div>
         </section>

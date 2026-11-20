@@ -10,6 +10,8 @@ defmodule Socialmedia.Channels.Channel do
     # Folder under channels/ holding template.html
     field :template_dir, :string
     field :timezone, :string, default: "Asia/Kolkata"
+    # When this channel's posts usually go out (channel timezone); new posts start at it
+    field :default_post_time, :time
     field :hashtags, :string
     field :ig_user_id, :string
     field :access_token, Socialmedia.Encrypted.Binary, redact: true
@@ -32,6 +34,7 @@ defmodule Socialmedia.Channels.Channel do
       :skill,
       :template_dir,
       :timezone,
+      :default_post_time,
       :hashtags,
       :ig_user_id,
       :access_token,

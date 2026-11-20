@@ -9,6 +9,7 @@ channels = [
   %{
     name: "Spotlight Startups",
     handle: "@spotlight.startups",
+    default_post_time: ~T[21:00:00],
     skill: "spotlight-startups",
     template_dir: "spotlight.startups",
     base_data: %{"theme" => "cobalt"}
@@ -16,6 +17,7 @@ channels = [
   %{
     name: "Puree Heartz",
     handle: "@puree_heartz",
+    default_post_time: ~T[18:00:00],
     skill: "puree-heartz",
     template_dir: "puree_heartz",
     base_data: %{
@@ -31,6 +33,7 @@ channels = [
   %{
     name: "Motivation 2 Live",
     handle: "@_motivation2live__",
+    default_post_time: ~T[08:00:00],
     skill: "motivation2live",
     template_dir: "_motivation2live__",
     base_data: %{
