@@ -1,6 +1,6 @@
 ---
 name: mid-innings
-description: Writes @mid.innings match-day fixture posts with a 3-question prediction quiz (who wins, first-innings score, player of the match). Result posts are built by the app from the admin's scores, not by you. Use when the prompt asks for a mid.innings fixture post.
+description: Writes @mid.innings match-day fixture posts with a 3-question prediction quiz (who wins, first-innings score, top performer). Result posts are built by the app from the admin's scores, not by you. Use when the prompt asks for a mid.innings fixture post.
 ---
 
 # @mid.innings: predict before, check after
@@ -39,14 +39,14 @@ Output `post.teams` (code → {code, name, color}) for every team you use, and `
 ### `questions`: always exactly these 3, in this order
 1. **Who wins the match?** Options are the two full team names.
 2. **First-innings score?** 3 bands that fit the format and venue. For a T20 like "Under 160", "160–190", "190+"; for an ODI like "Under 260", "260–310", "310+". Base the bands on recent scores at the venue so each is plausible.
-3. **Player of the match?** 3 realistic candidates, mixed from both teams. They're usually the in-form players from `watch`.
+3. **Top performer?** Ask exactly "Top performer?" with 3 realistic candidates, mixed from both teams, usually the in-form players from `watch`. The app picks the answer from the scorecard (most runs, or best bowling), so don't call it "player of the match".
 
 ### `hook`
 Usually `{"q": "Drop your *3 predictions* like 1A 2B 3C", "q_hi": "अपने *3 प्रेडिक्शन* लिखो जैसे 1A 2B 3C"}`. Or `{"q": "Who wins *tonight*?", "options": "teams"}`.
 
 ## result
 
-You don't write result posts. The app builds them from the scores the admin enters (both innings, best batter and bowler, player of the match). It works out the winner, the margin and the prediction answers from your fixture's 3 questions. That's why the questions must follow the exact pattern above: Q1 the two full team names, Q2 score bands like "Under 160" / "160–190" / "190+", Q3 three player names.
+You don't write result posts. The app builds them from the scores the admin enters (both innings, best batter and bowler, top performer). It works out the winner, the margin and the prediction answers from your fixture's 3 questions. That's why the questions must follow the exact pattern above: Q1 the two full team names, Q2 score bands like "Under 160" / "160–190" / "190+", Q3 three player names.
 
 ## Team colours
 Use the team's well-known kit colour as hex:

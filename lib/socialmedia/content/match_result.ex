@@ -2,7 +2,7 @@ defmodule Socialmedia.Content.MatchResult do
   @moduledoc """
   Builds a @mid.innings result post from the scores the admin enters. No agent:
   the winner and margin come from the two innings, and the fixture's three
-  predictions (who wins, first-innings score band, player of the match) are
+  predictions (who wins, first-innings score band, top performer) are
   marked against the result.
 
   Facts, as the form sends them (every value a string):
@@ -194,7 +194,7 @@ defmodule Socialmedia.Content.MatchResult do
 
   ## Prediction answers
 
-  # Q1 who wins, Q2 first-innings score band, Q3 player of the match
+  # Q1 who wins, Q2 first-innings score band, Q3 top performer
   defp answers([q1, q2, q3], winner, i1, pom, teams) do
     [
       answer(q1, &same_team?(&1, winner, teams), winner_note(winner, teams)),
