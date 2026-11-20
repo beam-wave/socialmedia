@@ -212,6 +212,24 @@ defmodule Socialmedia.Posts do
     if DateTime.compare(at, DateTime.utc_now()) == :gt, do: :ok, else: {:error, :time_passed}
   end
 
+  @doc "Sets when a fixture's match should end; a scheduled fixture's result check moves with it."
+  def set_ends_at(%Post{post_type: "fixture"} = post, %DateTime{} = at) do
+    with {:ok, post} <-
+           post
+           |> Post.changeset(%{ends_at: DateTime.truncate(at, :second)})
+           |> Repo.update()
+           |> broadcast() do
+      if post.status == "approved" do
+        cancel_jobs(post, Workers.ResultWatcher)
+        Workers.ResultWatcher.enqueue(post)
+      end
+
+      {:ok, post}
+    end
+  end
+
+  def set_ends_at(%Post{}, _), do: {:error, :not_a_fixture}
+
   @doc "Approve a post that is ready for review. Publishing is queued for its scheduled time."
   def approve(%Post{status: "needs_review"} = post) do
     if DateTime.compare(post.scheduled_at, DateTime.utc_now()) == :lt do
@@ -222,7 +240,9 @@ defmodule Socialmedia.Posts do
                post
                |> Post.changeset(%{status: "approved", approved_at: now(), error: nil})
                |> Repo.update(),
-             {:ok, _job} <- Workers.Publish.enqueue(post) do
+             {:ok, _job} <- Workers.Publish.enqueue(post),
+             # A fixture's result is watched for and posted automatically
+             {:ok, _} <- Workers.ResultWatcher.enqueue(post) do
           {:ok, post}
         end
       end)
@@ -235,6 +255,7 @@ defmodule Socialmedia.Posts do
   @doc "Move an approved post back to review and drop its publish job."
   def unapprove(%Post{status: "approved"} = post) do
     cancel_jobs(post, Workers.Publish)
+    cancel_jobs(post, Workers.ResultWatcher)
     mark(post, "needs_review", %{approved_at: nil})
   end
 

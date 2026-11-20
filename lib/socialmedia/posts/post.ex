@@ -14,6 +14,10 @@ defmodule Socialmedia.Posts.Post do
     field :content_key, :string
     # Day N / quote N for series channels, taken in order when the post is created
     field :series_number, :integer
+
+    # Fixtures: when the match should be over (the result check starts then), and its id in the results API
+    field :ends_at, :utc_datetime
+    field :source_match_id, :string
     # Facts the admin typed in (match result); the agent writes from these
     field :facts, :map
     # Template data for exactly one Instagram post (channel base_data + one item)
@@ -49,6 +53,8 @@ defmodule Socialmedia.Posts.Post do
       :status,
       :content_key,
       :series_number,
+      :ends_at,
+      :source_match_id,
       :parent_id,
       :facts,
       :data,

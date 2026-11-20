@@ -40,6 +40,12 @@ config :phoenix_live_view,
 config :socialmedia, Oban, testing: :manual
 config :socialmedia, cloak_key: "1QVGJkE0nBwNq7fgSrJk8EYb2lX4lD0vZz0qP6Xr6Gk="
 config :socialmedia, Socialmedia.Instagram.Graph, plug: {Req.Test, Socialmedia.Instagram.Graph}
+
+config :socialmedia, Socialmedia.Cricket.Cricapi,
+  plug: {Req.Test, Socialmedia.Cricket.Cricapi},
+  retry: false
+
+config :socialmedia, cricapi_key: "test-key", renderer: Socialmedia.FakeRenderer
 config :socialmedia, admin_auth: false
 
 config :socialmedia,

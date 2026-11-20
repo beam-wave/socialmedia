@@ -39,6 +39,9 @@ if config_env() != :test do
     storage: Socialmedia.Storage.S3,
     storage_prefix: "prod"
 
+  # Match results for @mid.innings (CricketData.org free plan)
+  config :socialmedia, cricapi_key: System.get_env("CRICKETDATA_API_KEY")
+
   config :socialmedia, Socialmedia.Storage.S3,
     bucket: System.get_env("S3_BUCKET"),
     region: System.get_env("AWS_REGION", "ap-south-1"),

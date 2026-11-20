@@ -25,7 +25,7 @@ config :socialmedia, SocialmediaWeb.Endpoint,
 config :socialmedia, Oban,
   engine: Oban.Engines.Basic,
   repo: Socialmedia.Repo,
-  queues: [claude: 1, publish: 3, maintenance: 1],
+  queues: [claude: 1, publish: 3, maintenance: 1, results: 1],
   # Cron jobs are added in config/runtime.exs (not in tests)
   plugins: [
     # Deletes finished jobs (completed, cancelled, discarded) older than 15 days

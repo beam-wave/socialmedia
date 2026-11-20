@@ -112,6 +112,15 @@ defmodule SocialmediaWeb.PostLive.Show do
     end
   end
 
+  def handle_event("set_ends", %{"at" => at}, socket) do
+    post = socket.assigns.post
+
+    case SocialmediaWeb.ContentLive.parse_local(at, post.channel.timezone) do
+      {:ok, at} -> act(socket, &Posts.set_ends_at(&1, at), "Match end saved")
+      {:error, r} -> {:noreply, put_flash(socket, :error, explain(r))}
+    end
+  end
+
   def handle_event("slide", %{"i" => i}, socket),
     do: {:noreply, assign(socket, slide: String.to_integer(i))}
 
@@ -206,6 +215,30 @@ defmodule SocialmediaWeb.PostLive.Show do
           <p :if={@post.status in ~w(published publishing rejected)} class="text-sm muted mt-1">
             {local(@post.scheduled_at, @post.channel.timezone, "%A %d %B, %H:%M")} ({@post.channel.timezone})
           </p>
+          <form
+            :if={@post.post_type == "fixture" and @post.status != "rejected"}
+            id="ends-form"
+            phx-submit="set_ends"
+            class="flex flex-wrap items-center gap-2 mt-2 text-sm"
+          >
+            <span class="muted">Match ends</span>
+            <input
+              type="datetime-local"
+              name="at"
+              value={
+                @post.ends_at &&
+                  @post.ends_at
+                  |> DateTime.shift_zone!(@post.channel.timezone)
+                  |> Calendar.strftime("%Y-%m-%dT%H:%M")
+              }
+              class="input input-sm mono"
+              aria-label="Match ends"
+            />
+            <button class="btn btn-xs btn-ghost">Save</button>
+            <span class="muted">
+              Result is checked from then, every 30 min, and posted when it's in.
+            </span>
+          </form>
         </div>
         <.actions post={@post} />
       </div>

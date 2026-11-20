@@ -89,20 +89,34 @@ defmodule Socialmedia.MatchesTest do
     fx
   end
 
-  test "a fixture creates its result post, which waits for the admin's facts", %{ch: ch} do
+  defp result_for(ch, fx),
+    do:
+      insert_post(ch, %{
+        post_type: "result",
+        status: "failed",
+        data: nil,
+        slide_paths: [],
+        parent_id: fx.id
+      })
+
+  test "a fixture records when its match should end", %{ch: ch} do
     start = hours(10)
     fx = make_fixture(ch, hours(5), fixture_data(start))
-    assert fx.status == "uploaded"
+    # T20: about 3h45m after the start
+    assert fx.ends_at == DateTime.add(start, 225 * 60)
 
-    result = Repo.get_by!(Post, parent_id: fx.id) |> Repo.preload([:channel, :parent])
-    assert result.post_type == "result" and result.status == "planned"
-    assert result.scheduled_at == DateTime.add(start, (225 + 60) * 60)
-    # not handed to Claude until the admin types the result
-    refute_enqueued(worker: Produce, args: %{post_id: result.id})
+    assert [%{"ends_at" => ends}] =
+             Content.manifests() |> Enum.filter(&(&1["key"] == fx.content_key))
+
+    assert ends == DateTime.to_iso8601(fx.ends_at)
+  end
+
+  test "scores entered by hand build the result without Claude", %{ch: ch} do
+    fx = make_fixture(ch, hours(5), fixture_data(hours(10)))
+    result = result_for(ch, fx)
 
     assert {:ok, result} = Posts.enter_facts(result, facts())
     assert result.status == "creating"
-    # built by the app, so only the renderer runs
     assert_enqueued(worker: Produce, args: %{post_id: result.id, render_only: true})
 
     %{"posts" => [r], "teams" => %{"IND" => _}} = result.data
@@ -113,27 +127,10 @@ defmodule Socialmedia.MatchesTest do
 
   test "bad scores are refused with a message", %{ch: ch} do
     fx = make_fixture(ch, hours(5), fixture_data(hours(10)))
-    result = Repo.get_by!(Post, parent_id: fx.id)
+    result = result_for(ch, fx)
     bad = put_in(facts(), ["innings", Access.at(0), "runs"], "lots")
     assert {:error, "Innings 1: runs must be a whole number."} = Posts.enter_facts(result, bad)
-    assert Posts.get_post!(result.id).status == "planned"
-  end
-
-  test "the result's manifest points at its fixture, so a pull links them", %{ch: ch} do
-    fx = make_fixture(ch, hours(5), fixture_data(hours(10)))
-    result = Repo.get_by!(Post, parent_id: fx.id)
-    {:ok, result} = Posts.enter_facts(result, facts())
-    file = Path.join(System.tmp_dir!(), "res-#{result.id}.jpg")
-    File.write!(file, "jpg")
-    {:ok, _} = Content.upload(result, %{data: %{"posts" => []}, caption: "r", slides: [file]})
-
-    # pull both on a machine that has neither
-    Repo.delete_all(Post)
-    assert Content.pull_all() == 2
-
-    pulled_fx = Repo.get_by!(Post, content_key: fx.content_key)
-    assert %{parent_id: parent_id} = Repo.get_by!(Post, content_key: result.content_key)
-    assert parent_id == pulled_fx.id
+    assert Posts.get_post!(result.id).status == "failed"
   end
 
   test "a fixture after the first ball is moved earlier", %{ch: ch} do

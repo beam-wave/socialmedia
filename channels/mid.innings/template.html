@@ -94,6 +94,7 @@
 .inn .sc small{display:block;font-family:var(--a-body);font-size:26px;color:var(--a-dim);line-height:1.2}
 .pom{display:grid;grid-template-columns:auto 1fr;gap:6px 26px;align-items:center;padding:24px 28px;border-radius:20px;background:var(--a-hi);color:var(--a-ink);flex:none}
 .pom b{grid-row:span 2;font-family:var(--a-score);font-size:64px;line-height:.9}
+.pom b.long{font-size:40px;line-height:.95;max-width:200px}
 .pom span{font-size:38px;font-weight:700}
 .pom em{font-style:normal;font-size:28px;font-weight:600}
 .perf{display:grid;gap:12px;flex:1;min-height:0;align-content:start}
@@ -166,7 +167,7 @@ function result(d,p,t,size){
   return `<section class="art ck ${t}${size==="story"?" story":""}" style="${tc(d,p)}">${head(d,p,"Result",t)}
     <h3 class="res-line fit" data-max="76" data-min="48"><span>${hl(p.result)}</span></h3>
     <div class="inn">${inn}</div>
-    ${p.pom?`<div class="pom"><b>POTM</b><span>${esc(p.pom.name)}</span><em>${esc(p.pom.figures)}</em></div>`:""}
+    ${p.pom?`<div class="pom"><b class="${p.pom_label?"long":""}">${esc(p.pom_label||"POTM")}</b><span>${esc(p.pom.name)}</span><em>${esc(p.pom.figures)}</em></div>`:""}
     <div class="k-foot"><span>${esc(p.venue||"")}</span><span>${p.answers&&p.answers.length?"Your predictions →":"Top performers →"}</span></div></section>`;
 }
 function performers(d,p,t,size){
@@ -208,7 +209,7 @@ Follow ${d.handle} for the score summary right after the match 🏏
 :`🏏 RESULT: ${clean(p.result)}
 
 ${(p.innings||[]).map(x=>`${T(d,x.team).name}: ${x.runs}/${x.wkts} (${x.overs} ov)`).join("\n")}
-${p.pom?`\n⭐ Player of the match: ${p.pom.name} (${p.pom.figures})\n`:""}
+${p.pom?`\n⭐ ${p.pom_label||"Player of the match"}: ${p.pom.name} (${p.pom.figures})\n`:""}
 ${p.answers&&p.answers.length?`\n✅ Prediction answers: ${p.answers.map((a,i)=>`${i+1}${String(a.answer||"?").toUpperCase()}`).join(" · ")}\n${p.answers.map((a,i)=>`Q${i+1}. ${a.q} → ${(a.options||[])[String(a.answer||"A").toUpperCase().charCodeAt(0)-65]||""}`).join("\n")}\nCheck your picks from the match-day post ☝️\n`:""}
 ${captionHook(h)}
 

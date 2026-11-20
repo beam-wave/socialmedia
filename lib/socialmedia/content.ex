@@ -82,6 +82,9 @@ defmodule Socialmedia.Content do
         do: Matches.fixture_time(data, post.scheduled_at),
         else: post.scheduled_at
 
+    # Fixtures: prod checks for the result from this time on
+    ends_at = if post.post_type == "fixture", do: Matches.expected_end(data), else: post.ends_at
+
     keys =
       for file <- files do
         key = "content/#{post.content_key}/#{Path.basename(file)}"
@@ -99,6 +102,7 @@ defmodule Socialmedia.Content do
         post_type: post.post_type,
         scheduled_at: scheduled_at,
         series_number: post.series_number,
+        ends_at: ends_at,
         parent_key: post.parent && post.parent.content_key,
         facts: post.facts,
         admin_note: post.admin_note,
@@ -113,6 +117,7 @@ defmodule Socialmedia.Content do
     with {:ok, post} <-
            Posts.mark(post, "uploaded", %{
              scheduled_at: scheduled_at,
+             ends_at: ends_at,
              data: data,
              caption: caption,
              sources: result[:sources] || post.sources,
@@ -120,8 +125,48 @@ defmodule Socialmedia.Content do
              slide_paths: keys,
              error: nil
            }) do
-      if post.post_type == "fixture", do: Matches.after_fixture(post)
+      # A fixture's result is made on prod by Workers.ResultWatcher once it's scheduled
       {:ok, post}
+    end
+  end
+
+  @doc """
+  Renders a result built on this server (by Workers.ResultWatcher), puts its
+  slides in S3 and publishes it right away: no Pull, no review.
+  """
+  def publish_result(%Post{} = post, data, facts) do
+    renderer = Application.get_env(:socialmedia, :renderer, Socialmedia.Content.Renderer)
+    out = Path.join([System.tmp_dir!(), "socialmedia-render", post.content_key])
+
+    try do
+      with {:ok, rendered} <- renderer.render(Map.take(post.channel, [:template_dir]), data, out) do
+        keys =
+          for file <- rendered.slides do
+            key = "content/#{post.content_key}/#{Path.basename(file)}"
+            :ok = Storage.put_file(key, file, "image/jpeg")
+            key
+          end
+
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        Repo.transact(fn ->
+          with {:ok, post} <-
+                 Posts.mark(post, "approved", %{
+                   facts: facts,
+                   data: data,
+                   caption: rendered.caption,
+                   slide_paths: keys,
+                   scheduled_at: now,
+                   approved_at: now,
+                   error: nil
+                 }),
+               {:ok, _job} <- Socialmedia.Workers.Publish.enqueue(post, now: true) do
+            {:ok, post}
+          end
+        end)
+      end
+    after
+      File.rm_rf(out)
     end
   end
 
@@ -155,6 +200,7 @@ defmodule Socialmedia.Content do
         channel_id: ch.id,
         post_type: m["post_type"],
         series_number: m["series_number"],
+        ends_at: parse_time(m["ends_at"]),
         scheduled_at: review_time(at),
         parent_id: parent_id(m["parent_key"]),
         facts: m["facts"],
@@ -200,6 +246,15 @@ defmodule Socialmedia.Content do
     end
 
     :ok
+  end
+
+  defp parse_time(nil), do: nil
+
+  defp parse_time(s) do
+    case DateTime.from_iso8601(s) do
+      {:ok, at, _} -> DateTime.truncate(at, :second)
+      _ -> nil
+    end
   end
 
   defp parent_id(nil), do: nil

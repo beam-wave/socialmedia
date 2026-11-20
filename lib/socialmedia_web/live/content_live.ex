@@ -319,7 +319,12 @@ defmodule SocialmediaWeb.ContentLive do
               <input type="hidden" name="post_id" value={p.id} />
               <div class="flex flex-wrap items-baseline justify-between gap-2">
                 <div class="min-w-0">
-                  <div class="text-xs muted">{p.channel.handle} · {post_type_label(p.post_type)}</div>
+                  <div class="text-xs muted">
+                    {p.channel.handle} · {post_type_label(p.post_type)}<span :if={
+                      p.post_type == "fixture" && p.ends_at
+                    }>
+                  · result checked from {local(p.ends_at, p.channel.timezone, "%a %d %b %H:%M")}</span>
+                  </div>
                   <h3 class="font-medium truncate">{PostText.title(p) || "Untitled"}</h3>
                 </div>
                 <.link navigate={~p"/posts/#{p.id}"} class="text-xs muted hover:underline">
@@ -384,7 +389,12 @@ defmodule SocialmediaWeb.ContentLive do
             />
             <div class="min-w-0 flex-1">
               <div class="text-sm truncate">{PostText.title(p)}</div>
-              <div class="text-xs muted">{p.channel.handle} · {post_type_label(p.post_type)}</div>
+              <div class="text-xs muted">
+                {p.channel.handle} · {post_type_label(p.post_type)}<span :if={
+                  p.post_type == "fixture" && p.ends_at
+                }>
+                  · result checked from {local(p.ends_at, p.channel.timezone, "%a %d %b %H:%M")}</span>
+              </div>
             </div>
             <form phx-submit="move" class="flex items-center gap-2">
               <input type="hidden" name="post_id" value={p.id} />

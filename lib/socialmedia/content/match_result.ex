@@ -84,6 +84,11 @@ defmodule Socialmedia.Content.MatchResult do
         "answers" => answers(fx["questions"] || [], winner, i1, pom, teams)
       }
 
+      post =
+        if facts["pom_label"] in [nil, ""],
+          do: post,
+          else: Map.put(post, "pom_label", facts["pom_label"])
+
       {:ok,
        channel.base_data
        |> Map.drop(["series_start"])
