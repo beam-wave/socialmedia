@@ -6,7 +6,7 @@ defmodule Socialmedia.Workers.ResultWatcher do
   should be over). Every 30 minutes it asks CricketData.org whether the match has
   finished; once it has, it builds the result (Content.MatchResult), renders it
   and publishes it straight away, with no review. Gives up 12 hours after
-  `ends_at`. Abandoned, no-result and incomplete matches aren't posted: the
+  `ends_at`, or 1 hour after it when CricketData doesn't list the match at all. Abandoned, no-result and incomplete matches aren't posted: the
   result post is marked failed with the reason, for the admin to finish by hand.
   The channel's Dry run switch still applies when publishing.
   """
@@ -23,6 +23,9 @@ defmodule Socialmedia.Workers.ResultWatcher do
 
   @every_seconds 30 * 60
   @give_up_after 12 * 3600
+  # CricketData lists a match once it starts; still missing this long after the
+  # expected end means it doesn't cover the match at all
+  @unlisted_after 3600
 
   @doc "Queues the check for a fixture at its expected end (now, if that has passed)."
   def enqueue(%Post{post_type: "fixture", id: id} = fixture) do
@@ -69,8 +72,14 @@ defmodule Socialmedia.Workers.ResultWatcher do
             do: post_result(fixture, card),
             else: wait("not finished: #{card["status"]}", fixture)
         else
-          {:error, :not_listed} -> wait("not listed yet", fixture)
-          {:error, reason} -> wait(reason, fixture)
+          {:error, :not_listed} ->
+            if past_end?(fixture, @unlisted_after),
+              do:
+                give_up(fixture, "CricketData doesn't cover this match: enter the result by hand"),
+              else: wait("not listed yet", fixture)
+
+          {:error, reason} ->
+            wait(reason, fixture)
         end
     end
   end
@@ -135,8 +144,10 @@ defmodule Socialmedia.Workers.ResultWatcher do
     {:snooze, @every_seconds}
   end
 
-  defp too_late?(%Post{ends_at: nil}), do: false
+  defp too_late?(fixture), do: past_end?(fixture, @give_up_after)
 
-  defp too_late?(%Post{ends_at: at}),
-    do: DateTime.diff(DateTime.utc_now(), at) > @give_up_after
+  defp past_end?(%Post{ends_at: nil}, _seconds), do: false
+
+  defp past_end?(%Post{ends_at: at}, seconds),
+    do: DateTime.diff(DateTime.utc_now(), at) > seconds
 end

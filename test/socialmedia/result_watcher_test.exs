@@ -236,6 +236,36 @@ defmodule Socialmedia.ResultWatcherTest do
     refute_enqueued(worker: Publish)
   end
 
+  test "a match CricketData never lists: gives up an hour after the end, for a human",
+       %{fx: fx} do
+    Req.Test.stub(Socialmedia.Cricket.Cricapi, fn conn ->
+      Req.Test.json(conn, %{
+        "status" => "success",
+        "data" => listing(~U[2020-01-01 00:00:00Z], true) |> tl()
+      })
+    end)
+
+    assert {:cancel, "CricketData doesn't cover" <> _} =
+             perform_job(ResultWatcher, %{post_id: fx.id})
+
+    assert %{status: "failed"} = Repo.get_by!(Post, parent_id: fx.id)
+    refute_enqueued(worker: Publish)
+  end
+
+  test "a match not listed yet, within an hour of the end: keeps checking", %{fx: fx} do
+    fx
+    |> Post.changeset(%{
+      ends_at: DateTime.utc_now() |> DateTime.add(-600) |> DateTime.truncate(:second)
+    })
+    |> Repo.update!()
+
+    Req.Test.stub(Socialmedia.Cricket.Cricapi, fn conn ->
+      Req.Test.json(conn, %{"status" => "success", "data" => []})
+    end)
+
+    assert {:snooze, 1800} = perform_job(ResultWatcher, %{post_id: fx.id})
+  end
+
   test "an unscheduled fixture is left alone", %{fx: fx} do
     {:ok, _} = Posts.unapprove(fx)
     assert {:cancel, _} = perform_job(ResultWatcher, %{post_id: fx.id})
