@@ -81,7 +81,14 @@ defmodule Socialmedia.Content.MatchResult do
         "bat" => Enum.flat_map([i1, i2], & &1.bat),
         "bowl" => Enum.flat_map([i1, i2], & &1.bowl),
         "hook" => @hook,
-        "answers" => answers(fx["questions"] || [], winner, i1, pom, teams)
+        "answers" =>
+          answers(
+            fx["questions"] || [],
+            winner,
+            i1,
+            Map.put(pom, "label", facts["pom_label"]),
+            teams
+          )
       }
 
       post =
@@ -192,11 +199,15 @@ defmodule Socialmedia.Content.MatchResult do
     [
       answer(q1, &same_team?(&1, winner, teams), winner_note(winner, teams)),
       answer(q2, &in_band?(&1, i1.runs), "#{name(teams, i1.team)} made #{i1.runs}/#{i1.wkts}"),
-      answer(q3, &same_player?(&1, pom["name"]), "#{pom["name"]} was player of the match")
+      answer(q3, &same_player?(&1, pom["name"]), pom_note(pom))
     ]
   end
 
   defp answers(_questions, _winner, _i1, _pom, _teams), do: []
+
+  # Without an official player of the match (auto results), say whose it is
+  defp pom_note(%{"label" => label, "name" => n}) when is_binary(label), do: "#{label}: #{n}"
+  defp pom_note(%{"name" => n}), do: "#{n} was player of the match"
 
   defp answer(%{"q" => q, "options" => opts}, match?, note) do
     letter =

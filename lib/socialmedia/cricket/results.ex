@@ -105,14 +105,14 @@ defmodule Socialmedia.Cricket.Results do
     bats =
       for c <- cards,
           b <- c["batting"] || [],
-          do: {num(b["r"]), name(b["batsman"]), "#{to_s(b["r"])} (#{to_s(b["b"])})"}
+          do: {num(b["r"]), name(b["batsman"]), "#{to_s(b["r"])} off #{to_s(b["b"])}"}
 
     bowls =
       for c <- cards,
           b <- c["bowling"] || [],
           do:
             {num(b["w"]) * 20 - num(b["r"]) / 10, name(b["bowler"]),
-             "#{to_s(b["w"])}/#{to_s(b["r"])} (#{to_s(b["o"])})"}
+             "#{to_s(b["w"])}/#{to_s(b["r"])} in #{to_s(b["o"])} ov"}
 
     case Enum.max_by(bats ++ bowls, &elem(&1, 0), fn -> nil end) do
       {_, n, figures} -> {n, figures}

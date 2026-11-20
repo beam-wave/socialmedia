@@ -148,7 +148,7 @@ defmodule Socialmedia.ResultWatcherTest do
     %{"posts" => [r]} = result.data
     assert r["result"] == "*India* won by 6 wkts"
 
-    assert r["pom"] == %{"name" => "Virat Kohli", "figures" => "78 (44)"} and
+    assert r["pom"] == %{"name" => "Virat Kohli", "figures" => "78 off 44"} and
              r["pom_label"] == "Top performer"
 
     assert Enum.map(r["answers"], & &1["answer"]) == ["A", "B", "A"]

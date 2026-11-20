@@ -26,7 +26,7 @@ const ICON={
 function ctaSlide(d,o){
   const story=o.size==="story";
   const opts=(o.options||[]).slice(0,5);
-  return `<section class="art cta-slide ${o.cls||""}${story?" story":""}">
+  return `<section class="art cta-slide ${o.cls||""}${story?" story":""}"${o.style?` style="${esc(o.style)}"`:""}>
     <div class="cta-top"><span>${esc(d.handle)}</span><span class="cta-chip">${esc(o.chip||"Your turn")}</span></div>
     <div class="cta-ic">${ICON.comment}</div>
     <h2 class="cta-q fit" data-max="${story?110:96}" data-min="48"><span>${hl(o.question||"What do you think?")}${o.question_hi?`<small lang="hi">${hl(o.question_hi)}</small>`:""}</span></h2>

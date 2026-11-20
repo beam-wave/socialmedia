@@ -37,6 +37,14 @@
 .art.t-splitbold .qq p b{color:#fff}
 .art.t-splitbold .how{background:#fff;color:#111}
 .art.t-splitbold .k-foot{color:rgba(255,255,255,.8)}
+/* Result and performers slides: the content sits in the middle, the result line is the headline */
+.ck.t-splitbold .res-line{margin-top:auto;font-size:80px !important;line-height:1.02}
+.art.t-splitbold .res-line em{background:#fff;color:#111;padding:0 .12em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.ck.t-splitbold .pom{margin-bottom:auto}
+.art.t-splitbold .inn div.won{border:3px solid #fff;background:rgba(255,255,255,.16)}
+.ck.t-splitbold .perf{flex:none}
+.ck.t-splitbold .k-series + .perf{margin-top:auto}
+.ck.t-splitbold .perf + .perf{margin-bottom:auto}
 .vs-x svg{display:none}
 /* A flag fills the badge whatever the theme paints there */
 .art .badge.flag,.art .mini.flag{background:#fff var(--flag) center/cover no-repeat !important;color:transparent !important;text-shadow:none}
@@ -165,7 +173,7 @@ function questions(d,p,t,size){
 function result(d,p,t,size){
   const inn=(p.innings||[]).map(x=>{const tm=T(d,x.team);return `<div class="${x.team===p.winner?"won":""}"><i class="mini${flag(tm)}">${esc(tm.code)}</i><b>${esc(tm.name)}</b><span class="sc">${esc(x.runs)}/${esc(x.wkts)}<small>${esc(x.overs)} ov</small></span></div>`;}).join("");
   return `<section class="art ck ${t}${size==="story"?" story":""}" style="${tc(d,p)}">${head(d,p,"Result",t)}
-    <h3 class="res-line fit" data-max="76" data-min="48"><span>${hl(p.result)}</span></h3>
+    <h3 class="res-line fit" data-max="96" data-min="48"><span>${hl(p.result)}</span></h3>
     <div class="inn">${inn}</div>
     ${p.pom?`<div class="pom"><b class="${p.pom_label?"long":""}">${esc(p.pom_label||"POTM")}</b><span>${esc(p.pom.name)}</span><em>${esc(p.pom.figures)}</em></div>`:""}
     <div class="k-foot"><span>${esc(p.venue||"")}</span><span>${p.answers&&p.answers.length?"Your predictions →":"Top performers →"}</span></div></section>`;
@@ -189,7 +197,7 @@ function posts(d){
     const a=T(d,p.team1).name,b=T(d,p.team2).name;
     const isFix=p.type!=="result";
     const h=resolve(hookOf(d,p,isFix?HOOKS[0]:HOOKS[6]),p,d);
-    const cta=ctaSlide(d,{cls:t,size,question:h.q,question_hi:h.q_hi,options:h.options,chip:isFix?"Predict":"Your take",
+    const cta=ctaSlide(d,{cls:t,style:tc(d,p),size,question:h.q,question_hi:h.q_hi,options:h.options,chip:isFix?"Predict":"Your take",
       placeholder:isFix?"1A · 2B · 3C":"For me, the turning point was…",followLine:d.follow_line||"Fixtures before, scores after, every match. Follow so you never miss a match day."});
     const slides=isFix?[{name:"fixture",html:fixture(d,p,t,size),size},...(p.questions&&p.questions.length?[{name:"quiz",html:questions(d,p,t,size),size}]:[]),{name:"comment-follow",html:cta,size}]
       :[{name:"result",html:result(d,p,t,size),size},...(p.answers&&p.answers.length?[{name:"answers",html:answers(d,p,t,size),size}]:[]),{name:"performers",html:performers(d,p,t,size),size},{name:"comment-follow",html:cta,size}];
