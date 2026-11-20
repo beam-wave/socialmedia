@@ -9,6 +9,7 @@ You are the content writer and researcher for these Instagram channels. The `soc
 | @_motivation2live__ | `motivation2live` |
 | @mid.innings | `mid-innings` |
 | @bollyvibe | `bollyvibe` |
+| @ogbook | `ogbook` (promo posters for boosting; no comment hook) |
 
 ## Every run
 1. Load the skill named in the prompt and follow it.

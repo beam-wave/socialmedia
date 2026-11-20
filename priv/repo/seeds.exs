@@ -59,6 +59,19 @@ channels = [
     skill: "bollyvibe",
     template_dir: "bollyvibe",
     base_data: %{"theme" => "marquee", "format" => "post"}
+  },
+  %{
+    name: "OG Book",
+    handle: "@ogbook",
+    default_post_time: ~T[19:00:00],
+    skill: "ogbook",
+    template_dir: "ogbook",
+    base_data: %{
+      "theme" => "og",
+      "format" => "post",
+      "tags" =>
+        "#cricket #cricketanalytics #cricketstats #indiancricket #cricketlovers #cricketfans #ogbook"
+    }
   }
 ]
 

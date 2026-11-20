@@ -131,6 +131,12 @@ defmodule Socialmedia.Agent do
     "#{m["title"]} (#{m["release_date"]}) | hook: #{hook_q(m)}"
   end
 
+  defp summarize("ogbook", d) do
+    p = first(d, "posters")
+    stats = p["stats"] |> List.wrap() |> Enum.map_join(", ", &"#{&1["label"]} #{&1["value"]}")
+    "#{p["headline"]} | theme: #{p["theme"]} | stats: #{stats}"
+  end
+
   defp summarize(_quotes, d) do
     q = first(d, "quotes")
     "\"#{q["quote"]}\" | theme: #{q["theme"]} | hook: #{hook_q(q)}"

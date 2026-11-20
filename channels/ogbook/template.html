@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OG Book Promo Studio</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&family=Montserrat:ital,wght@1,900&display=swap">
+<link rel="stylesheet" href="../_shared/studio.css">
+<style>
+/* Art: an ad poster for boosting. Brand colours: deep navy, gold ring, electric blue.
+   Hero: a floodlit cricket ground drawn as a wagon wheel (every shot a glowing line),
+   a ball in flight with its trail, and three floating stat cards. */
+.art{--og-navy:#06123a;--og-deep:#030a24;--og-gold:#ffc61a;--og-gold2:#ffdf6b;--og-blue:#1e90ff;--og-cyan:#21c8ff;
+  --a-fg:#fff;--a-dim:rgba(255,255,255,.74);--a-hi:var(--og-gold);--a-ink:#0a0f24;--a-rule:rgba(255,255,255,.14);
+  --a-bg:radial-gradient(ellipse 70% 45% at 50% 52%,rgba(30,144,255,.38) 0,transparent 70%),radial-gradient(ellipse 60% 40% at 50% -5%,rgba(255,198,26,.16) 0,transparent 60%),linear-gradient(180deg,#081847 0%,#030a24 100%);
+  --a-display:"Barlow Condensed","Arial Narrow",sans-serif;--a-display-w:800;--a-body:"Barlow",system-ui,sans-serif;--a-score:"Barlow Condensed",sans-serif}
+.art.t-electric{--a-hi:var(--og-cyan);--a-ink:#021028}
+.art.t-midnight{--a-bg:radial-gradient(ellipse 70% 45% at 50% 52%,rgba(255,198,26,.20) 0,transparent 70%),linear-gradient(180deg,#050b20 0%,#01040f 100%)}
+.art::after{display:none}
+/* diagonal light streaks like the logo */
+.art::before{content:"";position:absolute;inset:0;pointer-events:none;background:
+  linear-gradient(118deg,transparent 0 8%,rgba(30,144,255,.22) 8.2% 9.4%,transparent 9.6%),
+  linear-gradient(118deg,transparent 0 12%,rgba(255,198,26,.35) 12.1% 12.5%,transparent 12.7%),
+  linear-gradient(118deg,transparent 0 86%,rgba(255,198,26,.35) 86.1% 86.5%,transparent 86.7%),
+  linear-gradient(118deg,transparent 0 89%,rgba(30,144,255,.22) 89.2% 90.6%,transparent 90.8%)}
+.art>*{position:relative}
+.og{padding:58px 70px 52px;display:flex;flex-direction:column;gap:20px;color:var(--a-fg);font-family:var(--a-body)}
+.og.story{padding:170px 70px 180px;gap:34px}
+.og-top{display:flex;justify-content:space-between;align-items:center;flex:none}
+.og-mark{display:flex;align-items:baseline;gap:10px;font-family:"Montserrat",sans-serif;font-style:italic;font-weight:900;line-height:1;position:relative}
+.og-mark .og1{font-size:64px;color:#fff;letter-spacing:-.02em;position:relative}
+.og-mark .og1 svg{position:absolute;left:-8px;top:8px;width:110px;height:56px}
+.og-mark .og2{font-size:52px;background:linear-gradient(180deg,var(--og-cyan),var(--og-blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+.og-chip{font-family:var(--a-display);font-weight:700;font-size:23px;letter-spacing:.14em;text-transform:uppercase;color:var(--og-gold);border:2px solid var(--og-gold);padding:9px 18px;border-radius:999px;box-shadow:0 0 22px -6px var(--og-gold)}
+.og-head{font-family:var(--a-display);font-weight:800;text-transform:uppercase;line-height:.93;margin:0;flex:none}
+.og-head em{font-style:normal;color:var(--a-hi);text-shadow:0 0 30px rgba(255,198,26,.35)}
+.og-sub{font-size:31px;line-height:1.3;color:var(--a-dim);margin:-4px 0 0;font-weight:500;flex:none}
+.og-sub b{color:#fff;font-weight:600}
+/* hero ground */
+.og-hero{flex:1;min-height:0;position:relative;display:grid;place-items:center}
+.og-hero>svg{position:absolute;inset:0;margin:auto;height:100%;max-height:760px;width:auto;max-width:100%;aspect-ratio:1;overflow:visible;filter:drop-shadow(0 30px 60px rgba(0,0,0,.5))}
+.og-stat{position:absolute;background:rgba(6,18,58,.82);border:1.5px solid rgba(255,255,255,.18);border-radius:22px;padding:14px 20px;backdrop-filter:blur(6px);box-shadow:0 20px 40px -18px #000;min-width:200px}
+.og-stat small{display:block;font-size:19px;letter-spacing:.12em;text-transform:uppercase;color:var(--a-dim);font-weight:600}
+.og-stat b{display:block;font-family:var(--a-display);font-weight:800;font-size:52px;line-height:1;color:var(--a-hi);margin-top:4px}
+.og-stat span{font-size:20px;color:var(--a-dim)}
+.og-stat.s0{left:0;top:6%}.og-stat.s1{right:0;top:30%}.og-stat.s2{left:2%;bottom:6%}
+.og-win{position:absolute;right:0;bottom:4%;width:330px;background:rgba(6,18,58,.86);border:1.5px solid rgba(255,255,255,.18);border-radius:22px;padding:14px 20px 18px;box-shadow:0 20px 40px -18px #000}
+.og-win small{font-size:19px;letter-spacing:.12em;text-transform:uppercase;color:var(--a-dim);font-weight:600}
+.og-win div{display:flex;justify-content:space-between;font-family:var(--a-display);font-weight:800;font-size:30px;margin:6px 0 8px}
+.og-win div span:first-child{color:var(--a-hi)}
+.og-bar{height:14px;border-radius:999px;background:rgba(255,255,255,.16);overflow:hidden}
+.og-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--og-gold),var(--og-gold2))}
+.art.t-electric .og-bar i{background:linear-gradient(90deg,var(--og-blue),var(--og-cyan))}
+/* features + cta */
+.og-feats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;flex:none}
+.og-feat{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:14px 8px;border-radius:18px;background:rgba(255,255,255,.05);border:1.5px solid var(--a-rule);font-size:21px;font-weight:600;line-height:1.15}
+.og-feat svg{width:40px;height:40px;color:var(--a-hi)}
+.og-cta{display:flex;align-items:center;gap:22px;flex:none}
+.og-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:16px;background:linear-gradient(180deg,var(--og-gold2),var(--og-gold));color:var(--a-ink);font-family:var(--a-display);font-weight:800;font-size:44px;letter-spacing:.03em;text-transform:uppercase;padding:22px 26px;border-radius:999px;box-shadow:0 0 0 4px rgba(255,198,26,.18),0 18px 44px -14px var(--og-gold)}
+.art.t-electric .og-btn{background:linear-gradient(180deg,var(--og-cyan),var(--og-blue));color:#fff;box-shadow:0 0 0 4px rgba(33,200,255,.18),0 18px 44px -14px var(--og-blue)}
+.og-btn svg{width:44px;height:44px}
+.og-cta p{margin:0;font-size:23px;line-height:1.35;color:var(--a-dim);max-width:250px}
+.og-cta p b{color:#fff}
+.og-foot{display:flex;justify-content:space-between;font-size:21px;color:var(--a-dim);flex:none}
+</style></head>
+<body><div id="app"></div>
+<script src="../_shared/studio.js"></script>
+<script>
+const {esc,hl,clean}=Studio;
+const BOLT=`<svg viewBox="0 0 110 56"><defs><linearGradient id="bg" x1="0" x2="1"><stop offset="0" stop-color="#ffc61a" stop-opacity="0"/><stop offset=".5" stop-color="#ffc61a"/><stop offset="1" stop-color="#ffdf6b"/></linearGradient></defs><path d="M2 54 L70 14 L62 26 L108 2 L44 40 L52 28 Z" fill="url(#bg)"/></svg>`;
+const ICON={
+  chart:`<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 35h30"/><rect x="8" y="20" width="6" height="12" rx="1.5"/><rect x="17" y="12" width="6" height="20" rx="1.5"/><rect x="26" y="6" width="6" height="26" rx="1.5"/></svg>`,
+  versus:`<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="6"/><circle cx="28" cy="13" r="6"/><path d="M3 34c1.5-7 5-10 9-10s7.5 3 9 10M19 34c1.5-7 5-10 9-10s7.5 3 9 10"/></svg>`,
+  pitch:`<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><rect x="13" y="3" width="14" height="34" rx="3"/><path d="M13 11h14M13 29h14"/><path d="M17 5v4M20 5v4M23 5v4"/></svg>`,
+  bell:`<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 28V18a10 10 0 1 1 20 0v10l3 4H7l3-4z"/><path d="M16 35a4 4 0 0 0 8 0"/></svg>`,
+  send:`<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 24c0-8.8 7.2-15 16-15s16 6.2 16 15-7.2 15-16 15c-2.5 0-4.9-.5-7-1.4L8 40l2.4-7.2C8.9 30.3 8 27.3 8 24z"/></svg>`
+};
+const FEAT_ICONS=["chart","versus","pitch","bell"];
+// Small seeded random so a poster always draws the same wagon wheel
+function rng(seed){let s=seed>>>0||1;return()=>(s=(s*1664525+1013904223)>>>0)/4294967296}
+function ground(seed){
+  const r=rng(seed), C=300, shots=[];
+  for(let i=0;i<20;i++){
+    const a=r()*Math.PI*2, kind=r()<.18?"six":r()<.4?"four":"run";
+    const len=kind==="six"?262+r()*24:kind==="four"?236+r()*10:90+r()*120;
+    const cx=C+Math.cos(a)*len*.55+(r()-.5)*40, cy=C+Math.sin(a)*len*.55+(r()-.5)*40;
+    shots.push(`<path d="M${C} ${C} Q${cx.toFixed(0)} ${cy.toFixed(0)} ${(C+Math.cos(a)*len).toFixed(0)} ${(C+Math.sin(a)*len).toFixed(0)}" class="sh ${kind}"/>`);
+  }
+  const lights=[[60,60],[540,60],[60,540],[540,540]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="70" fill="url(#flood)"/><g fill="#fff"><circle cx="${x-10}" cy="${y-6}" r="5"/><circle cx="${x+4}" cy="${y-6}" r="5"/><circle cx="${x-10}" cy="${y+6}" r="5"/><circle cx="${x+4}" cy="${y+6}" r="5"/></g>`).join("");
+  return `<svg viewBox="0 0 600 600">
+   <defs>
+    <radialGradient id="grass" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#11306e"/><stop offset=".75" stop-color="#0a1f52"/><stop offset="1" stop-color="#06143a"/></radialGradient>
+    <radialGradient id="flood"><stop offset="0" stop-color="#fff6c4" stop-opacity=".9"/><stop offset=".25" stop-color="#ffc61a" stop-opacity=".35"/><stop offset="1" stop-color="#ffc61a" stop-opacity="0"/></radialGradient>
+    <linearGradient id="trail" x1="0" x2="1"><stop offset="0" stop-color="#ffc61a" stop-opacity="0"/><stop offset="1" stop-color="#ffdf6b"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <style>.sh{fill:none;stroke-linecap:round}.sh.run{stroke:rgba(255,255,255,.35);stroke-width:2.5}.sh.four{stroke:#21c8ff;stroke-width:4;filter:url(#glow)}.sh.six{stroke:#ffc61a;stroke-width:5;filter:url(#glow)}</style>
+   </defs>
+   <circle cx="300" cy="300" r="292" fill="none" stroke="#ffc61a" stroke-width="8" filter="url(#glow)"/>
+   <circle cx="300" cy="300" r="280" fill="url(#grass)"/>
+   <clipPath id="field0"><circle cx="300" cy="300" r="280"/></clipPath><g clip-path="url(#field0)" stroke="rgba(255,255,255,.045)" stroke-width="22">${[0,1,2,3,4,5,6,7,8,9,10,11].map(i=>`<line x1="${70+i*44}" y1="20" x2="${70+i*44}" y2="580"/>`).join("")}</g>
+   <circle cx="300" cy="300" r="280" fill="none" stroke="rgba(255,255,255,.0)"/>
+   <circle cx="300" cy="300" r="140" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="2.5" stroke-dasharray="8 10"/>
+   <circle cx="300" cy="300" r="264" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="3"/>
+   <clipPath id="field"><circle cx="300" cy="300" r="280"/></clipPath>
+   <g clip-path="url(#field)">${shots.join("")}</g>
+   <rect x="284" y="250" width="32" height="100" rx="4" fill="#c9b27c"/>
+   <g stroke="#fff" stroke-width="3"><line x1="290" y1="258" x2="310" y2="258"/><line x1="290" y1="342" x2="310" y2="342"/></g>
+   <g fill="#fff"><rect x="293" y="250" width="3" height="10"/><rect x="298.5" y="250" width="3" height="10"/><rect x="304" y="250" width="3" height="10"/></g>
+   <path d="M330 270 Q420 150 520 80" stroke="url(#trail)" stroke-width="9" fill="none" stroke-linecap="round" filter="url(#glow)"/>
+   <g transform="translate(528 74)"><circle r="17" fill="#e63946" stroke="#7a0f17" stroke-width="2"/><path d="M-12 -6q12 7 24 0M-12 6q12-7 24 0" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="1.5 4"/></g>
+  </svg>`;
+}
+const HOOKS=[{q:"Ask me *who wins tonight* and why."},{q:"Which *matchup* decides this game?"},{q:"Want the *pitch report* before the toss?"}];
+function posts(d){
+  return (d.posters||[]).map((p,i)=>{
+    const story=d.format==="story", size=story?"story":"post", theme="t-"+(p.theme||d.theme||"og");
+    const w=p.win, stats=(p.stats||[]).slice(0,3);
+    const art=`<section class="art og ${theme}${story?" story":""}">
+      <div class="og-top"><div class="og-mark"><span class="og1">${BOLT}OG</span><span class="og2">Book</span></div><span class="og-chip">${esc(p.chip||"Cricket analytics")}</span></div>
+      <h1 class="og-head fit" data-max="${story?150:112}" data-min="70" data-axis="w"><span>${hl(p.headline)}</span></h1>
+      <p class="og-sub">${hl(p.sub).replace(/<em>/g,"<b>").replace(/<\/em>/g,"</b>")}</p>
+      <div class="og-hero">${ground(p.seed||(i+7)*97)}
+        ${stats.map((s,j)=>`<div class="og-stat s${j}"><small>${esc(s.label)}</small><b>${esc(s.value)}</b>${s.note?`<span>${esc(s.note)}</span>`:""}</div>`).join("")}
+        ${w?`<div class="og-win"><small>${esc(p.win_label||"Win chance")}</small><div><span>${esc(w.team1)} ${+w.p1}%</span><span>${100-(+w.p1||0)}% ${esc(w.team2)}</span></div><div class="og-bar"><i style="width:${+w.p1||50}%"></i></div></div>`:""}
+      </div>
+      <div class="og-feats">${(p.features||[]).slice(0,4).map((f,j)=>`<div class="og-feat">${ICON[FEAT_ICONS[j]]}<span>${esc(f)}</span></div>`).join("")}</div>
+      <div class="og-cta"><div class="og-btn">${ICON.send}${esc(p.cta||"Send me a message")}</div><p>${hl(p.cta_sub||"Type *HI* to start. Free.").replace(/<em>/g,"<b>").replace(/<\/em>/g,"</b>")}</p></div>
+      <div class="og-foot"><span>${esc(d.handle)}</span><span>${esc(p.footnote||"Stats & insights for cricket fans")}</span></div>
+    </section>`;
+    const caption=`${clean(p.caption_hook||p.headline)}
+
+${clean(p.sub)}
+
+${(p.features||[]).map(f=>"✅ "+f).join("\n")}
+
+💬 ${clean(p.cta_sub||"Type HI to start. Free.")}
+👉 Tap Message or DM us "HI"
+
+${d.tags||""}`;
+    return {id:"promo"+String(i+1).padStart(2,"0"),label:`Promo ${i+1}`,slides:[{name:"poster",html:art,size}],caption};
+  });
+}
+Studio.mount({
+  channel:"@ogbook", title:"OG Book Promo Studio", accent:"#ffc61a", itemsKey:"posters",
+  sub:"One-slide ad posters to boost with a Send-message goal: a promise, a floodlit wagon-wheel ground with live-looking stats, four features and a message button.",
+  note:"Keep it analytics: stats and insights, never odds, betting or guaranteed wins (Meta rejects gambling-style ads).",
+  controls:[{key:"theme",label:"Theme",perItem:true,options:[["og","Gold (navy + gold)"],["electric","Electric (navy + cyan)"],["midnight","Midnight (black + gold)"]]},{key:"format",label:"Size",options:[["post","Feed post 4:5"],["story","Story / Reel 9:16"]]}],
+  hooks:HOOKS, posts,
+  guide:[["headline","The promise, under 6 words.","Wrap the punch phrase in *stars*."],["sub","One line on what you get.","*stars* make words bold."],["stats","3 cards: label, value, note.","Real, checkable numbers."],["win","team1, team2, p1 (team1 %).","Optional win-chance card."],["features","Exactly 4 short benefits.","Icons: stats, matchups, pitch, alerts."],["cta / cta_sub","The button and the line beside it.","Match the boost's Send-message goal."]],
+  sample:{theme:"og",format:"post",handle:"@ogbook",
+    tags:"#cricket #cricketanalytics #cricketstats #indiancricket #cricketlovers #cricketfans #ogbook",
+    posters:[
+      {headline:"Be ahead of *every ball*.",sub:"Your cricket analyst in your DMs: *win chances, matchups, pitch reports and player form*.",
+       stats:[{label:"Chasing at night",value:"62%",note:"wins at Wankhede"},{label:"Bumrah vs Head",value:"4 outs",note:"in 7 innings"},{label:"Avg 1st innings",value:"186",note:"last 10 T20s"}],
+       win:{team1:"IND",team2:"AUS",p1:58},
+       features:["Live insights","Player matchups","Pitch & venue","Match alerts"],
+       cta:"Send me a message",cta_sub:"Type *HI* to start. Free, no sign-up.",caption_hook:"Want to read the game before it happens? 🏏📊"}
+    ]}
+});
+</script></body></html>
