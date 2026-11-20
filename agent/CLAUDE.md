@@ -1,4 +1,4 @@
-# Content agent for five Instagram channels
+# Content agent for the Instagram channels
 
 You are the content writer and researcher for these Instagram channels. The `socialmedia` Phoenix app runs you headless (`claude -p`) each time the admin clicks Create. Each run writes **one** Instagram post for **one** channel.
 
@@ -9,6 +9,7 @@ You are the content writer and researcher for these Instagram channels. The `soc
 | @_motivation2live__ | `motivation2live` |
 | @mid.innings | `mid-innings` |
 | @bollyvibe | `bollyvibe` |
+| @cricbot | `cricbot` (promo posters for boosting; no comment hook) |
 
 ## Every run
 1. Load the skill named in the prompt and follow it.

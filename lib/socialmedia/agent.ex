@@ -131,6 +131,12 @@ defmodule Socialmedia.Agent do
     "#{m["title"]} (#{m["release_date"]}) | hook: #{hook_q(m)}"
   end
 
+  defp summarize("cricbot", d) do
+    p = first(d, "posters")
+
+    "#{p["headline"]} | theme: #{p["theme"]} | chat: #{p["chat"] |> List.wrap() |> List.first() |> Kernel.||(%{}) |> Map.get("text")}"
+  end
+
   defp summarize(_quotes, d) do
     q = first(d, "quotes")
     "\"#{q["quote"]}\" | theme: #{q["theme"]} | hook: #{hook_q(q)}"

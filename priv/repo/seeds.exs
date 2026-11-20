@@ -1,4 +1,4 @@
-# Seeds the five channels (timezone IST).
+# Seeds the channels (timezone IST).
 # Safe to re-run: existing channels (by handle) are left alone.
 #
 #     mix run priv/repo/seeds.exs
@@ -59,6 +59,20 @@ channels = [
     skill: "bollyvibe",
     template_dir: "bollyvibe",
     base_data: %{"theme" => "marquee", "format" => "post"}
+  },
+  %{
+    name: "Cricbot",
+    handle: "@cricbot",
+    default_post_time: ~T[19:00:00],
+    skill: "cricbot",
+    template_dir: "cricbot",
+    base_data: %{
+      "theme" => "stadium",
+      "format" => "post",
+      "brand" => "Cricbot",
+      "tags" =>
+        "#cricket #cricketanalytics #cricketstats #indiancricket #cricketlovers #cricketfans #iplanalysis #cricbot"
+    }
   }
 ]
 
