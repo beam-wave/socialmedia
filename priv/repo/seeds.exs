@@ -51,7 +51,7 @@ channels = [
     handle: "@mid.innings",
     skill: "mid-innings",
     template_dir: "mid.innings",
-    base_data: %{"theme" => "floodlight", "format" => "post"}
+    base_data: %{"theme" => "splitbold", "format" => "post"}
   },
   %{
     name: "Bollyvibe",

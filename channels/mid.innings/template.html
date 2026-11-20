@@ -10,6 +10,36 @@
   --a-display:"Barlow Condensed","Noto Sans Devanagari","Arial Narrow",sans-serif;--a-display-w:700;--a-body:"Barlow","Noto Sans Devanagari",system-ui,sans-serif;--a-score:"Teko","Barlow Condensed",sans-serif}
 .art.t-navy{--a-bg:radial-gradient(ellipse at 50% -10%,rgba(120,170,255,.25) 0,transparent 45%),linear-gradient(180deg,#0b1a3a 0%,#060d1f 100%);--a-hi:#ffc83d;--a-ink:#1a1200;--a-glow:rgba(255,200,61,.06)}
 .art.t-whites{--a-bg:linear-gradient(180deg,#f6f3ea 0%,#ebe5d6 100%);--a-fg:#14231b;--a-dim:rgba(20,35,27,.66);--a-hi:#b3122e;--a-ink:#ffffff;--a-rule:rgba(20,35,27,.16);--a-card:rgba(20,35,27,.05);--a-glow:rgba(179,18,46,.06)}
+/* Split bold (default): the whole post split diagonally in both teams' (deepened) colours, like
+   official fixture graphics. White text and labels, so it reads on any team colour; dark glass cards.
+   International teams show their country flag in the badge (flag-icons, MIT). */
+.art.t-splitbold{--a-fg:#ffffff;--a-dim:rgba(255,255,255,.8);--a-hi:#ffffff;--a-ink:#111111;--a-rule:rgba(255,255,255,.22);--a-card:rgba(8,10,20,.34);--a-glow:transparent}
+.art.t-splitbold{--a-bg:linear-gradient(118deg,color-mix(in srgb,var(--ca) 82%,#000) 0 50%,color-mix(in srgb,var(--cb) 82%,#000) 50% 100%)}
+.art.t-splitbold::after{display:none}
+.ck.t-splitbold{gap:24px}
+.art.t-splitbold .k-top span:first-child{font-weight:700;color:#fff}
+.art.t-splitbold .k-tag{background:#fff;color:#111;border-radius:999px;padding:8px 22px}
+.art.t-splitbold .k-series{font-size:50px;text-shadow:0 3px 18px rgba(0,0,0,.35)}
+.art.t-splitbold .badge{width:200px;height:200px;font-size:96px;background:#fff;color:var(--c);box-shadow:0 0 0 10px rgba(255,255,255,.25),0 24px 50px -14px rgba(0,0,0,.55)}
+.art.t-splitbold .team b{font-size:38px;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+.art.t-splitbold .team .form i{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.45);color:#fff}
+.art.t-splitbold .team .form i.w{background:#fff;color:#111;border-color:#fff}
+.art.t-splitbold .vs-x{background:none;box-shadow:none;width:auto;height:auto;padding:0}
+.art.t-splitbold .vs-x span{display:none}
+.art.t-splitbold .vs-x svg{display:block;width:250px;height:250px;margin:-40px -46px -18px;overflow:visible;filter:drop-shadow(0 16px 24px rgba(0,0,0,.45))}
+.art.t-splitbold :is(.info,.watch div,.qq,.inn div){background:var(--a-card);border:1.5px solid rgba(255,255,255,.18);border-radius:22px;backdrop-filter:blur(6px)}
+.art.t-splitbold .info div + div{border-left:1.5px solid rgba(255,255,255,.18)}
+.art.t-splitbold .watch h3{color:#fff}
+.art.t-splitbold .watch div{padding:13px 22px}
+.art.t-splitbold .dot{box-shadow:0 0 0 3px #fff}
+.art.t-splitbold .qq span{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.35)}
+.art.t-splitbold .qq span i{background:#fff;color:#111}
+.art.t-splitbold .qq p b{color:#fff}
+.art.t-splitbold .how{background:#fff;color:#111}
+.art.t-splitbold .k-foot{color:rgba(255,255,255,.8)}
+.vs-x svg{display:none}
+/* A flag fills the badge whatever the theme paints there */
+.art .badge.flag,.art .mini.flag{background:#fff var(--flag) center/cover no-repeat !important;color:transparent !important;text-shadow:none}
 .cta-q{text-transform:uppercase;line-height:1}
 .cta-btn{text-transform:uppercase;letter-spacing:.04em}
 .ck{padding:80px;display:flex;flex-direction:column;gap:30px}
@@ -92,28 +122,48 @@ const HOOKS=[
   {q:"Tag the friend you *always argue cricket with*.",q_hi:"उस दोस्त को टैग करो जिससे *क्रिकेट पर बहस* होती है।"}
 ];
 const T=(d,c)=>(d.teams||{})[c]||{code:c,name:c,color:"#555"};
+/* The two teams' colours as CSS variables, for themes coloured by the match itself */
+/* Country flags for international teams (square SVGs from flag-icons, MIT). League teams keep code badges. */
+const FLAGS={IND:"in",AUS:"au",ENG:"gb-eng",PAK:"pk",SA:"za",NZ:"nz",SL:"lk",BAN:"bd",AFG:"af",IRE:"ie",ZIM:"zw",NED:"nl",SCO:"gb-sct",UAE:"ae",NEP:"np",OMA:"om",USA:"us",CAN:"ca",NAM:"na"};
+const flag=tm=>FLAGS[tm.code]?` flag" style="--c:${esc(tm.color)};--flag:url(https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/flags/1x1/${FLAGS[tm.code]}.svg)`:`" style="--c:${esc(tm.color)}`;
+const tc=(d,p)=>`--ca:${esc(T(d,p.team1).color)};--cb:${esc(T(d,p.team2).color)}`;
+/* Bat smashing the ball mid-shot, with speed trails; the ball carries the VS */
+const BATBALL=`<svg viewBox="0 0 260 260" aria-hidden="true">
+  <g stroke="#111" stroke-width="8" stroke-linecap="round" fill="none">
+    <path d="M14 172q42-12 74-4"/><path d="M6 202q48-6 86 2"/><path d="M28 140q36-16 66-10"/></g>
+  <g transform="rotate(38 190 120)">
+    <rect x="176" y="2" width="28" height="78" rx="12" fill="#111"/>
+    <path d="M176 22h28M176 40h28M176 58h28" stroke="var(--a-hi)" stroke-width="7"/>
+    <rect x="160" y="74" width="60" height="150" rx="24" fill="#f6d9a0" stroke="#111" stroke-width="8"/>
+    <path d="M190 92v114" stroke="#d9a85e" stroke-width="7" stroke-linecap="round"/></g>
+  <circle cx="122" cy="166" r="70" fill="#e63946" stroke="#111" stroke-width="8"/>
+  <path d="M66 128q56 32 112 0" fill="none" stroke="#fff" stroke-width="6" stroke-dasharray="3 9" stroke-linecap="round" opacity=".9"/>
+  <path d="M66 204q56-32 112 0" fill="none" stroke="#fff" stroke-width="6" stroke-dasharray="3 9" stroke-linecap="round" opacity=".9"/>
+  <ellipse cx="96" cy="136" rx="16" ry="9" fill="#fff" opacity=".45" transform="rotate(-30 96 136)"/>
+  <text x="122" y="188" text-anchor="middle" font-family="Teko,Impact,sans-serif" font-weight="700" font-size="64" fill="#fff" stroke="#111" stroke-width="8" paint-order="stroke">VS</text>
+</svg>`;
 function resolve(h,p,d){if(h.options==="teams")return {...h,options:[T(d,p.team1).name,T(d,p.team2).name]};return h;}
 function head(d,p,tag,t){return `<div class="k-top"><span>${esc(d.handle)}</span><span class="k-tag">${esc(tag)}</span></div>
   <h2 class="k-series">${esc(p.series)} · ${esc(p.match)}<small>${esc(p.format||"")}</small></h2>`;}
 function fixture(d,p,t,size){
   const a=T(d,p.team1),b=T(d,p.team2);
   const form=f=>(f||"").split("").map(x=>`<i class="${x==="W"?"w":""}">${esc(x)}</i>`).join("");
-  return `<section class="art ck ${t}${size==="story"?" story":""}">${head(d,p,"Match day",t)}
-    <div class="vs"><div class="team"><div class="badge" style="--c:${esc(a.color)}">${esc(a.code)}</div><b>${esc(a.name)}</b><div class="form">${form(p.form1)}</div></div>
-      <div class="vs-x">VS</div>
-      <div class="team"><div class="badge" style="--c:${esc(b.color)}">${esc(b.code)}</div><b>${esc(b.name)}</b><div class="form">${form(p.form2)}</div></div></div>
+  return `<section class="art ck ${t}${size==="story"?" story":""}" style="${tc(d,p)}">${head(d,p,"Match day",t)}
+    <div class="vs"><div class="team"><div class="badge${flag(a)}">${esc(a.code)}</div><b>${esc(a.name)}</b><div class="form">${form(p.form1)}</div></div>
+      <div class="vs-x"><span>VS</span>${BATBALL}</div>
+      <div class="team"><div class="badge${flag(b)}">${esc(b.code)}</div><b>${esc(b.name)}</b><div class="form">${form(p.form2)}</div></div></div>
     <div class="info"><div><b>Date</b><span>${esc(p.date)}</span></div><div><b>Start</b><span>${esc(p.time)}</span></div><div><b>Venue</b><span>${esc(p.venue)}</span></div></div>
     <div class="watch"><h3>Players to watch</h3>${(p.watch||[]).slice(0,3).map(w=>`<div><i class="dot" style="--c:${esc(T(d,w.team).color)}"></i><span>${esc(w.name)}</span><em>${esc(w.stat)}</em></div>`).join("")}</div>
     <div class="k-foot"><span>Last 5: W = win</span><span>Predict on the next slide →</span></div></section>`;
 }
 function questions(d,p,t,size){
-  return `<section class="art ck ${t}${size==="story"?" story":""}">${head(d,p,"Pre-match quiz",t)}
+  return `<section class="art ck ${t}${size==="story"?" story":""}" style="${tc(d,p)}">${head(d,p,"Pre-match quiz",t)}
     <div class="qs">${(p.questions||[]).slice(0,3).map((q,i)=>`<div class="qq"><p><b>Q${i+1}</b>${esc(q.q)}</p><div>${(q.options||[]).map((o,j)=>`<span><i>${String.fromCharCode(65+j)}</i>${esc(o)}</span>`).join("")}</div></div>`).join("")}</div>
     <div class="how">Comment like this: 1A · 2B · 3A</div></section>`;
 }
 function result(d,p,t,size){
-  const inn=(p.innings||[]).map(x=>{const tm=T(d,x.team);return `<div class="${x.team===p.winner?"won":""}"><i class="mini" style="--c:${esc(tm.color)}">${esc(tm.code)}</i><b>${esc(tm.name)}</b><span class="sc">${esc(x.runs)}/${esc(x.wkts)}<small>${esc(x.overs)} ov</small></span></div>`;}).join("");
-  return `<section class="art ck ${t}${size==="story"?" story":""}">${head(d,p,"Result",t)}
+  const inn=(p.innings||[]).map(x=>{const tm=T(d,x.team);return `<div class="${x.team===p.winner?"won":""}"><i class="mini${flag(tm)}">${esc(tm.code)}</i><b>${esc(tm.name)}</b><span class="sc">${esc(x.runs)}/${esc(x.wkts)}<small>${esc(x.overs)} ov</small></span></div>`;}).join("");
+  return `<section class="art ck ${t}${size==="story"?" story":""}" style="${tc(d,p)}">${head(d,p,"Result",t)}
     <h3 class="res-line fit" data-max="76" data-min="48"><span>${hl(p.result)}</span></h3>
     <div class="inn">${inn}</div>
     ${p.pom?`<div class="pom"><b>POTM</b><span>${esc(p.pom.name)}</span><em>${esc(p.pom.figures)}</em></div>`:""}
@@ -121,20 +171,20 @@ function result(d,p,t,size){
 }
 function performers(d,p,t,size){
   const row=(x,v,u)=>`<div class="row"><i class="dot" style="--c:${esc(T(d,x.team).color)}"></i><span>${esc(x.name)}</span><strong>${esc(v)}<small>${esc(u)}</small></strong></div>`;
-  return `<section class="art ck ${t}${size==="story"?" story":""}">${head(d,p,"Top performers",t)}
+  return `<section class="art ck ${t}${size==="story"?" story":""}" style="${tc(d,p)}">${head(d,p,"Top performers",t)}
     <div class="perf"><h3>Batting</h3>${(p.bat||[]).slice(0,3).map(x=>row(x,x.runs,`(${x.balls})`)).join("")}</div>
     <div class="perf"><h3>Bowling</h3>${(p.bowl||[]).slice(0,3).map(x=>row(x,`${x.w}/${x.r}`,`(${x.ov} ov)`)).join("")}</div>
     <div class="k-foot"><span>${esc(p.series)} · ${esc(p.match)}</span><span>Your take on the next slide →</span></div></section>`;
 }
 function answers(d,p,t,size){
-  return `<section class="art ck ${t}${size==="story"?" story":""}">${head(d,p,"Prediction check",t)}
+  return `<section class="art ck ${t}${size==="story"?" story":""}" style="${tc(d,p)}">${head(d,p,"Prediction check",t)}
     <div class="qs">${(p.answers||[]).slice(0,3).map((a,i)=>{const ok=String(a.answer||"").toUpperCase().charCodeAt(0)-65;
       return `<div class="qq"><p><b>Q${i+1}</b>${esc(a.q)}${a.note?`<small>${esc(a.note)}</small>`:""}</p><div>${(a.options||[]).map((o,j)=>`<span class="${j===ok?"ok":"no"}"><i>${String.fromCharCode(65+j)}</i>${esc(o)}</span>`).join("")}</div></div>`;}).join("")}</div>
     <div class="how">Answer key: ${(p.answers||[]).slice(0,3).map((a,i)=>`${i+1}${esc(String(a.answer||"?").toUpperCase())}`).join(" · ")}</div></section>`;
 }
 function posts(d){
   return (d.posts||[]).map((p,i)=>{
-    const t="t-"+(p.theme||d.theme||"floodlight"), size=d.format==="story"?"story":"post";
+    const t="t-"+(p.theme||d.theme||"splitbold"), size=d.format==="story"?"story":"post";
     const a=T(d,p.team1).name,b=T(d,p.team2).name;
     const isFix=p.type!=="result";
     const h=resolve(hookOf(d,p,isFix?HOOKS[0]:HOOKS[6]),p,d);
@@ -171,11 +221,11 @@ Follow ${d.handle} for fixtures, predictions and scores every match day 🏏
 Studio.mount({
   channel:"@mid.innings", title:"Cricket Match Studio", accent:"#2f8f5b", itemsKey:"posts",
   sub:"Pre-match posts are a fixture card, a 3-question quiz and a Comment & Follow slide. Post-match posts are a scorecard, top performers and a Comment & Follow slide.",
-  note:"The sample scores are made up. Use official scorecards. Team badges are colour circles with short codes, so no team logos are needed.",
-  controls:[{key:"theme",label:"Theme",perItem:true,options:[["floodlight","Floodlight"],["navy","Navy"],["whites","Test whites"]]},{key:"format",label:"Size",options:[["post","Feed post 4:5"],["story","Story / Reel 9:16"]]}],
+  note:"The sample scores are made up. Use official scorecards. International teams show their country flag; league teams get colour circles with short codes. No team logos.",
+  controls:[{key:"theme",label:"Theme",perItem:true,options:[["splitbold","Split bold (team colours)"],["floodlight","Floodlight"],["navy","Navy"],["whites","Test whites"]]},{key:"format",label:"Size",options:[["post","Feed post 4:5"],["story","Story / Reel 9:16"]]}],
   hooks:HOOKS, posts,
   guide:[["teams","Code, name and colour for each team.","Badges are drawn from this, so no logos are needed."],["type","\"fixture\" or \"result\".","Fixtures get a quiz slide; results get a performers slide."],["questions","3 questions: who wins, first-innings score, player of the match.","Fans answer like 1A 2B 3A."],["answers","Result posts: the fixture's 3 questions with the correct letter.","Shown as a Prediction check slide."],["form1 / form2","Last 5 results, such as \"WWLWW\".","Wins are highlighted."],["result","One line.","Wrap the winner in *stars* to highlight it."],["hook",'Use "options":"teams"',"to offer the two teams as answers."]],
-  sample:{theme:"floodlight",format:"post",handle:"@mid.innings",
+  sample:{theme:"splitbold",format:"post",handle:"@mid.innings",
     teams:{IND:{code:"IND",name:"India",color:"#1f5fd1"},AUS:{code:"AUS",name:"Australia",color:"#d9a400"}},
     posts:[
       {type:"fixture",series:"Sample T20I Series 2026",match:"2nd T20I",format:"T20 · Day/Night",team1:"IND",team2:"AUS",form1:"WWLWW",form2:"WLWLW",date:"Wed, 28 Oct",time:"7:00 PM IST",venue:"Sample Stadium, Mumbai",
