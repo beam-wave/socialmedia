@@ -45,6 +45,38 @@ defmodule Socialmedia.Instagram.Graph do
     |> id()
   end
 
+  @doc """
+  A Reel container. `opts`: `:cover_url`, `:audio_id` (attaches that track from
+  the Audio API) and `:audio_volume`. Shown in the feed and grid too.
+  """
+  def reel_container(token, ig_user_id, video_url, caption, opts \\ []) do
+    params =
+      [media_type: "REELS", video_url: video_url, caption: caption, share_to_feed: true] ++
+        if(opts[:cover_url], do: [cover_url: opts[:cover_url]], else: []) ++
+        if(opts[:audio_id],
+          do: [
+            audio_configuration:
+              Jason.encode!(%{audio_id: opts[:audio_id], audio_volume: opts[:audio_volume] || 100})
+          ],
+          else: []
+        )
+
+    post(new(token), "/#{ig_user_id}/media", params) |> id()
+  end
+
+  @doc """
+  Trending music from the Instagram Audio API (Facebook-login `EAA…` tokens only):
+  `{:ok, [%{"audio_id", "title", "display_artist", "duration_in_ms"}]}`.
+  """
+  def trending_audio(token, ig_user_id) do
+    case get(new(token), "/ig_audio", audio_type: "music", user_id: ig_user_id) do
+      {:ok, %{"audio" => list}} when is_list(list) -> {:ok, list}
+      {:ok, %{"data" => list}} when is_list(list) -> {:ok, list}
+      {:ok, body} -> {:error, {:unexpected, body}}
+      error -> error
+    end
+  end
+
   def container_status(token, container_id) do
     case get(new(token), "/#{container_id}", fields: "status_code,status") do
       {:ok, %{"status_code" => code} = body} -> {:ok, code, body["status"]}

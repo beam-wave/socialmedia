@@ -24,6 +24,14 @@ defmodule Socialmedia.Posts.Post do
     field :data, :map
     field :caption, :string
     field :slide_paths, {:array, :string}, default: []
+    # "post" (photo/carousel) and/or "reel" (animated video); both go out at scheduled_at
+    field :formats, {:array, :string}, default: ["post"]
+    field :video_path, :string
+    field :cover_path, :string
+    field :reel_media_id, :string
+    field :reel_permalink, :string
+    # The trending track attached when the reel was published (title, artist, audio_id)
+    field :reel_audio, :map
     field :sources, {:array, :map}, default: []
     field :admin_note, :string
     field :agent_log, :string
@@ -60,6 +68,12 @@ defmodule Socialmedia.Posts.Post do
       :data,
       :caption,
       :slide_paths,
+      :formats,
+      :video_path,
+      :cover_path,
+      :reel_media_id,
+      :reel_permalink,
+      :reel_audio,
       :sources,
       :admin_note,
       :agent_log,
@@ -88,4 +102,7 @@ defmodule Socialmedia.Posts.Post do
     do: s in ~w(planned creating uploaded needs_review approved failed)
 
   def final?(%__MODULE__{status: s}), do: s in ~w(published rejected)
+
+  def reel?(%__MODULE__{formats: f}), do: "reel" in (f || [])
+  def photo?(%__MODULE__{formats: f}), do: "post" in (f || ["post"])
 end

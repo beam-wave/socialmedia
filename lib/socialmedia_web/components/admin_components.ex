@@ -126,6 +126,11 @@ defmodule SocialmediaWeb.AdminComponents do
 
   @doc "Presigned URL of a slide in S3 for <img src> (valid 1 hour)."
   def slide_src(key), do: Socialmedia.Storage.url(key, 3600)
+
+  @doc "The image to show for a post in lists: its first slide, or its reel's cover."
+  def thumb_key(%{slide_paths: [first | _]}), do: first
+  def thumb_key(%{cover_path: cover}) when is_binary(cover), do: cover
+  def thumb_key(_), do: nil
 end
 
 defmodule SocialmediaWeb.PostText do

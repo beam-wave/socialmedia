@@ -242,8 +242,8 @@ defmodule SocialmediaWeb.ChannelLive.Show do
           </div>
           <div class="w-10 shrink-0">
             <img
-              :if={p.slide_paths != []}
-              src={slide_src(hd(p.slide_paths))}
+              :if={thumb_key(p)}
+              src={slide_src(thumb_key(p))}
               class="slide-thumb w-10 rounded border hairline"
               alt=""
             />

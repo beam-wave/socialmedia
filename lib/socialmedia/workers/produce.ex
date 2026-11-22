@@ -64,7 +64,7 @@ defmodule Socialmedia.Workers.Produce do
         out = Path.join([System.tmp_dir!(), "socialmedia-render", post.content_key])
 
         try do
-          case produce(work, out) do
+          case produce(work, out, post.formats || ["post"]) do
             {:ok, result} ->
               {:ok, uploaded} = Content.upload(post, result)
               # Added only after the first one is up, so a retry can't add them twice
@@ -95,29 +95,53 @@ defmodule Socialmedia.Workers.Produce do
     end
   end
 
-  defp produce(%Work{kind: "generate"} = work, out) do
+  defp produce(%Work{kind: "generate"} = work, out, formats) do
     with {:ok, gen} <- Agent.generate(work),
          [data | more] <- split(work, gen.data),
-         {:ok, rendered} <- Renderer.render(work.channel, data, out) do
+         {:ok, rendered} <- render(work.channel, data, out, formats) do
       {:ok,
-       %{
-         data: data,
-         more: more,
-         caption: rendered.caption,
-         sources: gen.sources,
-         notes: gen.notes,
-         slides: rendered.slides
-       }}
+       Map.merge(rendered, %{data: data, more: more, sources: gen.sources, notes: gen.notes})}
     else
       [] -> {:skip, "No relevant match starts on #{day(work)} (#{work.channel.timezone})", nil}
       other -> other
     end
   end
 
-  defp produce(%Work{kind: "render", data: data} = work, out) do
-    with {:ok, rendered} <- Renderer.render(work.channel, data, out) do
-      {:ok, %{data: data, caption: rendered.caption, slides: rendered.slides}}
+  defp produce(%Work{kind: "render", data: data} = work, out, formats) do
+    with {:ok, rendered} <- render(work.channel, data, out, formats) do
+      {:ok, Map.put(rendered, :data, data)}
     end
+  end
+
+  # The photo post's slides and/or the reel's video, from the same data.
+  # render/3 clears `out`, so the slides come first and the reel records into out/reel.
+  defp render(channel, data, out, formats) do
+    with {:ok, photo} <- photo(channel, data, out, "post" in formats),
+         {:ok, reel} <- reel(channel, data, out, "reel" in formats) do
+      {:ok,
+       %{
+         slides: photo[:slides] || [],
+         caption: photo[:caption] || reel[:caption],
+         video: reel[:video],
+         cover: reel[:cover]
+       }}
+    end
+  end
+
+  defp photo(_channel, _data, out, false) do
+    File.rm_rf!(out)
+    File.mkdir_p!(out)
+    {:ok, %{}}
+  end
+
+  defp photo(channel, data, out, true), do: Renderer.render(channel, data, out)
+
+  defp reel(_channel, _data, _out, false), do: {:ok, %{}}
+
+  defp reel(channel, data, out, true) do
+    if Renderer.reel_ready?(channel.template_dir),
+      do: Renderer.record(channel, data, out),
+      else: {:error, "template #{channel.template_dir} has no animated version for a reel"}
   end
 
   # A fixture run can return all of the day's matches; keep the ones that start on the chosen day

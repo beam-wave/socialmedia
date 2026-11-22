@@ -104,6 +104,19 @@
                       "q"
                     ],
                     "additionalProperties": false
+                  },
+                  "vibe": {
+                    "type": "string",
+                    "maxLength": 22,
+                    "description": "Short Gen Z sticker above the quote, e.g. NO SIDE QUESTS, LOCKED IN, AURA +100"
+                  },
+                  "mood": {
+                    "type": "string",
+                    "enum": [
+                      "funny",
+                      "serious"
+                    ],
+                    "description": "funny: Gen Z humour; serious: straight coach voice"
                   }
                 },
                 "required": [
@@ -111,7 +124,9 @@
                   "quote_hi",
                   "action",
                   "action_hi",
-                  "hook"
+                  "hook",
+                  "vibe",
+                  "mood"
                 ],
                 "additionalProperties": false
               }

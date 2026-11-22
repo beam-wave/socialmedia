@@ -56,6 +56,42 @@
 .m-foot{position:absolute;right:88px;bottom:34px;display:flex;align-items:baseline;gap:22px;font-size:24px;font-weight:600;color:var(--m-foot);letter-spacing:.04em}
 .m-foot b{font-family:var(--a-display);font-weight:400;font-size:30px;letter-spacing:.08em;color:var(--m-foot)}
 .m.story .m-foot{bottom:96px}
+/* Gen Z "vibe" sticker: a tilted tag above the quote (e.g. LOCKED IN, NO SIDE QUESTS) */
+.m-vibe{align-self:flex-start;flex:none;font-family:var(--a-display);font-size:36px;letter-spacing:.06em;text-transform:uppercase;color:var(--a-ink);background:var(--a-hi);padding:10px 22px 8px;border-radius:12px;transform:rotate(-3deg);box-shadow:6px 6px 0 var(--a-fg)}
+/* Reel (format "reel"): a 9:16 card that builds itself, then the Comment & Follow card.
+   Timeline (12 s): top 0.1s, sticker 0.3s, words from 0.8s, punch pops, Hindi 3.6s,
+   action 4.4s, climber walks 1.2–4.2s, footer 6s, end card 8.8s. The recorder pauses
+   every animation and steps currentTime frame by frame, so the video is exact. */
+.reel-wrap{position:absolute;inset:0}
+.reel .m-top{animation:rDown .6s .1s both cubic-bezier(.2,.8,.2,1)}
+.reel .m-text .w{display:inline-block;animation:rWord .5s calc(.8s + var(--i) * .14s) both cubic-bezier(.2,.8,.2,1)}
+.reel .m-text em .w{animation-name:rPunch;animation-duration:.6s}
+.reel .m-alt{animation:rUp .7s 3.6s both cubic-bezier(.2,.8,.2,1)}
+.reel .m-by{animation:rUp .6s 3.9s both}
+.reel .m-act{animation:rSlide .7s 4.4s both cubic-bezier(.2,.8,.2,1)}
+.reel .m-vibe{animation:rStick .55s .3s both cubic-bezier(.3,1.6,.5,1)}
+.reel .m-scene .sun,.reel .m-scene .glow{transform-box:fill-box;transform-origin:center;animation:rSun 2.6s .2s both cubic-bezier(.2,.8,.2,1)}
+.reel .m-scene .far{transform-origin:50% 100%;animation:rDriftA 12s linear both}
+.reel .m-scene .mid{transform-origin:50% 100%;animation:rDriftB 12s linear both}
+.reel .m-scene .done{stroke-dasharray:1;stroke-dashoffset:1;animation:rDraw 3s 1.2s both ease-in-out}
+.reel .m-scene .climber{transform-box:fill-box;transform-origin:50% 100%;animation:rPopIn .5s 4.1s both cubic-bezier(.3,1.6,.5,1)}
+.reel .m-scene .flag{transform-box:fill-box;transform-origin:0 50%;animation:rWave 1.2s 1s infinite alternate ease-in-out}
+.reel .m-foot{animation:rUp .6s 6s both}
+.reel .m-foot b{display:none}
+.reel-end{animation:rEnd .7s 8.8s both cubic-bezier(.2,.8,.2,1)}
+@keyframes rDown{from{opacity:0;transform:translateY(-40px)}to{opacity:1;transform:none}}
+@keyframes rWord{from{opacity:0;transform:translateY(46px) rotate(3deg);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+@keyframes rPunch{0%{opacity:0;transform:scale(.5) rotate(-6deg)}60%{opacity:1;transform:scale(1.14) rotate(2deg)}100%{opacity:1;transform:none}}
+@keyframes rUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+@keyframes rSlide{from{opacity:0;transform:translateX(-60px)}to{opacity:1;transform:none}}
+@keyframes rStick{from{opacity:0;transform:rotate(-14deg) scale(1.6)}to{opacity:1;transform:rotate(-3deg)}}
+@keyframes rSun{from{opacity:.2;transform:translateY(110px)}to{opacity:1;transform:none}}
+@keyframes rDriftA{from{transform:scale(1.08) translateX(0)}to{transform:scale(1.08) translateX(-34px)}}
+@keyframes rDriftB{from{transform:scale(1.08) translateX(0)}to{transform:scale(1.08) translateX(26px)}}
+@keyframes rDraw{to{stroke-dashoffset:0}}
+@keyframes rPopIn{from{opacity:0;transform:scale(0)}to{opacity:1;transform:none}}
+@keyframes rWave{from{transform:skewY(0)}to{transform:skewY(-8deg)}}
+@keyframes rEnd{from{opacity:0;transform:scale(1.05)}to{opacity:1;transform:none}}
 </style></head>
 <body><div id="app"></div>
 <script src="../_shared/studio.js"></script>
@@ -91,37 +127,40 @@ function scene(day,of,story){
   const at=along(Math.max(0,Math.min(1,day/of))), pts=l=>l.map(p=>p.map(n=>n.toFixed(1)).join(",")).join(" ");
   return `<svg viewBox="0 0 1080 300" preserveAspectRatio="${story?"xMidYMin meet":"xMidYMax slice"}" aria-hidden="true">
     <defs><radialGradient id="m-glow"><stop offset=".55" stop-color="var(--a-hi)" stop-opacity=".28"/><stop offset="1" stop-color="var(--a-hi)" stop-opacity="0"/></radialGradient></defs>
-    <circle cx="300" cy="168" r="170" fill="url(#m-glow)"/>
+    <circle class="glow" cx="300" cy="168" r="170" fill="url(#m-glow)"/>
     <circle class="sun" cx="300" cy="168" r="92"/>
     <path class="far" d="M0 300V200l140-48 120 36 140-76 120 56 120-46 140 54 120-76 180 56V300z"/>
     <path class="mid" d="M0 300V236l160-50 140 38 170-78 150 66 200-56 180 54 80-18v108z"/>
     <path class="near" d="M0 300V250q120-28 220-24l200-60 140-40 200-60 120 70 200 40v124z"/>
     <polyline class="trail" points="${pts(TRAIL)}"/>
-    <polyline class="done" points="${pts(at.walked)}"/>
+    <polyline class="done" pathLength="1" points="${pts(at.walked)}"/>
     <path d="M760 68V22" stroke="var(--m-trail)" stroke-width="5" stroke-linecap="round"/>
-    <path class="hi" d="M762 22h62l-13 16 13 16h-62z"/>
-    <text x="778" y="45" font-family="Anton,Impact,sans-serif" font-size="19" fill="var(--a-ink)">365</text>
-    <g transform="translate(${at.x.toFixed(1)} ${at.y.toFixed(1)}) scale(1.45)">
+    <g class="flag"><path class="hi" d="M762 22h62l-13 16 13 16h-62z"/>
+    <text x="778" y="45" font-family="Anton,Impact,sans-serif" font-size="19" fill="var(--a-ink)">365</text></g>
+    <g class="climber"><g transform="translate(${at.x.toFixed(1)} ${at.y.toFixed(1)}) scale(1.45)">
       <circle r="15" class="hi" opacity=".35"/>
       <g stroke="var(--a-hi)" stroke-width="5" stroke-linecap="round" fill="none">
         <path d="M0 -12v-22M0 -34l-9 12M0 -34l9 -14M0 -12l-8 12M0 -12l9 11"/><path d="M9 -48l7 -8"/></g>
       <rect x="-12" y="-36" width="9" height="16" rx="3" class="hi"/>
       <circle cy="-42" r="7" class="hi"/>
-    </g>
+    </g></g>
   </svg>`;
 }
+// Wraps each word of rendered quote HTML in a span so the reel can reveal it word by word
+function words(h){let i=0;return h.split(/(<[^>]+>)/).map(t=>t.startsWith("<")?t:t.split(/(\s+)/).map(w=>w.trim()?`<span class="w" style="--i:${i++}">${w}</span>`:w).join("")).join("");}
 function posts(d){
   return (d.quotes||[]).map((q,i)=>{
-    const story=d.format==="story", size=story?"story":"post", lang=q.lang||d.lang||"both", theme="t-"+(q.theme||d.theme||"ivory");
+    const reel=d.format==="reel", story=reel||d.format==="story", size=story?"story":"post", lang=q.lang||d.lang||"both", theme="t-"+(q.theme||d.theme||"ivory");
     const hiMain=lang==="hi"||(!q.quote&&q.quote_hi);
     const main=hiMain?(q.quote_hi||q.quote):q.quote, alt=(lang==="both"&&!hiMain&&q.quote_hi)?q.quote_hi:"";
     const day=+q.day||i+1, of=+d.total_days||365, pct=Math.max(1,Math.min(100,day/of*100));
     const act=lang==="hi"?(q.action_hi||q.action):q.action, act2=lang==="both"?q.action_hi:"";
     const h=hookOf(d,q,HOOKS[0]);
-    const card=`<section class="art m ${theme}${story?" story":""}" lang="${hiMain?"hi":"en"}">
+    const card=`<section class="art m ${theme}${story?" story":""}${reel?" reel":""}" lang="${hiMain?"hi":"en"}">
       <div class="m-top"><span class="m-day">Day <b>${pad(day,3)}</b> / ${of}</span><span class="m-handle">${esc(d.handle)}</span></div>
       <div class="m-body">
-        <p class="m-text fit" data-hug data-max="${story?136:(alt?108:124)}" data-min="56"><span>${hl(main)}</span></p>
+        ${q.vibe?`<span class="m-vibe">${esc(q.vibe)}</span>`:""}
+        <p class="m-text fit" data-hug data-max="${story?136:(alt?108:124)}" data-min="56"><span>${reel?words(hl(main)):hl(main)}</span></p>
         ${alt?`<p class="m-alt" lang="hi">${hl(alt)}</p>`:""}
         ${q.author?`<div class="m-by">— ${esc(q.author)}</div>`:""}
         ${act?`<div class="m-act"><b>Today's action</b><p>${esc(act)}</p>${act2?`<p lang="hi">${esc(act2)}</p>`:""}</div>`:""}
@@ -143,14 +182,17 @@ ${captionHook(hh)}
 Follow ${d.handle} and don't break the streak. Day ${day+1} drops tomorrow at 6 AM ⏰
 
 ${d.tags||""}`;
-    return {id:"day"+pad(day,3),label:`Day ${day} · ${q.date||""}`,slides:[{name:"card",html:card,size},{name:"comment-follow",html:cta,size}],caption};
+    const slides=reel
+      ? [{name:"reel",size:"story",html:`<div class="reel-wrap">${card}${cta.replace('class="art cta-slide','class="art cta-slide reel-end')}</div>`}]
+      : [{name:"card",html:card,size},{name:"comment-follow",html:cta,size}];
+    return {id:"day"+pad(day,3),label:`Day ${day} · ${q.date||""}`,slides,caption,video:reel?{seconds:12}:undefined};
   });
 }
 Studio.mount({
   channel:"@_motivation2live__", title:"Daily Motivation Studio", accent:"#e8461c", itemsKey:"quotes",
   sub:"Each day is a 2-slide post: a quote card with a Day N / 365 streak and today's action, then a Comment & Follow slide.",
   note:"The samples are original lines. Credit real authors, and check that the quote is actually theirs. Many famous quotes are misattributed.",
-  controls:[{key:"theme",label:"Theme",perItem:true,options:[["ivory","Ivory & red"],["midnight","Midnight & gold"],["forest","Forest & gold"],["volt","Black & lime"],["cobalt","Cobalt & yellow"],["sand","Sand & navy"]]},{key:"lang",label:"Language",perItem:true,options:[["both","English + Hindi"],["en","English"],["hi","Hindi"]]},{key:"format",label:"Size",options:[["post","Feed post 4:5"],["story","Story / Reel 9:16"]]}],
+  controls:[{key:"theme",label:"Theme",perItem:true,options:[["ivory","Ivory & red"],["midnight","Midnight & gold"],["forest","Forest & gold"],["volt","Black & lime"],["cobalt","Cobalt & yellow"],["sand","Sand & navy"]]},{key:"lang",label:"Language",perItem:true,options:[["both","English + Hindi"],["en","English"],["hi","Hindi"]]},{key:"format",label:"Size",options:[["post","Feed post 4:5"],["story","Story 9:16"],["reel","Animated reel 9:16"]]}],
   hooks:HOOKS, posts,
   guide:[["day / total_days","The streak counter.","A streak gives people a reason to come back tomorrow."],["quote / quote_hi","Under 18 words works best.","Wrap the punch phrase in *stars* to highlight it."],["action / action_hi","One small task for today.","This is what turns a quote into a habit."],["author","Optional.","Leave empty for the channel's own lines."],["hook","The comment question.","Set it for the batch or per day."]],
   sample:{theme:"ivory",format:"post",lang:"both",handle:"@_motivation2live__",total_days:365,

@@ -32,6 +32,40 @@ defmodule Socialmedia.ContentBusTest do
     post
   end
 
+  test "a channel making post and reel: the post remembers both, and the reel travels through S3" do
+    {:ok, ch} =
+      Socialmedia.Channels.update_channel(channel(), %{make_post: true, make_reel: true})
+
+    assert {:ok, post} = Content.create(ch, %{post_type: "quote", scheduled_at: hours(5)})
+    assert post.formats == ["post", "reel"]
+
+    {:ok, post} =
+      Content.upload(post, %{
+        data: %{"quotes" => [%{"quote" => "q"}]},
+        caption: "cap",
+        slides: [slide_file("s-01.jpg")],
+        video: slide_file("v.mp4"),
+        cover: slide_file("c.jpg")
+      })
+
+    assert post.video_path == "content/#{post.content_key}/reel.mp4"
+    assert {:ok, "jpeg-bytes-v.mp4"} = Storage.get(post.video_path)
+
+    # Pulled on another machine: the reel comes along
+    Repo.delete!(post)
+    [m] = Content.manifests()
+    assert {:ok, pulled} = Content.pull(m)
+    assert pulled.formats == ["post", "reel"]
+    assert pulled.video_path == post.video_path and pulled.cover_path == post.cover_path
+  end
+
+  test "a channel must make at least a post or a reel" do
+    assert {:error, cs} =
+             Socialmedia.Channels.update_channel(channel(), %{make_post: false, make_reel: false})
+
+    assert %{make_post: [_]} = errors_on(cs)
+  end
+
   test "each click creates one post and queues one Produce job" do
     ch = channel()
 

@@ -81,7 +81,7 @@ RUN mix release
 FROM ${RUNNER_IMAGE} AS final
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends libstdc++6 openssl libncurses6 locales ca-certificates \
+  && apt-get install -y --no-install-recommends libstdc++6 openssl libncurses6 locales ca-certificates ffmpeg \
     fonts-noto-color-emoji \
   && rm -rf /var/lib/apt/lists/*
 
@@ -110,7 +110,7 @@ RUN cd /app/project/renderer \
   && npm ci \
   && npx playwright install --with-deps chromium \
   && rm -rf /var/lib/apt/lists/*
-COPY renderer/render.js /app/project/renderer/
+COPY renderer/render.js renderer/record.js /app/project/renderer/
 COPY agent /app/project/agent
 COPY channels /app/project/channels
 

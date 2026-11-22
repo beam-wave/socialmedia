@@ -40,6 +40,7 @@ defmodule Socialmedia.Content do
                scheduled_at: attrs.scheduled_at,
                admin_note: attrs[:admin_note],
                series_number: Posts.next_series_number(channel),
+               formats: Channel.formats(channel),
                status: "creating"
              }),
            {:ok, _job} <- Produce.enqueue(post) do
@@ -95,6 +96,17 @@ defmodule Socialmedia.Content do
     # A regenerated post can have fewer slides than before
     Enum.each(post.slide_paths -- keys, &Storage.delete/1)
 
+    {video, cover} =
+      if result[:video] do
+        v = "content/#{post.content_key}/reel.mp4"
+        c = "content/#{post.content_key}/reel-cover.jpg"
+        :ok = Storage.put_file(v, result.video, "video/mp4")
+        :ok = Storage.put_file(c, result.cover, "image/jpeg")
+        {v, c}
+      else
+        {nil, nil}
+      end
+
     :ok =
       Storage.put_json(manifest_key(post.content_key), %{
         key: post.content_key,
@@ -111,6 +123,9 @@ defmodule Socialmedia.Content do
         sources: result[:sources] || [],
         notes: result[:notes],
         slides: keys,
+        formats: post.formats,
+        video: video,
+        cover: cover,
         made_at: DateTime.utc_now()
       })
 
@@ -123,6 +138,8 @@ defmodule Socialmedia.Content do
              sources: result[:sources] || post.sources,
              agent_log: result[:notes] || post.agent_log,
              slide_paths: keys,
+             video_path: video,
+             cover_path: cover,
              error: nil
            }) do
       # A fixture's result is made on prod by Workers.ResultWatcher once it's scheduled
@@ -210,6 +227,9 @@ defmodule Socialmedia.Content do
         sources: m["sources"] || [],
         agent_log: m["notes"],
         slide_paths: m["slides"] || [],
+        formats: m["formats"] || ["post"],
+        video_path: m["video"],
+        cover_path: m["cover"],
         error: nil
       }
 
@@ -236,7 +256,11 @@ defmodule Socialmedia.Content do
 
   @doc "Deletes a manifest and its slides from S3 without importing it."
   def delete(%{"manifest" => mkey} = m) do
-    Enum.each(m["slides"] || [], &Storage.delete/1)
+    Enum.each(
+      (m["slides"] || []) ++ Enum.reject([m["video"], m["cover"]], &is_nil/1),
+      &Storage.delete/1
+    )
+
     Storage.delete(mkey)
 
     # Made on this machine: the post's slides are gone, so it can't be pulled any more

@@ -135,8 +135,8 @@ defmodule SocialmediaWeb.DashboardLive do
         <ul :if={@review != []} class="rounded-lg border hairline divide-y divide-base-300">
           <li :for={p <- @review} class="flex items-center gap-4 px-3 py-2.5">
             <img
-              :if={p.slide_paths != []}
-              src={slide_src(hd(p.slide_paths))}
+              :if={thumb_key(p)}
+              src={slide_src(thumb_key(p))}
               class="slide-thumb w-12 rounded border hairline"
               alt=""
             />

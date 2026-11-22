@@ -139,7 +139,8 @@ defmodule Socialmedia.Agent do
 
   defp summarize(_quotes, d) do
     q = first(d, "quotes")
-    "\"#{q["quote"]}\" | theme: #{q["theme"]} | hook: #{hook_q(q)}"
+    extra = for k <- ~w(mood vibe), q[k], do: " | #{k}: #{q[k]}"
+    "\"#{q["quote"]}\" | theme: #{q["theme"]}#{extra} | hook: #{hook_q(q)}"
   end
 
   defp first(d, key), do: d[key] |> List.wrap() |> List.first() || %{}

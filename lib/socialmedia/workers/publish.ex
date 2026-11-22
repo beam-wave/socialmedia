@@ -1,7 +1,9 @@
 defmodule Socialmedia.Workers.Publish do
   @moduledoc """
-  Posts an approved post to Instagram at its time. For a channel in dry-run
-  mode nothing is sent; the post is marked published with a dry-run note.
+  Posts an approved post to Instagram at its time: the photo/carousel post, the
+  animated reel, or both (per `post.formats`). Each part's media id is saved as
+  soon as it is live, so a retry never posts the same part twice. For a channel
+  in dry-run mode nothing is sent; the post is marked published with a dry-run note.
   """
   use Oban.Worker,
     queue: :publish,
@@ -10,6 +12,7 @@ defmodule Socialmedia.Workers.Publish do
 
   require Logger
   alias Socialmedia.Posts
+  alias Socialmedia.Posts.Post
   alias Socialmedia.Instagram.Publisher
 
   def enqueue(post, opts \\ []) do
@@ -34,17 +37,11 @@ defmodule Socialmedia.Workers.Publish do
 
   defp do_publish(post, attempt, max) do
     if not post.channel.dry_run do
-      case Publisher.publish(post) do
-        {:ok, %{ig_media_id: mid, permalink: link}} ->
-          Posts.mark(post, "published", %{
-            ig_media_id: mid,
-            permalink: link,
-            published_at: now(),
-            error: nil
-          })
-
-          :ok
-
+      with {:ok, post} <- photo_part(post),
+           {:ok, post} <- reel_part(post) do
+        Posts.mark(post, "published", %{published_at: now(), error: nil})
+        :ok
+      else
         {:error, reason} when attempt < max ->
           Posts.mark(post, "approved", %{error: "publish attempt #{attempt}: #{inspect(reason)}"})
           {:error, reason}
@@ -64,6 +61,28 @@ defmodule Socialmedia.Workers.Publish do
       })
 
       :ok
+    end
+  end
+
+  defp photo_part(%Post{ig_media_id: id} = post) when is_binary(id), do: {:ok, post}
+
+  defp photo_part(post) do
+    if Post.photo?(post) do
+      with {:ok, %{ig_media_id: mid, permalink: link}} <- Publisher.publish(post),
+           do: Posts.mark(post, "publishing", %{ig_media_id: mid, permalink: link})
+    else
+      {:ok, post}
+    end
+  end
+
+  defp reel_part(%Post{reel_media_id: id} = post) when is_binary(id), do: {:ok, post}
+
+  defp reel_part(post) do
+    if Post.reel?(post) do
+      with {:ok, r} <- Publisher.publish_reel(post),
+           do: Posts.mark(post, "publishing", r)
+    else
+      {:ok, post}
     end
   end
 

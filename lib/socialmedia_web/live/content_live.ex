@@ -299,8 +299,8 @@ defmodule SocialmediaWeb.ContentLive do
             <div class="space-y-2">
               <.link navigate={~p"/posts/#{p.id}"}>
                 <img
-                  :if={p.slide_paths != []}
-                  src={slide_src(hd(p.slide_paths))}
+                  :if={thumb_key(p)}
+                  src={slide_src(thumb_key(p))}
                   class="slide-thumb w-full rounded-md border hairline"
                   alt=""
                 />
@@ -382,8 +382,8 @@ defmodule SocialmediaWeb.ContentLive do
         <ul :if={@scheduled != []} class="rounded-lg border hairline divide-y divide-base-300">
           <li :for={p <- @scheduled} class="flex flex-wrap items-center gap-3 px-3 py-2.5">
             <img
-              :if={p.slide_paths != []}
-              src={slide_src(hd(p.slide_paths))}
+              :if={thumb_key(p)}
+              src={slide_src(thumb_key(p))}
               class="slide-thumb w-10 rounded border hairline"
               alt=""
             />

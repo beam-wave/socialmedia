@@ -34,6 +34,8 @@ defmodule SocialmediaWeb.ChannelLive.Settings do
 
   defp assign_form(socket, cs), do: assign(socket, :form, to_form(cs))
 
+  defp reel_ready?(dir), do: Socialmedia.Content.Renderer.reel_ready?(dir)
+
   defp list_dirs(dir) do
     case File.ls(dir) do
       {:ok, names} -> names |> Enum.filter(&File.dir?(Path.join(dir, &1))) |> Enum.sort()
@@ -167,6 +169,26 @@ defmodule SocialmediaWeb.ChannelLive.Settings do
               options={@templates}
               prompt="Pick a template"
             />
+            <div class="sm:col-span-2 rounded-lg border hairline p-3 mb-3" id="channel-formats">
+              <p class="text-sm font-medium">Each Create makes</p>
+              <div class="flex flex-wrap gap-x-6">
+                <.input field={@form[:make_post]} type="checkbox" label="Post (photo / carousel)" />
+                <.input
+                  field={@form[:make_reel]}
+                  type="checkbox"
+                  label="Animated reel (with trending music)"
+                />
+              </div>
+              <p class="text-xs muted">
+                Tick both to get a post and a reel from the same content; both go out at the scheduled time.
+                <%= if reel_ready?(@form[:template_dir].value) do %>
+                  This template has an animated version.
+                <% else %>
+                  <b>This template has no animated version yet</b>: a reel can't be made with it.
+                <% end %>
+                Trending music needs an EAA (Facebook login) token; without one the reel goes out silent.
+              </p>
+            </div>
             <div class="sm:col-span-2">
               <label class="label mb-1 text-sm" for="base_data_json">Template defaults (JSON)</label>
               <textarea

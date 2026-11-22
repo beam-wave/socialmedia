@@ -285,8 +285,40 @@ defmodule SocialmediaWeb.PostLive.Show do
 
       <div class="grid lg:grid-cols-[minmax(0,420px)_1fr] gap-8 items-start">
         <section class="space-y-3">
+          <div :if={@post.video_path} id="reel-preview" class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-semibold">Animated reel</span>
+              <a
+                :if={@post.reel_permalink}
+                href={@post.reel_permalink}
+                target="_blank"
+                rel="noopener"
+                class="text-xs underline"
+              >
+                Live reel
+              </a>
+            </div>
+            <video
+              src={slide_src(@post.video_path)}
+              poster={@post.cover_path && slide_src(@post.cover_path)}
+              class="w-full max-w-[280px] aspect-[9/16] rounded-lg border hairline bg-black"
+              controls
+              loop
+              muted
+              playsinline
+            >
+            </video>
+            <p class="text-xs muted">
+              <%= if @post.reel_audio do %>
+                Music: {@post.reel_audio["title"]}{if @post.reel_audio["artist"],
+                  do: " · #{@post.reel_audio["artist"]}"}
+              <% else %>
+                A random trending track is attached when it's published (silent here).
+              <% end %>
+            </p>
+          </div>
           <div
-            :if={@post.slide_paths == []}
+            :if={@post.slide_paths == [] and is_nil(@post.video_path)}
             class="slide-thumb w-full rounded-lg border border-dashed hairline grid place-items-center text-sm muted"
           >
             {case @post.status do

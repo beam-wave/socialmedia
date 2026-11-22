@@ -5,5 +5,6 @@ defmodule Socialmedia.Paths do
   def agent_dir, do: Path.join(root(), "agent")
   def channels_dir, do: Path.join(root(), "channels")
   def renderer_script, do: Path.join([root(), "renderer", "render.js"])
+  def recorder_script, do: Path.join([root(), "renderer", "record.js"])
   def schema_path(skill), do: Path.join([agent_dir(), "schemas", "#{skill}.json"])
 end

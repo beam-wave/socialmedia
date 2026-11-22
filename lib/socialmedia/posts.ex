@@ -289,7 +289,7 @@ defmodule Socialmedia.Posts do
   def restore(%Post{status: "rejected"} = post) do
     if DateTime.compare(post.scheduled_at, DateTime.utc_now()) == :gt do
       cond do
-        post.slide_paths != [] ->
+        post.slide_paths != [] or not is_nil(post.video_path) ->
           mark(post, "needs_review", %{reject_reason: nil})
 
         post.post_type == "result" and is_nil(post.facts) ->
