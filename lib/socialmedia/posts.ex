@@ -351,6 +351,27 @@ defmodule Socialmedia.Posts do
 
   ## Helpers
 
+  @doc """
+  Removes a post for good: cancels its waiting jobs, deletes its files in S3
+  (slides, reel, cover, a manifest still in the inbox) and the row. Something
+  already live on Instagram stays there. Not while it is being published.
+  """
+  def delete_post(%Post{status: "publishing"}), do: {:error, :publishing}
+
+  def delete_post(%Post{} = post) do
+    cancel_jobs(post)
+
+    keys =
+      Enum.reject(
+        post.slide_paths ++
+          [post.video_path, post.cover_path, Socialmedia.Content.manifest_key(post.content_key)],
+        &is_nil/1
+      )
+
+    Enum.each(keys, &Socialmedia.Storage.delete/1)
+    Repo.delete(post)
+  end
+
   @doc "Cancels queued jobs for a post (all workers, or just one)."
   def cancel_jobs(%Post{id: id}, worker \\ nil) do
     query =

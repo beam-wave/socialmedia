@@ -59,6 +59,28 @@ defmodule Socialmedia.ContentBusTest do
     assert pulled.video_path == post.video_path and pulled.cover_path == post.cover_path
   end
 
+  test "deleting a post removes its S3 files, its row and its scheduled publish" do
+    post =
+      Content.create(channel(), %{post_type: "quote", scheduled_at: hours(5)})
+      |> elem(1)
+      |> made()
+
+    {:ok, post} =
+      post |> Ecto.Changeset.change(status: "needs_review") |> Repo.update!() |> Posts.approve()
+
+    keys = post.slide_paths
+
+    assert {:ok, _} = Posts.delete_post(post)
+    refute Repo.get(Post, post.id)
+    for k <- keys, do: assert({:error, _} = Storage.get(k))
+    refute_enqueued(worker: Socialmedia.Workers.Publish, args: %{post_id: post.id})
+  end
+
+  test "a post being published can't be deleted" do
+    post = Content.create(channel(), %{post_type: "quote", scheduled_at: hours(5)}) |> elem(1)
+    assert {:error, :publishing} = Posts.delete_post(%{post | status: "publishing"})
+  end
+
   test "a channel must make at least a post or a reel" do
     assert {:error, cs} =
              Socialmedia.Channels.update_channel(channel(), %{make_post: false, make_reel: false})

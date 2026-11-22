@@ -71,6 +71,21 @@ defmodule SocialmediaWeb.PostLive.Show do
 
   def handle_event("unapprove", _, socket), do: act(socket, &Posts.unapprove/1, "Back in review")
 
+  def handle_event("delete", _, socket) do
+    post = socket.assigns.post
+
+    case Posts.delete_post(post) do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Deleted")
+         |> push_navigate(to: ~p"/channels/#{post.channel_id}")}
+
+      {:error, r} ->
+        {:noreply, put_flash(socket, :error, "Can't delete: #{inspect(r)}")}
+    end
+  end
+
   def handle_event("reject", _, socket),
     do: act(socket, &Posts.reject/1, "Rejected. It won't be posted.")
 
@@ -187,6 +202,19 @@ defmodule SocialmediaWeb.PostLive.Show do
           <div class="flex items-center gap-2">
             <.status_badge status={@post.status} />
             <span class="text-xs muted">{post_type_label(@post.post_type)}</span>
+            <button
+              :if={@post.status != "publishing"}
+              id="delete-post"
+              phx-click="delete"
+              class="btn btn-xs btn-ghost gap-1 opacity-70 hover:opacity-100"
+              data-confirm={
+                if @post.status == "published",
+                  do: "Delete this post here and its files in S3? It stays on Instagram.",
+                  else: "Delete this post and its files in S3? This can't be undone."
+              }
+            >
+              <.icon name="hero-trash" class="size-3.5" /> Delete
+            </button>
           </div>
           <h1 class="text-xl font-semibold tracking-tight mt-1.5">
             {PostText.title(@post) || "Not written yet"}

@@ -30,6 +30,14 @@ defmodule SocialmediaWeb.ChannelLive.Show do
 
   def handle_info(_, socket), do: {:noreply, socket}
 
+  defp delete_confirm(%{status: "published"}),
+    do: "Delete this post here and its files in S3? It stays on Instagram."
+
+  defp delete_confirm(%{status: s}) when s in ~w(approved),
+    do: "Delete this scheduled post? It won't be posted, and its files in S3 are removed."
+
+  defp delete_confirm(_), do: "Delete this post and its files in S3? This can't be undone."
+
   defp load_posts(socket) do
     ch = socket.assigns.channel
     now = DateTime.utc_now()
@@ -54,6 +62,13 @@ defmodule SocialmediaWeb.ChannelLive.Show do
     case Posts.approve(Posts.get_post!(id)) do
       {:ok, _} -> {:noreply, put_flash(socket, :info, "Scheduled")}
       {:error, r} -> {:noreply, put_flash(socket, :error, "Can't schedule: #{inspect(r)}")}
+    end
+  end
+
+  def handle_event("delete", %{"id" => id}, socket) do
+    case Posts.delete_post(Posts.get_post!(id)) do
+      {:ok, _} -> {:noreply, socket |> put_flash(:info, "Deleted") |> load_posts()}
+      {:error, r} -> {:noreply, put_flash(socket, :error, "Can't delete: #{inspect(r)}")}
     end
   end
 
@@ -272,6 +287,18 @@ defmodule SocialmediaWeb.ChannelLive.Show do
             Schedule
           </button>
           <.link navigate={~p"/posts/#{p.id}"} class="btn btn-sm btn-ghost">Open</.link>
+          <button
+            :if={p.status != "publishing"}
+            id={"delete-post-#{p.id}"}
+            phx-click="delete"
+            phx-value-id={p.id}
+            class="btn btn-sm btn-ghost btn-square opacity-60 hover:opacity-100"
+            aria-label="Delete post"
+            title="Delete (removes it here and its files in S3)"
+            data-confirm={delete_confirm(p)}
+          >
+            <.icon name="hero-trash" class="size-4" />
+          </button>
         </li>
       </ul>
     </section>
