@@ -33,10 +33,11 @@ const readStdin = () => new Promise(res => {
     await page.evaluate(() => document.fonts.ready);
     await page.evaluate(() => Promise.all([...document.images].map(i => i.complete ? null : new Promise(r => { i.onload = i.onerror = r; }))));
 
-    const seconds = +(data.video_seconds || 12);
     const videos = [], covers = [];
     for (const f of await page.$$('.frame')) {
       const name = await f.getAttribute('data-file');
+      // The template sets the length on the art (data-seconds); default 10 s
+      const seconds = +(await f.$eval('[data-seconds]', e => e.dataset.seconds).catch(() => null)) || 10;
       const frames = fs.mkdtempSync(path.join(os.tmpdir(), 'reel-'));
       const total = Math.round(seconds * FPS);
       for (let i = 0; i < total; i++) {
@@ -44,9 +45,9 @@ const readStdin = () => new Promise(res => {
         await page.evaluate(t => document.getAnimations().forEach(a => { a.pause(); a.currentTime = t; }), ms);
         await f.screenshot({ path: path.join(frames, `${String(i).padStart(5, '0')}.jpg`), type: 'jpeg', quality: 92 });
       }
-      // Cover: the finished card, just before the end card fades in
+      // Cover: the finished card, from the last moment of the video
       const cover = path.join(out, `${name}-cover.jpg`);
-      await page.evaluate(() => document.getAnimations().forEach(a => { a.currentTime = 8500; }));
+      await page.evaluate(t => document.getAnimations().forEach(a => { a.currentTime = t; }), seconds * 1000 - 300);
       await f.screenshot({ path: cover, type: 'jpeg', quality: 95 });
 
       const mp4 = path.join(out, `${name}.mp4`);

@@ -58,12 +58,62 @@
 .q-side.left{left:0}
 .q-side.right{right:0;text-align:right}
 .q-side b{display:block;font-family:var(--a-script);font-weight:700;font-size:40px;letter-spacing:0;color:var(--a-hi);line-height:1.05;margin-bottom:6px}
-.q.story .q-side{bottom:90px}
+/* Footer: the comment question and a follow nudge, small, under the card */
+.q-foot{flex:none;display:flex;align-items:center;justify-content:center;gap:16px;font-size:24px;line-height:1.3;color:var(--a-dim);text-align:left;margin-top:8px}
+.q-foot svg{width:32px;height:32px;flex:none;color:var(--a-hi)}
+.q-foot .t{min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.q-foot .t em{font-style:normal;color:var(--a-hi);font-weight:600}
+.q-foot b{flex:none;font-family:var(--a-script);font-size:34px;font-weight:700;color:var(--a-hi);border:2px solid var(--a-hi);border-radius:999px;padding:0 18px 2px;line-height:1.2}
+.q-bottom{height:380px}
+.q-card{padding:58px 60px 36px;gap:18px;box-sizing:border-box;max-height:100%}
+.q-alt{font-size:36px;max-height:160px}
+.q-by{font-size:46px}
+.q-note{font-size:25px;max-height:34px}
+.q.story .q-bottom{height:640px}
+/* Reel (format "reel"), 10 s: the card settles in, the penguin pops up and blows two
+   flying kisses (2.4s and 6s) with hearts floating out of its beak, and little hearts
+   drift up the whole card. The recorder steps every animation frame by frame. */
+.q-float,.q-kiss,.peng .kisser{display:none}
+.reel .peng .kisser{display:inline}
+.reel .q-float{display:block;position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.reel .q-float i{position:absolute;bottom:-80px;width:var(--s);height:var(--s);color:var(--a-hi);opacity:0;animation:pFloat var(--d) var(--delay) infinite linear}
+.reel .q-float i svg,.q-kiss i svg{width:100%;height:100%;display:block}
+.reel .q-stack{animation:pIn .9s .05s both cubic-bezier(.2,.8,.2,1)}
+.reel .q-text,.reel .q-alt,.reel .q-by,.reel .q-rule{animation:pFade .8s .5s both}
+.reel .q-alt,.reel .q-rule{animation-delay:1s}
+.reel .q-by{animation-delay:1.4s}
+.reel .q-foot{animation:pFade .7s 1.8s both}
+.reel .peng svg{animation:pPop .8s .6s both cubic-bezier(.3,1.5,.5,1),pBob 1.8s 1.4s infinite alternate ease-in-out}
+.reel .peng .kisser{opacity:0;transform-box:fill-box;transform-origin:100% 100%;animation:pArm 3.6s 2.4s 2 both ease-in-out}
+.reel .peng .lips{transform-box:fill-box;transform-origin:center;animation:pLips 3.6s 2.4s 2 both ease-out}
+.reel .peng .happy{animation:pHappy 3.6s 2.4s 2 both}
+.reel .peng .eyes{animation:pEyes 3.6s 2.4s 2 both}
+.reel .peng .cheek{animation:pBlush 3.6s 2.4s 2 both ease-in-out}
+.reel .peng .wing{transform-box:fill-box;transform-origin:12% 92%;animation:pWave 1.2s 1.4s infinite alternate ease-in-out}
+.reel .q-kiss{display:block;position:absolute;left:50%;top:76%;width:0;height:0}
+.reel .q-kiss i{position:absolute;left:calc(var(--s) / -2);top:calc(var(--s) / -2);width:var(--s);height:var(--s);color:var(--c,var(--a-hi));opacity:0;filter:drop-shadow(0 6px 10px rgba(0,0,0,.15));animation:pHeart 3.6s calc(3.55s + var(--k) * .11s) 2 both ease-out}
+@keyframes pIn{from{opacity:0;transform:translateY(60px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes pFade{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes pPop{from{transform:translateY(105%)}to{transform:none}}
+@keyframes pBob{from{transform:translateY(0)}to{transform:translateY(-10px)}}
+@keyframes pArm{0%{opacity:0;transform:rotate(30deg)}9%{opacity:1;transform:none}30%{opacity:1;transform:none}40%{opacity:1;transform:rotate(70deg)}50%{opacity:0;transform:rotate(70deg)}100%{opacity:0;transform:rotate(70deg)}}
+@keyframes pLips{0%,7%{opacity:0;transform:scale(.3)}13%,31%{opacity:1;transform:scale(1.15)}22%{transform:scale(.9)}40%,100%{opacity:0;transform:scale(1.6)}}
+@keyframes pHappy{0%,8%{opacity:0}12%,38%{opacity:1}44%,100%{opacity:0}}
+@keyframes pEyes{0%,8%{opacity:1}12%,38%{opacity:0}44%,100%{opacity:1}}
+@keyframes pWave{from{transform:rotate(0)}to{transform:rotate(-10deg)}}
+@keyframes pBlush{0%,15%{opacity:.55}30%,50%{opacity:1}70%,100%{opacity:.55}}
+@keyframes pHeart{0%{opacity:0;transform:translate(0,0) scale(.2) rotate(0)}6%{opacity:1;transform:translate(calc(var(--dx) * .2),-60px) scale(1)}30%{opacity:1}52%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.35) rotate(var(--r))}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.35)}}
+@keyframes pFloat{0%{opacity:0;transform:translate(0,0) rotate(-10deg)}10%{opacity:.45}50%{transform:translate(30px,-60vh) rotate(10deg)}90%{opacity:.35}100%{opacity:0;transform:translate(-20px,-125vh) rotate(-8deg)}}
 </style></head>
 <body><div id="app"></div>
 <script src="../_shared/studio.js"></script>
 <script>
-const {esc,hl,clean,ctaSlide,hookOf,captionHook,ICON}=Studio;
+const {esc,hl,clean,hookOf,captionHook,ICON}=Studio;
+const BUBBLE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>`;
+const HEART=`<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-7.5-4.6-10-9.2C.3 8.4 2.3 4 6.4 4c2.3 0 3.9 1.3 5.6 3.4C13.7 5.3 15.3 4 17.6 4 21.7 4 23.7 8.4 22 11.8 19.5 16.4 12 21 12 21z"/></svg>`;
+// Reel hearts: [left %, size px, seconds, delay s] drifting up the card, and the kiss burst [dx, dy, size, turn]
+const FLOAT=[[8,34,7,-1],[22,22,6,-4],[36,28,8,-2.5],[52,20,6.5,-5.5],[66,36,7.5,-0.5],[80,24,6,-3],[92,30,8,-6],[14,18,5.5,-2],[74,18,7,-4.5]];
+const KISS=[[140,-420,84,16,""],[-60,-520,64,-14,"#ff8fa8"],[260,-330,70,22,""],[40,-640,56,-20,"#ff8fa8"],[200,-580,76,10,""],[-160,-400,58,-8,""],[320,-520,52,18,"#ff8fa8"],[100,-300,66,-10,""]];
 const HOOKS=[
   {q:"Tag the one who *understands your silence*.",q_hi:"उसे टैग करो जो *तुम्हारी ख़ामोशी* समझता है।"},
   {q:"Send this to them *without saying a word*.",q_hi:"बिना कुछ कहे *उन्हें भेज दो*।"},
@@ -78,57 +128,58 @@ const HOOKS=[
   {q:"Should we post *Part 2* of this tomorrow?",q_hi:"कल इसका *पार्ट 2* चाहिए?",options:["Yes please","Make it sadder"]},
   {q:"How long have you been *together*?",q_hi:"कितने समय से *साथ* हो?",options:["< 1 year","1–5 years","5+ years","Waiting for them"]}
 ];
-const L={en:{top:"Quote of the day",save:"Save it",send:"send it to them",swipe:"swipe →",tell:"& tell us"},hi:{top:"आज का विचार",save:"सेव करो",send:"उन्हें भेजो",swipe:"स्वाइप →",tell:"और बताओ"}};
+const L={en:{top:"Quote of the day",comment:"Comment below",follow:"Follow"},hi:{top:"आज का विचार",comment:"कमेंट करो",follow:"फ़ॉलो करो"}};
 /* A round penguin in swim goggles, peeking up from the bottom edge with a heart */
 const PENGUIN=`<svg viewBox="0 0 440 380" aria-hidden="true"><defs>
   <radialGradient id="lens" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".35" stop-color="#cdf1ff" stop-opacity=".78"/><stop offset="1" stop-color="#7fc4e8" stop-opacity=".6"/></radialGradient></defs>
   <path class="heart" d="M40 150c-6-12-24-10-24 4 0 11 14 19 24 27 10-8 24-16 24-27 0-14-18-16-24-4z" opacity=".55"/>
   <path class="heart" d="M408 120c-5-9-18-8-18 3 0 8 10 14 18 20 8-6 18-12 18-20 0-11-13-12-18-3z" opacity=".4"/>
   <ellipse class="body" cx="78" cy="350" rx="36" ry="74" transform="rotate(38 78 350)"/>
-  <path class="body" d="M340 318c10-60 44-112 72-104 24 8 14 58-14 98l-30 40z"/>
+  <path class="body wing" d="M340 318c10-60 44-112 72-104 24 8 14 58-14 98l-30 40z"/>
   <path class="body" d="M220 72c-104 0-168 82-168 190v140h336V262C388 154 324 72 220 72z"/>
   <path class="body" d="M170 76c4-24 20-40 38-38-10 8-12 20-8 30zM226 66c6-22 22-34 38-32-10 8-12 20-6 30z"/>
   <path d="M220 130c-30 0-50 12-62 30-38 6-64 40-64 92 0 60 46 130 126 150 80-20 126-90 126-150 0-52-26-86-64-92-12-18-32-30-62-30z" fill="#fff8f2"/>
-  <ellipse cx="138" cy="264" rx="26" ry="15" fill="#ff8fa8" opacity=".55"/>
-  <ellipse cx="302" cy="264" rx="26" ry="15" fill="#ff8fa8" opacity=".55"/>
+  <ellipse class="cheek" cx="138" cy="264" rx="26" ry="15" fill="#ff8fa8" opacity=".55"/>
+  <ellipse class="cheek" cx="302" cy="264" rx="26" ry="15" fill="#ff8fa8" opacity=".55"/>
   <path class="strap" d="M60 218q34-14 64-14M316 204q30 0 64 14" stroke-width="20" stroke-linecap="round"/>
   <circle cx="170" cy="202" r="48" fill="url(#lens)"/><circle cx="270" cy="202" r="48" fill="url(#lens)"/>
-  <ellipse cx="174" cy="212" rx="17" ry="20" fill="#1b1d2e"/><ellipse cx="266" cy="212" rx="17" ry="20" fill="#1b1d2e"/>
+  <g class="eyes"><ellipse cx="174" cy="212" rx="17" ry="20" fill="#1b1d2e"/><ellipse cx="266" cy="212" rx="17" ry="20" fill="#1b1d2e"/>
   <circle cx="180" cy="204" r="6.5" fill="#fff"/><circle cx="272" cy="204" r="6.5" fill="#fff"/>
-  <circle cx="168" cy="220" r="3" fill="#fff"/><circle cx="260" cy="220" r="3" fill="#fff"/>
+  <circle cx="168" cy="220" r="3" fill="#fff"/><circle cx="260" cy="220" r="3" fill="#fff"/></g>
+  <path class="happy" d="M154 218q20-24 40 0M246 218q20-24 40 0" stroke="#1b1d2e" stroke-width="8" fill="none" stroke-linecap="round" opacity="0"/>
   <circle class="rim" cx="170" cy="202" r="48" stroke-width="13"/><circle class="rim" cx="270" cy="202" r="48" stroke-width="13"/>
   <path class="rim" d="M214 198c4-6 8-6 12 0" stroke-width="12" stroke-linecap="round"/>
   <path d="M148 174c10-12 26-16 40-12M248 174c10-12 26-16 40-12" stroke="#fff" stroke-width="7" stroke-linecap="round" fill="none" opacity=".9"/>
   <path d="M200 264q20-10 40 0q-20 30-40 0z" fill="#ffa94d"/>
   <path d="M206 268q14 6 28 0" stroke="#e8822a" stroke-width="3" fill="none" stroke-linecap="round"/>
   <path d="M210 302q10 8 20 0" stroke="#4a1e2c" stroke-width="4" fill="none" stroke-linecap="round" opacity=".55"/>
+  <path class="lips" d="M220 300c-5-9-19-8-19 3 0 8 11 14 19 20 8-6 19-12 19-20 0-11-14-12-19-3z" fill="#ff4d7d" opacity="0"/>
+  <g class="kisser"><path class="body" d="M352 352C318 326 280 300 258 288c-12-7-8-22 6-20 26 4 66 30 100 58z"/></g>
   <path class="heart" d="M414 196c-6-12-24-10-24 4 0 11 14 19 24 27 10-8 24-16 24-27 0-14-18-16-24-4z"/>
 </svg>`;
 function posts(d){
   return (d.quotes||[]).map((q,i)=>{
-    const story=d.format==="story", lang=q.lang||d.lang||"both", theme="t-"+(q.theme||d.theme||"blush"), size=story?"story":"post";
+    const reel=d.format==="reel", story=reel||d.format==="story", lang=q.lang||d.lang||"both", theme="t-"+(q.theme||d.theme||"blush"), size=story?"story":"post";
     const hiMain=lang==="hi"||(!q.quote&&q.quote_hi);
     const main=hiMain?(q.quote_hi||q.quote):q.quote, alt=(lang==="both"&&!hiMain&&q.quote_hi)?q.quote_hi:"";
     const note=lang==="en"?q.note:(q.note_hi||q.note);
     const by=q.author?`— ${esc(q.author)}`:`— ${esc(d.signature||d.handle)}`;
     const h=hookOf(d,q,HOOKS[0]);
     const t=lang==="hi"?L.hi:L.en;
-    const card=`<section class="art q ${theme}${story?" story":""}" lang="${hiMain?"hi":"en"}">
+    const card=`<section class="art q ${theme}${story?" story":""}${reel?" reel":""}"${reel?' data-seconds="10"':""} lang="${hiMain?"hi":"en"}">
+      ${reel?`<div class="q-float">${FLOAT.map(([l,s,dd,dl])=>`<i style="left:${l}%;--s:${s}px;--d:${dd}s;--delay:${dl}s">${HEART}</i>`).join("")}</div>`:""}
       <div class="q-top"><span lang="${lang==="hi"?"hi":"en"}">${t.top}${q.number?" · "+esc(q.number):""}</span><span class="h">${esc(d.handle)}</span></div>
       <div class="q-stack"><div class="q-layer l2"></div><div class="q-layer l1"></div>
         <div class="q-card"><div class="q-pin">${ICON.heart}</div>
-          <p class="q-text fit" data-max="${story?112:(alt?84:100)}" data-min="40"><span>${hl(main)}</span></p>
+          <p class="q-text fit" data-max="${story?92:(alt?68:82)}" data-min="36"><span>${hl(main)}</span></p>
           ${alt?`<div class="q-rule"></div><p class="q-alt" lang="hi">${hl(alt)}</p>`:""}
           <div class="q-by">${by}</div>
           ${note?`<p class="q-note">${esc(note)}</p>`:""}
         </div></div>
+      <div class="q-foot">${BUBBLE}<span class="t">${hl(lang==="hi"?(h.q_hi||h.q):h.q)} ${t.comment}</span><b>${t.follow}</b></div>
       <div class="q-bottom">
-        <div class="q-side left"><b>${t.save}</b>${t.send}${q.date?"<br>"+esc(q.date):""}</div>
-        <div class="peng">${PENGUIN}</div>
-        <div class="q-side right"><b>${t.swipe}</b>${t.tell}</div>
+        <div class="peng">${PENGUIN}${reel?`<div class="q-kiss">${KISS.map(([dx,dy,s,r,c],k)=>`<i style="--dx:${dx}px;--dy:${dy}px;--s:${s}px;--r:${r}deg;--k:${k}${c?";--c:"+c:""}">${HEART}</i>`).join("")}</div>`:""}</div>
       </div></section>`;
-    const cta=ctaSlide(d,{cls:theme,size,question:h.q,question_hi:lang==="en"?"":h.q_hi,options:h.options,chip:lang==="hi"?"आपकी बारी":"Your turn",
-      placeholder:lang==="hi"?"दिल की बात यहाँ लिखो…":"Say it in the comments…",followLine:d.follow_line||"A little love in your feed every day. Follow so you never miss one."});
     const body=lang==="en"?clean(q.quote):lang==="hi"?clean(q.quote_hi||q.quote):`${clean(q.quote)}\n\n${clean(q.quote_hi)}`;
     const hh=lang==="en"?{...h,q_hi:""}:lang==="hi"?{...h,q:h.q_hi||h.q,q_hi:""}:h;
     const caption=`${body}${q.author?"\n— "+q.author:""}
@@ -138,14 +189,14 @@ ${captionHook(hh)}
 Follow ${d.handle} for a little love every day 🤍
 
 ${d.tags||""}`;
-    return {id:"q"+(q.number||String(i+1).padStart(2,"0")),label:`Quote ${q.number||i+1} · ${q.date||""}`,slides:[{name:"card",html:card,size},{name:"comment-follow",html:cta,size}],caption};
+    return {id:"q"+(q.number||String(i+1).padStart(2,"0")),label:`Quote ${q.number||i+1} · ${q.date||""}`,slides:[{name:reel?"reel":"card",html:card,size}],caption};
   });
 }
 Studio.mount({
   channel:"@puree_heartz", title:"Heartly Quote Studio", accent:"#b8325a", itemsKey:"quotes",
-  sub:"Each quote is a 2-slide post: the quote card and a Comment & Follow slide. Write a week at a time.",
+  sub:"Each quote is one card with a small comment-and-follow footer. The reel animates the same card: the penguin blows flying kisses.",
   note:"The samples are original lines. If you quote someone else, credit them in author. Don't post song lyrics or film dialogue.",
-  controls:[{key:"theme",label:"Mood",perItem:true,options:[["blush","Blush"],["midnight","Midnight"],["petal","Petal"],["dusk","Dusk"],["butter","Butter"],["mint","Mint"],["lilac","Lilac"],["sky","Sky"],["coral","Coral"]]},{key:"lang",label:"Language",perItem:true,options:[["both","English + Hindi"],["en","English"],["hi","Hindi"]]},{key:"format",label:"Size",options:[["post","Feed post 4:5"],["story","Story / Reel 9:16"]]}],
+  controls:[{key:"theme",label:"Mood",perItem:true,options:[["blush","Blush"],["midnight","Midnight"],["petal","Petal"],["dusk","Dusk"],["butter","Butter"],["mint","Mint"],["lilac","Lilac"],["sky","Sky"],["coral","Coral"]]},{key:"lang",label:"Language",perItem:true,options:[["both","English + Hindi"],["en","English"],["hi","Hindi"]]},{key:"format",label:"Size",options:[["post","Feed post 4:5"],["story","Story 9:16"],["reel","Animated reel 9:16"]]}],
   hooks:HOOKS, posts,
   guide:[["quote / quote_hi","The English and Hindi lines, under 25 words each.","Wrap a phrase in *stars* to highlight it."],["hook","The comment question.","Set it for the batch, or inside a quote to override it."],["author","Leave empty for your own lines.","The card then signs off as the channel."],["note / note_hi","Optional short line","under the signature."],["theme / lang","Per quote or for the batch.","Rotating moods keeps the grid varied."]],
   sample:{theme:"butter",format:"post",lang:"both",handle:"@puree_heartz",signature:"puree_heartz",

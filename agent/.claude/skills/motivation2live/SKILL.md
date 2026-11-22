@@ -5,7 +5,7 @@ description: Writes one @_motivation2live__ daily motivation post (Day N / 365) 
 
 # @_motivation2live__: Day N / 365 motivation
 
-**Format:** a bold quote card with a Gen Z sticker and "Today's action", then Comment & Follow. The same content also becomes an animated reel (words reveal one by one, the punch phrase pops, trending music), so write for a 2-second read. The app sets `day`, `date` and `total_days`; you write the content in `post.quotes[0]`.
+**Format:** one bold quote card with a Gen Z sticker, "Today's action" and a small footer with the `hook` question ("… Comment below · Follow"), so keep `hook.q` under 60 characters. The same content also becomes an animated reel (words reveal one by one, the punch phrase pops, trending music), so write for a 2-second read. The app sets `day`, `date` and `total_days`; you write the content in `post.quotes[0]`.
 
 **Voice:** a funny older sibling who still wants you to win. Gen Z humour and internet slang on top, a real push underneath. Short sentences. It speaks to students and young professionals in India (18–28) who scroll too much and know it.
 

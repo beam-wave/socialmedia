@@ -48,19 +48,25 @@
 .m-act p + p{font-size:26px;font-weight:500;color:var(--a-dim);margin-top:4px}
 .m-scene{flex:none;height:330px;margin:0 -88px;position:relative}
 .m.story .m-scene{height:500px;background:linear-gradient(transparent 299px,var(--m-near) 299px)}
-.m-scene svg{position:absolute;inset:0;width:100%;height:100%}
+.m-scene>svg{position:absolute;inset:0;width:100%;height:100%}
 .m-scene .far{fill:var(--m-far)}.m-scene .mid{fill:var(--m-mid)}.m-scene .near{fill:var(--m-near)}
 .m-scene .sun{fill:var(--a-hi)}.m-scene .hi{fill:var(--a-hi)}
 .m-scene .trail{fill:none;stroke:var(--m-trail);stroke-width:4;stroke-dasharray:2 12;stroke-linecap:round}
 .m-scene .done{fill:none;stroke:var(--a-hi);stroke-width:6;stroke-linecap:round;stroke-linejoin:round}
-.m-foot{position:absolute;right:88px;bottom:34px;display:flex;align-items:baseline;gap:22px;font-size:24px;font-weight:600;color:var(--m-foot);letter-spacing:.04em}
-.m-foot b{font-family:var(--a-display);font-weight:400;font-size:30px;letter-spacing:.08em;color:var(--m-foot)}
-.m.story .m-foot{bottom:96px}
+/* Footer: the comment question and a follow nudge, small, on the dark mountain base */
+.m-foot{flex:none;margin:0 -88px;padding:6px 88px 30px;background:var(--m-near);display:flex;align-items:center;gap:18px;font-size:24px;line-height:1.3;font-weight:600;color:var(--m-foot)}
+.m-foot svg{width:34px;height:34px;flex:none}
+.m-foot .q{flex:1;min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.m-foot .q em{font-style:normal;color:var(--a-hi)}
+.m-foot .q .dim{opacity:.7;font-weight:500}
+.m-foot b{flex:none;font-family:var(--a-display);font-weight:400;font-size:24px;letter-spacing:.1em;text-transform:uppercase;border:2px solid var(--m-foot);border-radius:999px;padding:6px 16px 4px}
+.m.story .m-foot{padding-bottom:110px}
+.m.story .m-scene{height:330px}
 /* Gen Z "vibe" sticker: a tilted tag above the quote (e.g. LOCKED IN, NO SIDE QUESTS) */
 .m-vibe{align-self:flex-start;flex:none;font-family:var(--a-display);font-size:36px;letter-spacing:.06em;text-transform:uppercase;color:var(--a-ink);background:var(--a-hi);padding:10px 22px 8px;border-radius:12px;transform:rotate(-3deg);box-shadow:6px 6px 0 var(--a-fg)}
 /* Reel (format "reel"): a 9:16 card that builds itself, then the Comment & Follow card.
-   Timeline (12 s): top 0.1s, sticker 0.3s, words from 0.8s, punch pops, Hindi 3.6s,
-   action 4.4s, climber walks 1.2–4.2s, footer 6s, end card 8.8s. The recorder pauses
+   Timeline (10 s): top 0.1s, sticker 0.3s, words from 0.8s, punch pops, Hindi 3.6s,
+   action 4.4s, the climber walks the whole trail to the 365 flag 1–7s, footer 6s. The recorder pauses
    every animation and steps currentTime frame by frame, so the video is exact. */
 .reel-wrap{position:absolute;inset:0}
 .reel .m-top{animation:rDown .6s .1s both cubic-bezier(.2,.8,.2,1)}
@@ -73,12 +79,13 @@
 .reel .m-scene .sun,.reel .m-scene .glow{transform-box:fill-box;transform-origin:center;animation:rSun 2.6s .2s both cubic-bezier(.2,.8,.2,1)}
 .reel .m-scene .far{transform-origin:50% 100%;animation:rDriftA 12s linear both}
 .reel .m-scene .mid{transform-origin:50% 100%;animation:rDriftB 12s linear both}
-.reel .m-scene .done{stroke-dasharray:1;stroke-dashoffset:1;animation:rDraw 3s 1.2s both ease-in-out}
-.reel .m-scene .climber{transform-box:fill-box;transform-origin:50% 100%;animation:rPopIn .5s 4.1s both cubic-bezier(.3,1.6,.5,1)}
+.reel .m-scene .done{stroke-dasharray:1;stroke-dashoffset:1;animation:rDraw 6s 1s both linear}
+.reel .m-scene .walker{animation:var(--walk) 6s 1s both linear}
+.reel .m-scene .hop{transform-box:fill-box;transform-origin:50% 100%;animation:rHop .32s 1s 18 alternate ease-in-out,rCheer .6s 7s both cubic-bezier(.3,1.6,.5,1)}
+@keyframes rHop{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+@keyframes rCheer{0%{transform:none}50%{transform:translateY(-22px) scale(1.15)}100%{transform:none}}
 .reel .m-scene .flag{transform-box:fill-box;transform-origin:0 50%;animation:rWave 1.2s 1s infinite alternate ease-in-out}
 .reel .m-foot{animation:rUp .6s 6s both}
-.reel .m-foot b{display:none}
-.reel-end{animation:rEnd .7s 8.8s both cubic-bezier(.2,.8,.2,1)}
 @keyframes rDown{from{opacity:0;transform:translateY(-40px)}to{opacity:1;transform:none}}
 @keyframes rWord{from{opacity:0;transform:translateY(46px) rotate(3deg);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
 @keyframes rPunch{0%{opacity:0;transform:scale(.5) rotate(-6deg)}60%{opacity:1;transform:scale(1.14) rotate(2deg)}100%{opacity:1;transform:none}}
@@ -96,7 +103,8 @@
 <body><div id="app"></div>
 <script src="../_shared/studio.js"></script>
 <script>
-const {esc,hl,clean,pad,ctaSlide,hookOf,captionHook}=Studio;
+const {esc,hl,clean,pad,hookOf,captionHook}=Studio;
+const BUBBLE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>`;
 const HOOKS=[
   {q:"Type *I'M IN* if you're showing up today.",q_hi:"आज मेहनत करोगे तो लिखो *मैं तैयार हूँ*।"},
   {q:"Type *DAY 1* and start the 30-day streak with us.",q_hi:"लिखो *DAY 1* और हमारे साथ 30 दिन की शुरुआत करो।"},
@@ -123,7 +131,18 @@ function along(t){
     left-=seg[i];
   }
 }
-function scene(day,of,story){
+// Keyframes that move the climber along the trail at a steady pace (percent = share of the length)
+function walkKeyframes(name){
+  const seg=TRAIL.slice(1).map((p,i)=>Math.hypot(p[0]-TRAIL[i][0],p[1]-TRAIL[i][1])), total=seg.reduce((a,b)=>a+b,0);
+  let run=0;
+  return `@keyframes ${name}{${TRAIL.map((p,i)=>{if(i>0)run+=seg[i-1];return `${(run/total*100).toFixed(2)}%{transform:translate(${p[0]}px,${p[1]}px)}`;}).join("")}}`;
+}
+const CLIMBER=`<circle r="15" class="hi" opacity=".35"/>
+      <g stroke="var(--a-hi)" stroke-width="5" stroke-linecap="round" fill="none">
+        <path d="M0 -12v-22M0 -34l-9 12M0 -34l9 -14M0 -12l-8 12M0 -12l9 11"/><path d="M9 -48l7 -8"/></g>
+      <rect x="-12" y="-36" width="9" height="16" rx="3" class="hi"/>
+      <circle cy="-42" r="7" class="hi"/>`;
+function scene(day,of,story,reel,walk){
   const at=along(Math.max(0,Math.min(1,day/of))), pts=l=>l.map(p=>p.map(n=>n.toFixed(1)).join(",")).join(" ");
   return `<svg viewBox="0 0 1080 300" preserveAspectRatio="${story?"xMidYMin meet":"xMidYMax slice"}" aria-hidden="true">
     <defs><radialGradient id="m-glow"><stop offset=".55" stop-color="var(--a-hi)" stop-opacity=".28"/><stop offset="1" stop-color="var(--a-hi)" stop-opacity="0"/></radialGradient></defs>
@@ -133,17 +152,13 @@ function scene(day,of,story){
     <path class="mid" d="M0 300V236l160-50 140 38 170-78 150 66 200-56 180 54 80-18v108z"/>
     <path class="near" d="M0 300V250q120-28 220-24l200-60 140-40 200-60 120 70 200 40v124z"/>
     <polyline class="trail" points="${pts(TRAIL)}"/>
-    <polyline class="done" pathLength="1" points="${pts(at.walked)}"/>
+    <polyline class="done" pathLength="1" points="${pts(reel?TRAIL:at.walked)}"/>
     <path d="M760 68V22" stroke="var(--m-trail)" stroke-width="5" stroke-linecap="round"/>
     <g class="flag"><path class="hi" d="M762 22h62l-13 16 13 16h-62z"/>
     <text x="778" y="45" font-family="Anton,Impact,sans-serif" font-size="19" fill="var(--a-ink)">365</text></g>
-    <g class="climber"><g transform="translate(${at.x.toFixed(1)} ${at.y.toFixed(1)}) scale(1.45)">
-      <circle r="15" class="hi" opacity=".35"/>
-      <g stroke="var(--a-hi)" stroke-width="5" stroke-linecap="round" fill="none">
-        <path d="M0 -12v-22M0 -34l-9 12M0 -34l9 -14M0 -12l-8 12M0 -12l9 11"/><path d="M9 -48l7 -8"/></g>
-      <rect x="-12" y="-36" width="9" height="16" rx="3" class="hi"/>
-      <circle cy="-42" r="7" class="hi"/>
-    </g></g>
+    ${reel
+      ? `<style>${walkKeyframes(walk)}</style><g class="walker" style="--walk:${walk}"><g transform="scale(1.45)"><g class="hop">${CLIMBER}</g></g></g>`
+      : `<g transform="translate(${at.x.toFixed(1)} ${at.y.toFixed(1)}) scale(1.45)">${CLIMBER}</g>`}
   </svg>`;
 }
 // Wraps each word of rendered quote HTML in a span so the reel can reveal it word by word
@@ -160,15 +175,13 @@ function posts(d){
       <div class="m-top"><span class="m-day">Day <b>${pad(day,3)}</b> / ${of}</span><span class="m-handle">${esc(d.handle)}</span></div>
       <div class="m-body">
         ${q.vibe?`<span class="m-vibe">${esc(q.vibe)}</span>`:""}
-        <p class="m-text fit" data-hug data-max="${story?136:(alt?108:124)}" data-min="56"><span>${reel?words(hl(main)):hl(main)}</span></p>
+        <p class="m-text fit" data-hug data-max="${story?112:(alt?88:100)}" data-min="50"><span>${reel?words(hl(main)):hl(main)}</span></p>
         ${alt?`<p class="m-alt" lang="hi">${hl(alt)}</p>`:""}
         ${q.author?`<div class="m-by">— ${esc(q.author)}</div>`:""}
         ${act?`<div class="m-act"><b>Today's action</b><p>${esc(act)}</p>${act2?`<p lang="hi">${esc(act2)}</p>`:""}</div>`:""}
       </div>
-      <div class="m-scene">${scene(day,of,story)}
-        <div class="m-foot"><span>${lang==="hi"?"सेव करो · कल सुबह फिर पढ़ो":"Save it · read again at 6 AM"}</span><b>Swipe →</b></div></div></section>`;
-    const cta=ctaSlide(d,{cls:theme,size,question:h.q,question_hi:lang==="en"?"":h.q_hi,options:h.options,chip:lang==="hi"?"आपकी बारी":"Your move",
-      placeholder:lang==="hi"?"यहाँ लिखो, ख़ुद से वादा करो…":"Write it down. Make it real…",followLine:d.follow_line||`A new push every morning, Day ${day+1} drops tomorrow. Follow so you don't break the streak.`});
+      <div class="m-scene">${scene(day,of,story,reel,"walk"+i)}</div>
+        <div class="m-foot">${BUBBLE}<span class="q">${hl(lang==="hi"?(h.q_hi||h.q):h.q)} <span class="dim">${lang==="hi"?"कमेंट करो":"Comment below"}</span></span><b>${lang==="hi"?"फ़ॉलो करो":"Follow"}</b></div></section>`;
     const hh=lang==="en"?{...h,q_hi:""}:lang==="hi"?{...h,q:h.q_hi||h.q,q_hi:""}:h;
     const body=lang==="en"?clean(q.quote):lang==="hi"?clean(q.quote_hi||q.quote):`${clean(q.quote)}\n${clean(q.quote_hi)}`;
     const caption=`DAY ${pad(day,3)} / ${of} 🔥
@@ -182,15 +195,13 @@ ${captionHook(hh)}
 Follow ${d.handle} and don't break the streak. Day ${day+1} drops tomorrow at 6 AM ⏰
 
 ${d.tags||""}`;
-    const slides=reel
-      ? [{name:"reel",size:"story",html:`<div class="reel-wrap">${card}${cta.replace('class="art cta-slide','class="art cta-slide reel-end')}</div>`}]
-      : [{name:"card",html:card,size},{name:"comment-follow",html:cta,size}];
-    return {id:"day"+pad(day,3),label:`Day ${day} · ${q.date||""}`,slides,caption,video:reel?{seconds:12}:undefined};
+    const slides=[{name:reel?"reel":"card",size,html:reel?card.replace('<section class="art m','<section data-seconds="10" class="art m'):card}];
+    return {id:"day"+pad(day,3),label:`Day ${day} · ${q.date||""}`,slides,caption};
   });
 }
 Studio.mount({
   channel:"@_motivation2live__", title:"Daily Motivation Studio", accent:"#e8461c", itemsKey:"quotes",
-  sub:"Each day is a 2-slide post: a quote card with a Day N / 365 streak and today's action, then a Comment & Follow slide.",
+  sub:"Each day is one card: a Day N / 365 streak, the quote, today's action and a small comment-and-follow footer. The reel animates the same card.",
   note:"The samples are original lines. Credit real authors, and check that the quote is actually theirs. Many famous quotes are misattributed.",
   controls:[{key:"theme",label:"Theme",perItem:true,options:[["ivory","Ivory & red"],["midnight","Midnight & gold"],["forest","Forest & gold"],["volt","Black & lime"],["cobalt","Cobalt & yellow"],["sand","Sand & navy"]]},{key:"lang",label:"Language",perItem:true,options:[["both","English + Hindi"],["en","English"],["hi","Hindi"]]},{key:"format",label:"Size",options:[["post","Feed post 4:5"],["story","Story 9:16"],["reel","Animated reel 9:16"]]}],
   hooks:HOOKS, posts,

@@ -18,7 +18,7 @@ You are the content writer and researcher for these Instagram channels. The `soc
 4. Return **only** the structured output the JSON schema asks for. No prose around it. The app renders the slides and caption from your data.
 
 ## Every post is an Instagram post: comment + follow
-- Every post ends on the **Comment & Follow** slide. The app adds that slide and the caption ending (💬 question, "Drop your answer in the comments", "Follow @handle …") from your `hook`.
+- Every post asks for a comment and a follow. Most channels end on a **Comment & Follow** slide; @puree_heartz and @_motivation2live__ are a single card with the question in a small footer. Either way the app builds it, plus the caption ending (💬 question, "Drop your answer in the comments", "Follow @handle …"), from your `hook`.
 - So `hook` must be a real question people answer in the comments, in under 5 seconds. Add `q_hi` for channels that post Hindi.
 - The only call to action is **Follow** (plus comment, like, save, share). Never ask people to turn on notifications or post notifications, and never use 🔔.
 

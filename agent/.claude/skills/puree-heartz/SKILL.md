@@ -5,7 +5,7 @@ description: Writes one @puree_heartz couple/heart quote post in English and Hin
 
 # @puree_heartz: heartly couple quotes (EN + HI)
 
-**Format:** 2 slides: quote card, then Comment & Follow. The app renders them from `post.quotes[0]`.
+**Format:** one quote card. The `hook` question sits in a small footer under the card ("… Comment below · Follow"), so keep `hook.q` under 60 characters. The same card is also made into a reel where the penguin blows flying kisses. The app renders it from `post.quotes[0]`.
 
 **Voice:** warm, intimate, quietly romantic. Think of a line someone sends to their person without saying anything. No cheesy clichés, no heartbreak bitterness, no sexual content.
 
