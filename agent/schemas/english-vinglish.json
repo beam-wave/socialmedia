@@ -55,9 +55,7 @@
                 "type": "object",
                 "additionalProperties": false,
                 "required": [
-                  "title",
-                  "title_hi",
-                  "sticker",
+                  "style",
                   "words",
                   "hook"
                 ],
@@ -78,7 +76,7 @@
                   },
                   "words": {
                     "type": "array",
-                    "minItems": 3,
+                    "minItems": 1,
                     "maxItems": 3,
                     "items": {
                       "type": "object",
@@ -130,6 +128,11 @@
                         "example_hi": {
                           "type": "string",
                           "maxLength": 56
+                        },
+                        "en_line": {
+                          "type": "string",
+                          "maxLength": 70,
+                          "description": "wotd only: the meaning written as a sentence, e.g. \"it's staying calm when people try to annoy you.\""
                         }
                       }
                     }
@@ -158,6 +161,14 @@
                         "maxItems": 4
                       }
                     }
+                  },
+                  "style": {
+                    "type": "string",
+                    "enum": [
+                      "three",
+                      "wotd"
+                    ],
+                    "description": "three: the 3-word card (post type words); wotd: one word of the day with the rabbit (post type word)"
                   }
                 }
               }

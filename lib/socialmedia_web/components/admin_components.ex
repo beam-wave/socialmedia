@@ -123,6 +123,7 @@ defmodule SocialmediaWeb.AdminComponents do
   def post_type_label("result"), do: "Result"
   def post_type_label("movie"), do: "Movie"
   def post_type_label("words"), do: "3 words"
+  def post_type_label("word"), do: "Word of the day"
   def post_type_label("promo"), do: "Promo"
   def post_type_label(other), do: other
 

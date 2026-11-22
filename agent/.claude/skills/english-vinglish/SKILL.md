@@ -1,9 +1,15 @@
 ---
 name: english-vinglish
-description: Writes one @__english.vinglish__ daily vocabulary post (Day N): three useful English words with Devanagari pronunciation, English and Hindi meanings and an example. Use when the prompt asks for an english-vinglish post (post_type words).
+description: Writes one @__english.vinglish__ post: either three useful English words with Devanagari pronunciation, English and Hindi meanings and an example (post_type words), or one word of the day written as a sentence with a classy rabbit (post_type word). Use when the prompt asks for an english-vinglish post.
 ---
 
-# @__english.vinglish__: 3 English words a day, with Hindi
+# @__english.vinglish__: English words with Hindi
+
+Two post types; the prompt says which:
+- **words** (below): three words on one card. Set `style: "three"`.
+- **word**: one "word of the day" with the rabbit. Set `style: "wotd"`. See the section at the end.
+
+## Post type `words`
 
 **Format:** one card (also made into a reel): a Gen Z heading with a tiny sticker, then three word cards. Each card shows the word, its part of speech, how to say it in Devanagari, a short English meaning, the Hindi meaning and one example sentence in English and Hindi. The `hook` question sits in a small footer. The app sets `day` and the card colours; you write `post.days[0]`.
 
@@ -31,3 +37,17 @@ description: Writes one @__english.vinglish__ daily vocabulary post (Day N): thr
    - Rate your English *out of 10*.
 
 Meanings and pronunciation must be correct; when unsure about a word, choose another. `sources` can stay empty, or list dictionary pages you checked (Cambridge, Oxford Learner's).
+
+## Post type `word` (word of the day)
+
+**Format:** one card (and reel), styled like a caption on a studio wall: big red serif text reading
+*"the word of the day is: WORD. <meaning as a sentence>"*, with a classy rabbit in shades under it. Only English is on the card; the Hindi goes in the caption.
+
+1. Never repeat a word from the recent posts (they list every word used on this channel).
+2. Pick **one** word people will love sharing: modern, relatable, a bit witty, useful in real life (e.g. unbothered, overthinking, gaslight, procrastinate, situationship, burnout, petty, nonchalant, delulu-free picks like "resilient"). No swear words, nothing mean about people, no adult themes.
+3. Fill `post.days[0]` with `style: "wotd"` and exactly **one** item in `words`:
+   - `word`: the word (one or two words, ≤ 14 characters).
+   - `en_line`: the meaning **written as a sentence, lower case, ending with a full stop**, the way a friend would explain it, ≤ 70 characters: "it's staying calm when people try to annoy you.", "it's when you replay one conversation 47 times."
+   - `pos`, `say` (Devanagari pronunciation with `·`), `en` (short meaning), `hi` (Hindi meaning, main part in `*stars*`), `example` (word in `*stars*`), `example_hi`: these go in the caption.
+4. `hook` (under 60 chars, with `q_hi`): e.g. "Tag someone who is *always unbothered*.", "Be honest: are you *this word*?" options Yes / No / Lowkey.
+5. Leave `title`, `title_hi` and `sticker` out.

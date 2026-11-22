@@ -143,7 +143,8 @@ defmodule Socialmedia.Agent do
   defp summarize("english-vinglish", d) do
     x = first(d, "days")
     words = x["words"] |> List.wrap() |> Enum.map_join(", ", & &1["word"])
-    "words: #{words} | theme: #{x["theme"]} | hook: #{hook_q(x)}"
+
+    "#{x["style"] || "three"} words: #{words} | theme: #{x["theme"] || x["wall"]} | hook: #{hook_q(x)}"
   end
 
   defp summarize(_quotes, d) do
@@ -190,9 +191,20 @@ defmodule Socialmedia.Agent do
     end)
   end
 
+  # Word of the day: the rabbit card on a wall colour the app picks
+  defp put_app_fields(data, %{skill: "english-vinglish"}, %Work{post_type: "word"} = work, _local) do
+    update_first(data, "days", fn x ->
+      Map.merge(x, %{"day" => series_number(work), "style" => "wotd", "wall" => pick_wall(work)})
+    end)
+  end
+
   defp put_app_fields(data, %{skill: "english-vinglish"} = c, work, _local) do
     update_first(data, "days", fn x ->
-      Map.merge(x, %{"day" => series_number(work), "theme" => pick_colour(c, work)})
+      Map.merge(x, %{
+        "day" => series_number(work),
+        "style" => "three",
+        "theme" => pick_colour(c, work)
+      })
     end)
   end
 
@@ -208,6 +220,13 @@ defmodule Socialmedia.Agent do
     "motivation2live" => ~w(ivory midnight forest volt cobalt sand),
     "english-vinglish" => ~w(volt bubblegum electric sunset midnight)
   }
+
+  @walls ~w(studio blush sage night)
+
+  defp pick_wall(%Work{recent: recent}) do
+    last = Enum.find_value(recent, fn d -> get_in(d, ["days", Access.at(0), "wall"]) end)
+    @walls |> List.delete(last) |> Enum.random()
+  end
 
   @doc "A random card colour, never the one the channel's last post used."
   def pick_colour(%{base_data: base} = channel, %Work{recent: recent}) do

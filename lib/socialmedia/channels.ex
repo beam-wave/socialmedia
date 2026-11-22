@@ -30,12 +30,12 @@ defmodule Socialmedia.Channels do
     "mid-innings" => ["fixture"],
     "bollyvibe" => ["movie"],
     "ogbook" => ["promo"],
-    "english-vinglish" => ["words"]
+    "english-vinglish" => ["words", "word"]
   }
 
   @doc "Post types the Create form offers for a channel (all of them for an unknown skill)."
   def post_types(%Channel{skill: skill}),
-    do: Map.get(@post_types, skill, ~w(quote top5 fixture movie promo words))
+    do: Map.get(@post_types, skill, ~w(quote top5 fixture movie promo words word))
 
   # Time left before a default post time for a new post to still take it today
   @lead_minutes 30

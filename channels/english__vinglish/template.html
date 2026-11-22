@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>English Words Studio</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Baloo+2:wght@500;600;700;800&family=Inter:ital,wght@0,500;0,600;1,500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Baloo+2:wght@500;600;700;800&family=Inter:ital,wght@0,500;0,600;1,500&family=Instrument+Serif:ital@0;1&family=Tiro+Devanagari+Hindi:ital@0;1&display=swap">
 <link rel="stylesheet" href="../_shared/studio.css">
 <style>
 /* Art: Gen Z vocab drop. Neo-brutal sticker look: a loud flat background, white cards
@@ -86,6 +86,41 @@
 @keyframes vDraw{to{stroke-dashoffset:0}}
 @keyframes vMark{from{background-size:0 34%}to{background-size:100% 34%}}
 @keyframes vPulse{from{transform:scale(1)}to{transform:scale(1.35)}}
+/* Word of the day (style "wotd"): one word, written like a sentence in big red condensed
+   serif on a soft studio-grey wall, with a very classy rabbit (round gold-rim shades,
+   black knit, gold chain) sitting under it. Meaning in English, then Hindi. */
+.w{--wall1:#cfcac4;--wall2:#f1eee9;--red:#e3132c;--fur1:#f7f4ef;--fur2:#d9d1c6;--knit:#151515;--gold:#c9a24b;
+  background:radial-gradient(ellipse 90% 60% at 50% 72%,var(--wall2) 0,transparent 75%),linear-gradient(180deg,#bdb8b2 0%,var(--wall1) 35%,var(--wall2) 100%);
+  display:flex;flex-direction:column;align-items:center;padding:110px 70px 0;color:var(--red)}
+.w::before,.w::after{display:none}
+.w.t-blush{--wall1:#e7cfc9;--wall2:#f8ece8;--red:#c8102e}
+.w.t-sage{--wall1:#cfd6cb;--wall2:#eef1ea;--red:#d1121f}
+.w.t-night{--wall1:#2a2a2e;--wall2:#4a4950;--red:#ff3b4f;background:radial-gradient(ellipse 90% 60% at 50% 72%,#55545c 0,transparent 75%),linear-gradient(180deg,#1b1b1e 0%,#2a2a2e 40%,#3c3b42 100%)}
+.w-text{flex:none;width:100%;height:470px;margin:0;display:flex;flex-direction:column;justify-content:center;text-align:center;font-family:"Instrument Serif","Tiro Devanagari Hindi",Georgia,serif;letter-spacing:-.025em;line-height:.98}
+.w.story .w-text{height:640px}
+.w-text>span{display:block}
+.w-text .l1 i{font-style:italic}
+.w-text .l2{text-transform:uppercase;letter-spacing:-.04em;transform:scaleX(.86)}
+.w-text .l4{font-family:"Tiro Devanagari Hindi",serif;letter-spacing:0;line-height:1.3;margin-top:.22em;font-size:.6em}
+.w-art{flex:1;min-height:0;width:100%;position:relative}
+.w-art svg{position:absolute;left:50%;bottom:-30px;height:calc(100% + 60px);transform:translateX(-50%);overflow:visible;filter:drop-shadow(0 30px 40px rgba(0,0,0,.18))}
+.w-foot{position:absolute;left:0;right:0;top:44px;text-align:center;font-family:"Inter",sans-serif;font-size:21px;font-weight:600;letter-spacing:.04em;color:rgba(0,0,0,.45)}
+.w.story .w-foot{top:110px}
+.w.t-night .w-foot{color:rgba(255,255,255,.55)}
+.w-foot b{color:var(--red)}
+/* Reel, 8 s: the rabbit rises in, the lines appear one by one, a glint runs across the
+   shades, the ears twitch and the head tilts a little. */
+.reel.w .w-art svg{animation:wRise .9s .1s both cubic-bezier(.2,.8,.2,1)}
+.reel.w .w-text>span{animation:wIn .8s calc(.8s + var(--n) * .7s) both cubic-bezier(.2,.8,.2,1)}
+.reel.w .r-head{transform-box:view-box;transform-origin:300px 560px;animation:wTilt 3.2s 2s infinite alternate ease-in-out}
+.reel.w .r-ear{transform-box:fill-box;transform-origin:50% 100%;animation:wTwitch 2.6s 1.6s infinite ease-in-out}
+.reel.w .r-glint{animation:wGlint 2.4s 2.4s infinite ease-in-out}
+.reel.w .w-foot{animation:wIn .6s 4.6s both}
+@keyframes wRise{from{opacity:0;transform:translate(-50%,120px)}to{opacity:1;transform:translateX(-50%)}}
+@keyframes wIn{from{opacity:0;transform:translateY(26px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+@keyframes wTilt{from{transform:rotate(-2.5deg)}to{transform:rotate(2.5deg)}}
+@keyframes wTwitch{0%,70%,100%{transform:none}78%{transform:rotate(-7deg)}86%{transform:rotate(4deg)}}
+@keyframes wGlint{0%{transform:translateX(-120px);opacity:0}15%{opacity:.85}45%{transform:translateX(160px);opacity:0}100%{transform:translateX(160px);opacity:0}}
 </style></head>
 <body><div id="app"></div>
 <script src="../_shared/studio.js"></script>
@@ -103,10 +138,83 @@ const mark=s=>esc(s||"").replace(/\*([^*]+)\*/g,"<mark>$1</mark>");
 const SCRIBBLE=`<svg viewBox="0 0 300 26" preserveAspectRatio="none"><path pathLength="1" d="M4 16 C 60 4, 120 24, 180 12 S 270 8, 296 14" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round"/></svg>`;
 // The last word of the heading gets the scribble underline
 const headline=t=>{const m=String(t).trim().match(/^(.*?)(\S+)$/);return m?`${esc(m[1])}<u>${esc(m[2])}${SCRIBBLE}</u>`:esc(t);};
+/* A very classy rabbit: fluffy cream fur, tall ears (one tipped), round shades with
+   gold rims, black ribbed knit and a gold chain with an "EV" pendant. */
+const RABBIT=`<svg viewBox="0 0 600 1010" aria-hidden="true"><defs>
+  <radialGradient id="fur" cx="45%" cy="35%" r="70%"><stop offset="0" stop-color="var(--fur1)"/><stop offset="1" stop-color="var(--fur2)"/></radialGradient>
+  <radialGradient id="lens" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#4a4a52"/><stop offset=".55" stop-color="#16161a"/><stop offset="1" stop-color="#050506"/></radialGradient>
+  <linearGradient id="goldg" x1="0" x2="1"><stop offset="0" stop-color="#a77d26"/><stop offset=".5" stop-color="#f2d27a"/><stop offset="1" stop-color="#b08a33"/></linearGradient>
+  <clipPath id="lensclip"><circle cx="232" cy="420" r="58"/><circle cx="368" cy="420" r="58"/></clipPath></defs>
+  <g transform="translate(300 0) scale(1.2 1) translate(-300 0)">
+  <!-- torso: black ribbed knit down to the waist -->
+  <path d="M146 668C166 624 228 600 300 600s134 24 154 68l22 290q-176 34-352 0z" fill="var(--knit)"/>
+  <g stroke="#242424" stroke-width="5" opacity=".75">${Array.from({length:13},(_,i)=>`<path d="M${168+i*22} 640 L ${150+i*25} 950" fill="none"/>`).join("")}</g>
+  <path d="M122 940q178 34 356 0l4 56q-182 34-364 0z" fill="#1c1c1c"/>
+  <g stroke="#2c2c2c" stroke-width="4">${Array.from({length:21},(_,i)=>`<path d="M${130+i*17} ${944+Math.sin(i/20*Math.PI)*16}v46"/>`).join("")}</g>
+  <path d="M190 640c30-34 72-48 110-48s80 14 110 48c-30 22-70 32-110 32s-80-10-110-32z" fill="#202020"/>
+  <g stroke="#2e2e2e" stroke-width="4">${Array.from({length:12},(_,i)=>`<path d="M${208+i*17} ${640-(i<6?i*3:(11-i)*3)}v26"/>`).join("")}</g>
+  <path d="M196 650c40 44 168 44 208 0" fill="none" stroke="url(#goldg)" stroke-width="9" stroke-linecap="round" stroke-dasharray="1 13" />
+  <path d="M196 650c40 44 168 44 208 0" fill="none" stroke="url(#goldg)" stroke-width="5" stroke-linecap="round"/>
+  <g transform="translate(300 694)"><rect x="-34" y="-6" width="68" height="40" rx="10" fill="url(#goldg)" stroke="#8a6a20" stroke-width="2"/><text y="23" text-anchor="middle" font-family="Instrument Serif,Georgia,serif" font-style="italic" font-size="30" fill="#5a4210">EV</text></g>
+  <!-- crossed arms: the left sleeve and paw tuck under, the right one rests on top -->
+  <path d="M150 676c-34 70-36 150 14 188l226 26c22-6 26-50 4-62l-162-24c-14-36-22-82-30-128z" fill="#1a1a1a"/>
+  <g stroke="#262626" stroke-width="4" opacity=".8"><path d="M170 720l-22 6M164 770l-24 2M168 820l-24-6"/></g>
+  <ellipse cx="398" cy="856" rx="36" ry="28" fill="url(#fur)"/>
+  <path d="M450 676c34 70 36 150-14 188l-226 26c-22-6-26-50-4-62l162-24c14-36 22-82 30-128z" fill="#202020" stroke="#0e0e0e" stroke-width="3"/>
+  <g stroke="#2e2e2e" stroke-width="4" opacity=".8"><path d="M430 720l22 6M436 770l24 2M432 820l24-6"/></g>
+  <path d="M232 832l-6 52M250 830l-4 56" stroke="#2c2c2c" stroke-width="5"/>
+  <ellipse cx="202" cy="858" rx="38" ry="30" fill="url(#fur)"/>
+  <g stroke="#cfc6b9" stroke-width="3" stroke-linecap="round"><path d="M182 850v14M200 846v16M218 850v14"/></g>
+  </g>
+  <g class="r-head">
+    <g class="r-ear"><ellipse cx="226" cy="190" rx="50" ry="160" fill="url(#fur)" transform="rotate(-10 226 190)"/><ellipse cx="228" cy="200" rx="26" ry="120" fill="#efbdb7" transform="rotate(-10 228 200)"/></g>
+    <g><path d="M352 330c-6-120 20-230 60-260 34 6 40 70 16 140-14 42-34 90-50 124z" fill="url(#fur)"/><path d="M370 300c4-90 18-170 40-196 14 10 10 60-6 110-10 30-20 60-30 86z" fill="#efbdb7"/>
+      <path d="M408 74c40 10 70 40 80 70-30-8-58-20-80-40z" fill="url(#fur)"/></g>
+    <ellipse cx="300" cy="440" rx="172" ry="150" fill="url(#fur)"/>
+    <ellipse cx="208" cy="520" rx="96" ry="76" fill="url(#fur)"/><ellipse cx="392" cy="520" rx="96" ry="76" fill="url(#fur)"/>
+    <ellipse cx="300" cy="556" rx="88" ry="64" fill="url(#fur)"/>
+    <g fill="none" stroke="#cfc6b9" stroke-width="3" stroke-linecap="round" opacity=".8"><path d="M150 470q-14 14-8 34M450 470q14 14 8 34M190 330q20-18 44-20M410 330q-20-18-44-20M258 300q14-10 30-10M330 296q14 0 26 10"/></g>
+    <path d="M286 504c8-8 20-8 28 0-4 10-9 14-14 14s-10-4-14-14z" fill="#e79a98"/>
+    <path d="M300 518v16M300 534q-12 12-24 6M300 534q12 12 24 6" fill="none" stroke="#9c7f74" stroke-width="3.5" stroke-linecap="round"/>
+    <g stroke="#bfb3a5" stroke-width="2.5" stroke-linecap="round" opacity=".9"><path d="M250 520l-112-14M250 532l-108 8M350 520l112-14M350 532l108 8"/></g>
+    <circle cx="232" cy="420" r="58" fill="url(#lens)"/><circle cx="368" cy="420" r="58" fill="url(#lens)"/>
+    <g clip-path="url(#lensclip)"><rect class="r-glint" x="150" y="340" width="34" height="170" fill="#fff" opacity="0" transform="skewX(-22)"/>
+      <path d="M200 392q18-20 44-20M336 392q18-20 44-20" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none" opacity=".45"/></g>
+    <circle cx="232" cy="420" r="58" fill="none" stroke="url(#goldg)" stroke-width="7"/><circle cx="368" cy="420" r="58" fill="none" stroke="url(#goldg)" stroke-width="7"/>
+    <path d="M290 410q10-10 20 0" fill="none" stroke="url(#goldg)" stroke-width="7" stroke-linecap="round"/>
+    <path d="M174 410l-44-10M426 410l44-10" stroke="url(#goldg)" stroke-width="6" stroke-linecap="round"/>
+  </g>
+</svg>`;
+// Word of the day: the card is the sentence, like a caption on a wall
+function wotdCard(d,x,theme,story,reel){
+  const w=(x.words||[])[0]||{};
+  const en=w.en_line||(w.en?`it means ${w.en}.`:"");
+  const lines=[`<span class="l1" style="--n:0"><i>the</i> word of the day is:</span>`,`<span class="l2" style="--n:1">${esc(w.word||"")}.</span>`,en?`<span class="l3" style="--n:2">${esc(en)}</span>`:""].join("");
+  const max=story?118:92;
+  return `<section class="art w ${theme}${story?" story":""}${reel?" reel":""}"${reel?' data-seconds="8"':""}>
+    <h1 class="w-text fit" data-max="${max}" data-min="44">${lines}</h1>
+    <div class="w-foot">${esc(d.handle)} · <b>Follow</b> for a word a day</div>
+    <div class="w-art">${RABBIT}</div>
+  </section>`;
+}
 function posts(d){
   return (d.days||[]).map((x,i)=>{
     const reel=d.format==="reel", story=reel||d.format==="story", size=story?"story":"post", theme="t-"+(x.theme||d.theme||"volt");
     const day=+x.day||i+1, h=hookOf(d,x,HOOKS[0]), words=(x.words||[]).slice(0,3);
+    if(x.style==="wotd"){
+      const wt="t-"+(x.wall||"studio"), w=words[0]||{};
+      const caption=`the word of the day is: ${w.word} 🐰
+
+📖 ${w.en_line||w.en||""}
+🇮🇳 ${clean(w.hi||"")}${w.say?"\n🔊 "+w.say:""}${w.example?"\n✍️ "+clean(w.example):""}${w.example_hi?"\n   "+w.example_hi:""}
+
+${captionHook(h)}
+
+Follow ${d.handle} for a new word every day ✨
+
+${d.tags||""}`;
+      return {id:"wotd"+pad(day,3),label:`Word ${day}`,slides:[{name:reel?"reel":"card",html:wotdCard(d,x,wt,story,reel),size}],caption};
+    }
     const card=`<section class="art v ${theme}${story?" story":""}${reel?" reel":""}"${reel?' data-seconds="10"':""}>
       <div class="v-top"><span class="v-day">Day ${pad(day,3)}</span><span class="v-handle">${esc(d.handle)}</span></div>
       <h1 class="v-head">${headline(x.title||"3 words to sound smarter")}<span class="hi">${esc(x.title_hi||"आज के 3 अंग्रेज़ी शब्द")}</span><span class="tag">${esc(x.sticker||"No cap")}</span></h1>
