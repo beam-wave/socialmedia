@@ -77,7 +77,7 @@
                   "words": {
                     "type": "array",
                     "minItems": 1,
-                    "maxItems": 3,
+                    "maxItems": 1,
                     "items": {
                       "type": "object",
                       "additionalProperties": false,

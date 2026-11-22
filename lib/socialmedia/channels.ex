@@ -30,7 +30,7 @@ defmodule Socialmedia.Channels do
     "mid-innings" => ["fixture"],
     "bollyvibe" => ["movie"],
     "ogbook" => ["promo"],
-    "english-vinglish" => ["words", "word"]
+    "english-vinglish" => ["word"]
   }
 
   @doc "Post types the Create form offers for a channel (all of them for an unknown skill)."

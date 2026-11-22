@@ -192,19 +192,9 @@ defmodule Socialmedia.Agent do
   end
 
   # Word of the day: the rabbit card on a wall colour the app picks
-  defp put_app_fields(data, %{skill: "english-vinglish"}, %Work{post_type: "word"} = work, _local) do
+  defp put_app_fields(data, %{skill: "english-vinglish"}, work, _local) do
     update_first(data, "days", fn x ->
       Map.merge(x, %{"day" => series_number(work), "style" => "wotd", "wall" => pick_wall(work)})
-    end)
-  end
-
-  defp put_app_fields(data, %{skill: "english-vinglish"} = c, work, _local) do
-    update_first(data, "days", fn x ->
-      Map.merge(x, %{
-        "day" => series_number(work),
-        "style" => "three",
-        "theme" => pick_colour(c, work)
-      })
     end)
   end
 
