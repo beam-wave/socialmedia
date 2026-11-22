@@ -108,6 +108,9 @@ defmodule Socialmedia.Agent do
   defp series_line(%{skill: "motivation2live"} = c, work),
     do: "Streak: this is Day #{series_number(work)} of #{c.base_data["total_days"] || 365}."
 
+  defp series_line(%{skill: "english-vinglish"}, work),
+    do: "This is Day #{series_number(work)}."
+
   defp series_line(%{skill: "puree-heartz"}, work),
     do: "This is quote number #{series_number(work)}."
 
@@ -135,6 +138,12 @@ defmodule Socialmedia.Agent do
     p = first(d, "posters")
     stats = p["stats"] |> List.wrap() |> Enum.map_join(", ", &"#{&1["label"]} #{&1["value"]}")
     "#{p["headline"]} | theme: #{p["theme"]} | stats: #{stats}"
+  end
+
+  defp summarize("english-vinglish", d) do
+    x = first(d, "days")
+    words = x["words"] |> List.wrap() |> Enum.map_join(", ", & &1["word"])
+    "words: #{words} | theme: #{x["theme"]} | hook: #{hook_q(x)}"
   end
 
   defp summarize(_quotes, d) do
@@ -181,6 +190,12 @@ defmodule Socialmedia.Agent do
     end)
   end
 
+  defp put_app_fields(data, %{skill: "english-vinglish"} = c, work, _local) do
+    update_first(data, "days", fn x ->
+      Map.merge(x, %{"day" => series_number(work), "theme" => pick_colour(c, work)})
+    end)
+  end
+
   defp put_app_fields(data, %{skill: "bollyvibe"}, _work, local) do
     Map.put(data, "today", local |> DateTime.to_date() |> Date.to_iso8601())
   end
@@ -190,7 +205,8 @@ defmodule Socialmedia.Agent do
   # Card colours the app rotates per channel (template themes); `base_data.themes` can override the list
   @colours %{
     "puree-heartz" => ~w(butter mint lilac sky coral),
-    "motivation2live" => ~w(ivory midnight forest volt cobalt sand)
+    "motivation2live" => ~w(ivory midnight forest volt cobalt sand),
+    "english-vinglish" => ~w(volt bubblegum electric sunset midnight)
   }
 
   @doc "A random card colour, never the one the channel's last post used."
@@ -200,6 +216,7 @@ defmodule Socialmedia.Agent do
     last =
       case recent do
         [%{"quotes" => [%{"theme" => t} | _]} | _] -> t
+        [%{"days" => [%{"theme" => t} | _]} | _] -> t
         _ -> nil
       end
 

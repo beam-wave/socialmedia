@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>English Words Studio</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Baloo+2:wght@500;600;700;800&family=Inter:ital,wght@0,500;0,600;1,500&display=swap">
+<link rel="stylesheet" href="../_shared/studio.css">
+<style>
+/* Art: Gen Z vocab drop. Neo-brutal sticker look: a loud flat background, white cards
+   with thick ink outlines and hard offset shadows, slightly tilted, sticker tags
+   (DAY, part of speech, EN / HI) and a scribble under the punch word of the heading.
+   Every theme is one loud background plus three card accents. */
+.art{--a-bg:#d4ff3a;--a-fg:#111111;--a-dim:rgba(17,17,17,.72);--ink:#111111;--paper:#ffffff;
+  --c1:#ff3d8b;--c2:#2f6bff;--c3:#ff7a1a;--hl:#d4ff3a;
+  --a-display:"Bricolage Grotesque",system-ui,sans-serif;--a-display-w:800;--a-body:"Inter",system-ui,sans-serif;--a-hindi:"Baloo 2","Noto Sans Devanagari",sans-serif}
+.art.t-volt{--a-bg:#d4ff3a;--c1:#ff3d8b;--c2:#2f6bff;--c3:#ff7a1a;--hl:#d4ff3a}
+.art.t-bubblegum{--a-bg:#ff8fc7;--c1:#2f6bff;--c2:#00b37a;--c3:#8b3dff;--hl:#ffe14d}
+.art.t-electric{--a-bg:#3d5afe;--a-fg:#ffffff;--a-dim:rgba(255,255,255,.82);--c1:#ff4fa3;--c2:#00c48c;--c3:#ff8a00;--hl:#ffe14d}
+.art.t-sunset{--a-bg:#ff7a1a;--c1:#2f6bff;--c2:#8b3dff;--c3:#00a86b;--hl:#ffe14d}
+.art.t-midnight{--a-bg:#121212;--a-fg:#ffffff;--a-dim:rgba(255,255,255,.75);--c1:#d4ff3a;--c2:#ff4fa3;--c3:#00a3d9;--hl:#d4ff3a;--sh:#d4ff3a}
+.art::after{display:none}
+/* confetti-ish dots in the background */
+.art::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.18;background:radial-gradient(circle,var(--a-fg) 2.5px,transparent 3px) 0 0/46px 46px}
+.art>*{position:relative}
+.v{padding:58px 66px 0;display:flex;flex-direction:column;gap:22px;color:var(--a-fg);font-family:var(--a-body)}
+.v.story{padding:150px 66px 0;gap:34px}
+.v-top{display:flex;justify-content:space-between;align-items:center;flex:none}
+.v-day{font-family:var(--a-display);font-weight:800;font-size:28px;letter-spacing:.06em;text-transform:uppercase;background:var(--paper);color:var(--ink);padding:8px 20px;border:4px solid var(--ink);border-radius:14px;box-shadow:5px 5px 0 var(--sh,var(--ink));transform:rotate(-4deg)}
+.v-handle{font-size:24px;font-weight:700;color:var(--a-fg)}
+.v-head{flex:none;margin:0;font-family:var(--a-display);font-weight:800;font-size:72px;line-height:.98;letter-spacing:-.03em;position:relative}
+.v-head u{text-decoration:none;position:relative;white-space:nowrap}
+.v-head u svg{position:absolute;left:-2%;bottom:-16px;width:104%;height:26px;color:var(--c1)}
+.v-head .hi{font-family:var(--a-hindi);font-weight:700;font-size:40px;letter-spacing:0;color:var(--a-dim);display:block;margin-top:14px}
+.v-head .tag{position:absolute;right:0;top:-6px;font-family:var(--a-display);font-size:24px;letter-spacing:.06em;background:var(--c2);color:#fff;border:4px solid var(--ink);border-radius:999px;padding:6px 16px;box-shadow:4px 4px 0 var(--sh,var(--ink));transform:rotate(8deg)}
+.v.story .v-head{font-size:92px}.v.story .v-head .hi{font-size:52px}
+.v-cards{flex:1;min-height:0;display:flex;flex-direction:column;gap:24px;padding:4px 8px 8px 0}
+.v-card{flex:1;min-height:0;display:flex;align-items:center;gap:20px;background:var(--paper);color:var(--ink);border:4px solid var(--ink);border-radius:26px;padding:20px 26px 18px 20px;box-shadow:9px 9px 0 var(--sh,var(--ink));overflow:hidden}
+.v-card.n1{--c:var(--c1);transform:rotate(-1.2deg)}.v-card.n2{--c:var(--c2);transform:rotate(.9deg)}.v-card.n3{--c:var(--c3);transform:rotate(-.6deg)}
+.v-num{flex:none;width:62px;height:62px;border-radius:50%;background:var(--c);color:#fff;border:4px solid var(--ink);display:grid;place-items:center;font-family:var(--a-display);font-weight:800;font-size:32px;transform:rotate(-8deg)}
+.art.t-midnight .v-card.n1 .v-num{color:var(--ink)}
+.v-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:5px}
+.v-word{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px}
+.v-word b{font-family:var(--a-display);font-weight:800;font-size:58px;line-height:1;letter-spacing:-.03em}
+.v-pos{font-family:var(--a-display);font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#fff;background:var(--c);border:3px solid var(--ink);padding:3px 10px;border-radius:10px;transform:rotate(-5deg)}
+.art.t-midnight .v-card.n1 .v-pos{color:var(--ink)}
+.v-say{display:inline-flex;align-items:center;gap:6px;font-family:var(--a-hindi);font-size:26px;font-weight:700;color:rgba(17,17,17,.7)}
+.v-say svg{width:24px;height:24px;color:var(--c)}
+.v-def,.v-mean{display:flex;align-items:baseline;gap:10px}
+.v-def{font-size:25px;line-height:1.28;font-weight:600}
+.v-lbl{flex:none;font-family:var(--a-display);font-size:15px;font-weight:800;letter-spacing:.08em;color:var(--ink);background:var(--hl);border:2.5px solid var(--ink);border-radius:6px;padding:1px 6px;transform:translateY(-3px)}
+.v-mean{font-family:var(--a-hindi);font-weight:800;font-size:38px;line-height:1.12}
+.v-mean mark{background-image:linear-gradient(var(--c),var(--c));background-repeat:no-repeat;background-size:100% 34%;background-position:0 78%;background-color:transparent;color:inherit;padding:0 5px}
+.v-mean mark{background-image:linear-gradient(color-mix(in srgb,var(--c) 38%,transparent),color-mix(in srgb,var(--c) 38%,transparent))}
+.v-ex{margin:3px 0 0;font-size:23px;line-height:1.3}
+.v-ex i{font-style:italic;font-weight:500}
+.v-ex i em{font-style:normal;font-weight:800;color:var(--c)}
+.art.t-midnight .v-card.n1 .v-ex i em{color:#5c7a00}
+.v-ex span{display:block;font-family:var(--a-hindi);font-size:22px;font-weight:500;color:rgba(17,17,17,.62)}
+.v.story .v-word b{font-size:76px}.v.story .v-mean{font-size:48px}.v.story .v-def{font-size:31px}.v.story .v-ex{font-size:29px}.v.story .v-ex span{font-size:27px}.v.story .v-say{font-size:32px}
+/* Footer: comment question + Follow sticker */
+.v-foot{flex:none;display:flex;align-items:center;gap:14px;padding:12px 0 32px;font-size:24px;line-height:1.3;font-weight:700;color:var(--a-fg)}
+.v.story .v-foot{padding-bottom:120px}
+.v-foot svg{width:32px;height:32px;flex:none}
+.v-foot .t{flex:1;min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.v-foot .t em{font-style:normal;background:var(--paper);color:var(--ink);padding:0 6px;border-radius:6px}
+.v-foot b{flex:none;font-family:var(--a-display);font-weight:800;font-size:22px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);background:var(--paper);border:4px solid var(--ink);border-radius:999px;padding:6px 18px;box-shadow:4px 4px 0 var(--sh,var(--ink));transform:rotate(-3deg)}
+/* Reel (format "reel"), 10 s: stickers slap on, heading pops with its scribble drawn,
+   each card drops in with a wobble (0.9s, 2.8s, 4.7s), number and part-of-speech
+   stickers slap on, the Hindi marker swipes; footer at 6.8s. */
+.reel .v-day{animation:vSlap .45s .1s both cubic-bezier(.3,1.6,.5,1)}
+.reel .v-handle{animation:vUp .5s .2s both}
+.reel .v-head{animation:vUp .6s .3s both cubic-bezier(.2,.8,.2,1)}
+.reel .v-head u svg path{stroke-dasharray:1;stroke-dashoffset:1;animation:vDraw .6s .8s both ease-out}
+.reel .v-head .tag{animation:vSlapT .45s 1s both cubic-bezier(.3,1.6,.5,1)}
+.reel .v-card{animation:vDrop .7s calc(.9s + var(--k) * 1.9s) both cubic-bezier(.3,1.4,.5,1)}
+.reel .v-num{animation:vSlap .4s calc(1.25s + var(--k) * 1.9s) both cubic-bezier(.3,1.6,.5,1)}
+.reel .v-pos{animation:vSlapP .4s calc(1.4s + var(--k) * 1.9s) both cubic-bezier(.3,1.6,.5,1)}
+.reel .v-def{animation:vUp .45s calc(1.45s + var(--k) * 1.9s) both}
+.reel .v-mean mark{animation:vMark .5s calc(1.8s + var(--k) * 1.9s) both ease-out}
+.reel .v-ex{animation:vUp .5s calc(2s + var(--k) * 1.9s) both}
+.reel .v-say svg{animation:vPulse .7s calc(1.5s + var(--k) * 1.9s) 3 alternate ease-in-out}
+.reel .v-foot{animation:vUp .6s 6.8s both}
+@keyframes vSlap{from{opacity:0;transform:scale(2.2) rotate(-14deg)}to{opacity:1;transform:rotate(-4deg)}}
+@keyframes vSlapT{from{opacity:0;transform:scale(2) rotate(20deg)}to{opacity:1;transform:rotate(8deg)}}
+@keyframes vSlapP{from{opacity:0;transform:scale(2) rotate(-16deg)}to{opacity:1;transform:rotate(-5deg)}}
+@keyframes vUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes vDrop{from{opacity:0;transform:translateY(-90px) rotate(-7deg) scale(.92)}}
+@keyframes vDraw{to{stroke-dashoffset:0}}
+@keyframes vMark{from{background-size:0 34%}to{background-size:100% 34%}}
+@keyframes vPulse{from{transform:scale(1)}to{transform:scale(1.35)}}
+</style></head>
+<body><div id="app"></div>
+<script src="../_shared/studio.js"></script>
+<script>
+const {esc,hl,clean,pad,hookOf,captionHook}=Studio;
+const BUBBLE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>`;
+const SPEAK=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>`;
+const HOOKS=[
+  {q:"Make a sentence with *one of these words*.",q_hi:"इनमें से *एक शब्द* से वाक्य बनाओ।"},
+  {q:"Which word did you *already know*?",q_hi:"कौन-सा शब्द *पहले से पता* था?",options:["1","2","3","None"]},
+  {q:"Which word will you *use today*?",q_hi:"आज कौन-सा शब्द *इस्तेमाल* करोगे?",options:["1","2","3"]}
+];
+// "*word*" in the meaning becomes a marker highlight
+const mark=s=>esc(s||"").replace(/\*([^*]+)\*/g,"<mark>$1</mark>");
+const SCRIBBLE=`<svg viewBox="0 0 300 26" preserveAspectRatio="none"><path pathLength="1" d="M4 16 C 60 4, 120 24, 180 12 S 270 8, 296 14" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round"/></svg>`;
+// The last word of the heading gets the scribble underline
+const headline=t=>{const m=String(t).trim().match(/^(.*?)(\S+)$/);return m?`${esc(m[1])}<u>${esc(m[2])}${SCRIBBLE}</u>`:esc(t);};
+function posts(d){
+  return (d.days||[]).map((x,i)=>{
+    const reel=d.format==="reel", story=reel||d.format==="story", size=story?"story":"post", theme="t-"+(x.theme||d.theme||"volt");
+    const day=+x.day||i+1, h=hookOf(d,x,HOOKS[0]), words=(x.words||[]).slice(0,3);
+    const card=`<section class="art v ${theme}${story?" story":""}${reel?" reel":""}"${reel?' data-seconds="10"':""}>
+      <div class="v-top"><span class="v-day">Day ${pad(day,3)}</span><span class="v-handle">${esc(d.handle)}</span></div>
+      <h1 class="v-head">${headline(x.title||"3 words to sound smarter")}<span class="hi">${esc(x.title_hi||"आज के 3 अंग्रेज़ी शब्द")}</span><span class="tag">${esc(x.sticker||"No cap")}</span></h1>
+      <div class="v-cards">${words.map((w,k)=>`<div class="v-card n${k+1}" style="--k:${k}">
+        <div class="v-num">${k+1}</div>
+        <div class="v-body">
+          <div class="v-word"><b>${esc(w.word)}</b>${w.pos?`<span class="v-pos">${esc(w.pos)}</span>`:""}${w.say?`<span class="v-say">${SPEAK}${esc(w.say)}</span>`:""}</div>
+          ${w.en?`<div class="v-def"><span class="v-lbl">EN</span><span>${esc(w.en)}</span></div>`:""}
+          <div class="v-mean"><span class="v-lbl">HI</span><span>${mark(w.hi)}</span></div>
+          ${w.example?`<p class="v-ex"><i>“${hl(w.example)}”</i>${w.example_hi?`<span>${esc(w.example_hi)}</span>`:""}</p>`:""}
+        </div></div>`).join("")}</div>
+      <div class="v-foot">${BUBBLE}<span class="t">${hl(h.q)} Comment below</span><b>Follow</b></div>
+    </section>`;
+    const caption=`DAY ${pad(day,3)} · 3 English words 📚
+
+${words.map((w,k)=>`${k+1}️⃣ ${w.word}${w.pos?" ("+w.pos+")":""}${w.en?"\n📖 "+w.en:""}\n🇮🇳 ${clean(w.hi)}${w.say?"\n🔊 "+w.say:""}${w.example?"\n✍️ "+clean(w.example):""}${w.example_hi?"\n   "+w.example_hi:""}`).join("\n\n")}
+
+${captionHook(h)}
+
+Save it and revise tonight. Follow ${d.handle} for 3 new words every day 🔥
+
+${d.tags||""}`;
+    return {id:"day"+pad(day,3),label:`Day ${day}`,slides:[{name:reel?"reel":"card",html:card,size}],caption};
+  });
+}
+Studio.mount({
+  channel:"@__english.vinglish__", title:"English Words Studio", accent:"#ff3d8b", itemsKey:"days",
+  sub:"One card a day: three English words with how to say them in Devanagari, the Hindi meaning and an example in both languages. The reel slides the cards in one by one.",
+  note:"Pick useful everyday words (office, college, conversations), not rare dictionary words. Check meanings and pronunciation.",
+  controls:[{key:"theme",label:"Theme",perItem:true,options:[["volt","Volt (lime)"],["bubblegum","Bubblegum (pink)"],["electric","Electric (blue)"],["sunset","Sunset (orange)"],["midnight","Midnight (black)"]]},{key:"format",label:"Size",options:[["post","Feed post 4:5"],["story","Story 9:16"],["reel","Animated reel 9:16"]]}],
+  hooks:HOOKS, posts,
+  guide:[["word / pos","The English word and its part of speech (noun, verb, adj.).","Everyday, useful words."],["say","How to say it, in Devanagari.","e.g. रि·ज़ि·लिएंट"],["en","A short English meaning.","Simple words, under 8."],["hi","The Hindi meaning.","Wrap the main meaning in *stars* for the marker."],["example / example_hi","One short sentence, and its Hindi.","Wrap the word in *stars* in the English example."],["hook","The comment question.","Shown small in the footer."]],
+  sample:{theme:"volt",format:"post",handle:"@__english.vinglish__",
+    tags:"#englishvocabulary #learnenglish #spokenenglish #englishwithhindi #vocabulary #englishspeaking #englishvinglish",
+    days:[
+      {day:12,words:[
+        {word:"Resilient",pos:"adj.",say:"रि·ज़ि·लिएंट",en:"able to bounce back after problems",hi:"*लचीला*, जल्दी हार न मानने वाला",example:"She stayed *resilient* after failing twice.",example_hi:"दो बार फेल होकर भी वो हिम्मत नहीं हारी।"},
+        {word:"Procrastinate",pos:"verb",say:"प्रो·क्रैस·टि·नेट",en:"to keep delaying something you should do",hi:"काम को *टालते रहना*",example:"Stop *procrastinating* and start the report.",example_hi:"टालना बंद करो और रिपोर्ट शुरू करो।"},
+        {word:"Candid",pos:"adj.",say:"कैन·डिड",en:"honest and direct",hi:"*साफ़-साफ़* और ईमानदारी से कहने वाला",example:"Thanks for your *candid* feedback.",example_hi:"खुलकर फ़ीडबैक देने के लिए शुक्रिया।"}],
+       hook:{q:"Make a sentence with *one of these words*.",q_hi:"इनमें से *एक शब्द* से वाक्य बनाओ।"}},
+      {day:13,theme:"electric",words:[
+        {word:"Meticulous",pos:"adj.",say:"मे·टि·क्यू·लस",hi:"*बारीकी* से हर काम करने वाला",example:"He is *meticulous* about his notes.",example_hi:"वो अपने नोट्स को लेकर बहुत बारीक है।"},
+        {word:"Alleviate",pos:"verb",say:"अ·ली·वी·एट",hi:"दर्द या परेशानी *कम करना*",example:"A short walk can *alleviate* stress.",example_hi:"थोड़ी सैर तनाव कम कर सकती है।"},
+        {word:"Ambiguous",pos:"adj.",say:"ऐम·बि·ग्यू·अस",hi:"जिसके *एक से ज़्यादा मतलब* हों",example:"His reply was *ambiguous*.",example_hi:"उसका जवाब गोलमोल था।"}],
+       hook:{q:"Which word did you *already know*?",q_hi:"कौन-सा शब्द *पहले से पता* था?",options:["1","2","3","None"]}}
+    ]}
+});
+</script></body></html>

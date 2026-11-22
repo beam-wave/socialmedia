@@ -61,6 +61,22 @@ channels = [
     base_data: %{"theme" => "marquee", "format" => "post"}
   },
   %{
+    name: "English Vinglish",
+    handle: "@__english.vinglish__",
+    default_post_time: ~T[07:00:00],
+    skill: "english-vinglish",
+    template_dir: "english__vinglish",
+    make_post: true,
+    make_reel: true,
+    base_data: %{
+      "theme" => "volt",
+      "format" => "post",
+      "tags" =>
+        "#englishvocabulary #learnenglish #spokenenglish #englishwithhindi #vocabulary #englishspeaking #dailyenglish #englishvinglish",
+      "series_start" => %{"n" => 1}
+    }
+  },
+  %{
     name: "OG Book",
     handle: "@ogbook",
     default_post_time: ~T[19:00:00],

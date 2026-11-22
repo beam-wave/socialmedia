@@ -122,6 +122,8 @@ defmodule SocialmediaWeb.AdminComponents do
   def post_type_label("fixture"), do: "Match day"
   def post_type_label("result"), do: "Result"
   def post_type_label("movie"), do: "Movie"
+  def post_type_label("words"), do: "3 words"
+  def post_type_label("promo"), do: "Promo"
   def post_type_label(other), do: other
 
   @doc "Presigned URL of a slide in S3 for <img src> (valid 1 hour)."
@@ -142,6 +144,7 @@ defmodule SocialmediaWeb.PostText do
     cond do
       q = first(d, "quotes") -> clean(q["quote"])
       m = first(d, "movies") -> m["title"]
+      w = first(d, "days") -> w["words"] |> List.wrap() |> Enum.map_join(" · ", & &1["word"])
       p = first(d, "posts") -> "#{p["team1"]} v #{p["team2"]} · #{p["match"]}"
       d["title"] -> clean(d["title"]) <> if(d["domain"], do: " (#{d["domain"]})", else: "")
       true -> nil
