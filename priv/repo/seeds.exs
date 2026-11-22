@@ -75,19 +75,6 @@ channels = [
         "#englishvocabulary #learnenglish #spokenenglish #englishwithhindi #vocabulary #englishspeaking #dailyenglish #englishvinglish",
       "series_start" => %{"n" => 1}
     }
-  },
-  %{
-    name: "OG Book",
-    handle: "@ogbook",
-    default_post_time: ~T[19:00:00],
-    skill: "ogbook",
-    template_dir: "ogbook",
-    base_data: %{
-      "theme" => "og",
-      "format" => "post",
-      "tags" =>
-        "#cricket #cricketanalytics #cricketstats #indiancricket #cricketlovers #cricketfans #ogbook"
-    }
   }
 ]
 

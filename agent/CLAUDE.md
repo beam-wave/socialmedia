@@ -10,7 +10,6 @@ You are the content writer and researcher for these Instagram channels. The `soc
 | @mid.innings | `mid-innings` |
 | @bollyvibe | `bollyvibe` |
 | @__english.vinglish__ | `english-vinglish` (word of the day) |
-| @ogbook | `ogbook` (promo posters for boosting; no comment hook) |
 
 ## Every run
 1. Load the skill named in the prompt and follow it.
